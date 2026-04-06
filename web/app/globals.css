@@ -3,8 +3,30 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --surface-0: #0a0a0f;
+    --surface-1: #12121a;
+    --surface-2: #1a1a26;
+    --surface-3: #242435;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+  }
+
+  .light {
+    --surface-0: #ffffff;
+    --surface-1: #f9fafb;
+    --surface-2: #f3f4f6;
+    --surface-3: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+  }
+
   body {
-    @apply bg-surface-0 text-gray-100 antialiased;
+    background-color: var(--surface-0);
+    color: var(--text-primary);
+    @apply antialiased;
   }
 
   ::-webkit-scrollbar {
