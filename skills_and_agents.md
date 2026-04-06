@@ -339,9 +339,17 @@ Week 6:  CLAUDE.md generator — onboarding step 3.5 (after sources)          �
          E2E verification: all checks pass                                   ✓ DONE
          GitHub Pages demo deployed                                          ✓ DONE
 
-Phase II — Personal agent layer:
-Week 7+: Gmail, Drive, Telegram connectors (stubs exist)                    → IN PROGRESS
-         Paid tier, Stripe billing (webhook exists, logic stub)
+Phase II — Personal agent layer ✅ COMPLETE (2026-04-06):
+Week 7:  Gmail connector — OAuth, poll, text extraction                     ✓ DONE
+         Google Drive connector — OAuth, Docs/PDF/Sheets                    ✓ DONE
+         Telegram connector — Bot API, message polling                      ✓ DONE
+         WhatsApp connector — Business Cloud API                            ✓ DONE
+         arXiv connector — API query by categories (paid tier)              ✓ DONE
+         Connector infrastructure — OAuth helper, API routes, polling       ✓ DONE
+Week 8:  Stripe billing — checkout, portal, webhook logic, entitlement      ✓ DONE
+         Billing UI — plan display, upgrade, manage subscription            ✓ DONE
+         Connected accounts UI — status, connect/disconnect, poll           ✓ DONE
+         Entitlement middleware — paid tier gating for features              ✓ DONE
 
 Phase III — Power features:
          pgvector semantic search (BM25 in Phase I)
