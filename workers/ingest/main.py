@@ -21,7 +21,7 @@ from workers.ingest.fetchers.pdf import PDFFetcher
 from workers.ingest.fetchers.rss import RSSFetcher
 from workers.ingest.fetchers.dataset import DatasetFetcher
 from workers.ingest.image_colocator import colocate_images
-from workers.ingest.manifest import append_manifest, create_manifest_entry
+from workers.ingest.manifest import append_manifest, create_manifest_entry, read_manifest, write_manifest
 from workers.ingest.quality.pre_filter import pre_filter
 from workers.ingest.quality.scorer import score_content
 
@@ -102,30 +102,41 @@ async def ingest(
         updated_md = await colocate_images(result.content_md, result.slug, user_id, result.images)
         write_text(raw_path, updated_md, "text/markdown")
 
-    # 6. Quality score (async — doesn't block return)
-    quality = None
-    try:
-        quality = await score_content(result.content_md, provider, user_id)
-        logger.info(f"Quality score for {result.slug}: {quality.overall}")
-    except Exception as e:
-        logger.warning(f"Quality scoring failed for {result.slug}: {e}")
-
-    # 7. Update manifest
+    # 6. Update manifest FIRST (non-negotiable #7: scoring never blocks ingest completion)
     entry = create_manifest_entry(
         slug=result.slug,
         url=url,
         source_type=resolved_type,
         metadata=result.metadata,
-        quality_score=quality.overall if quality else None,
+        quality_score=None,  # updated async after return
     )
     append_manifest(user_id, entry)
+
+    # 7. Fire-and-forget quality scoring (non-negotiable #7: never blocks ingest return)
+    asyncio.create_task(_score_and_update(result.slug, result.content_md, provider, user_id))
 
     return {
         "slug": result.slug,
         "suppressed": False,
-        "quality_score": quality.overall if quality else None,
+        "quality_score": None,  # scored async, updated in manifest later
         "word_count": result.metadata.get("word_count", 0),
     }
+
+
+async def _score_and_update(slug: str, content_md: str, provider: str, user_id: str) -> None:
+    """Background task: score content and update manifest entry."""
+    try:
+        quality = await score_content(content_md, provider, user_id)
+        logger.info(f"Quality score for {slug}: {quality.overall}")
+        # Update manifest with score
+        entries = read_manifest(user_id)
+        for entry in entries:
+            if entry["slug"] == slug:
+                entry["quality_score"] = quality.overall
+                break
+        write_manifest(user_id, entries)
+    except Exception as e:
+        logger.warning(f"Background quality scoring failed for {slug}: {e}")
 
 
 def main():
