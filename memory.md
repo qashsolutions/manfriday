@@ -47,8 +47,8 @@ details:
 phase: I
 phase_status: COMPLETE (spec-aligned, deployed, all audits pass)
 last_build_session: 2026-04-06
-total_python_files: 70
-total_typescript_files: 35
+total_python_files: 72
+total_typescript_files: 37
 compile_status: clean (zero errors, both Python and TypeScript)
 branch: claude/review-codebase-uxz9o (merged to main)
 demo_url: https://qashsolutions.github.io/manfriday/
@@ -76,13 +76,24 @@ completed_layers:
   - infra/terraform               # GCS, SAs, IAM, Cloud Run, Scheduler
   - github_pages                  # static demo with mock data, GitHub Actions CI
 
+completed_phase_ii:
+  - connectors/gmail.py     # OAuth + Gmail API polling + text extraction
+  - connectors/gdrive.py    # OAuth + Drive API (Docs/PDF/Sheets)
+  - connectors/telegram.py  # Bot API + getUpdates polling
+  - connectors/whatsapp.py  # Business Cloud API
+  - connectors/arxiv.py     # API query by categories (paid tier)
+  - connectors/oauth.py     # Shared Google OAuth helper
+  - api/routers/connectors  # connect, disconnect, connected-accounts, poll
+  - api/routers/billing     # Stripe checkout, portal, subscription
+  - api/routers/stripe      # Full webhook handlers
+  - api/middleware/entitlement  # Paid tier gating
+  - web: ConnectedAccountCard, SearchModeSelector, billing page, connected page
+
 pending_layers:
-  - connectors (gmail, gdrive, telegram, whatsapp, arxiv)  # Phase II
-  - pgvector semantic search                                 # Phase II
-  - mobile app (Expo)                                        # Phase II
-  - Stripe billing logic                                     # Phase II
-  - world model graph                                        # Phase III
-  - LoRA fine-tune pipeline                                  # Phase III
+  - pgvector semantic search     # Phase III (trigger: 200+ articles)
+  - mobile app (Expo)            # Phase III
+  - world model graph            # Phase III
+  - LoRA fine-tune pipeline      # Phase III (trigger: 500+ articles)
 ```
 
 ---

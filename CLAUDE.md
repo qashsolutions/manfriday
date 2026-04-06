@@ -200,13 +200,22 @@ Final exhaustive audit against `build_prompt.md` + `skills_and_agents.md` — 7 
 | `infra/terraform/` | Done | GCS, 4 service accounts, IAM conditions, Cloud Run, Cloud Scheduler |
 | GitHub Pages demo | Done | Static export with mock data, GitHub Actions workflow |
 
-### What's NOT built yet (Phase II+)
+### Phase II — built 2026-04-06
 
-- Gmail, Drive, Telegram, WhatsApp, arXiv connectors (stubs only)
-- pgvector semantic search (BM25 only in Phase I)
-- World model graph
-- LoRA fine-tune pipeline
-- Stripe billing integration (webhook exists, logic is stub)
+| Layer | Status | Files |
+|-------|--------|-------|
+| `workers/ingest/connectors/` | Done | Gmail, Drive, Telegram, WhatsApp, arXiv (full implementations), OAuth helper |
+| `api/routers/connectors.py` | Done | connect, disconnect, connected-accounts, poll endpoints |
+| `api/routers/billing.py` | Done | Stripe checkout, portal, subscription status |
+| `api/routers/stripe.py` | Done | Full webhook handlers (subscription lifecycle + payment) |
+| `api/middleware/entitlement.py` | Done | Paid tier gating (arxiv, pgvector, priority_support) |
+| `web/` (Phase II) | Done | ConnectedAccountCard, SearchModeSelector, billing page, connected accounts page |
+
+### What's NOT built yet (Phase III)
+
+- pgvector semantic search (BM25 only — upgrade when wikis exceed 200 articles)
+- World model graph (entity relationship extraction + graph.json)
+- LoRA fine-tune pipeline (trigger: 500+ articles, power users)
 - Mobile app (Expo directory exists, no code)
 
 ## Related documents
