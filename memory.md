@@ -24,9 +24,10 @@ wiki_name: "{user's name for their wiki}"
 
 ```yaml
 audit_date: 2026-04-06
-audited_against: skills_and_agents.md
-gaps_found: 4
-gaps_fixed: 4
+audited_against: build_prompt.md + skills_and_agents.md
+gaps_found: 7
+gaps_fixed: 7
+phase_I_status: COMPLETE — fully spec-aligned
 details:
   - gap: interactive ingest mode (Agent 1 step 2)
     status: fixed — added interactive flag to compile_wiki
@@ -44,7 +45,7 @@ details:
 
 ```yaml
 phase: I
-phase_status: code-complete + deployed + spec-aligned
+phase_status: COMPLETE (spec-aligned, deployed, all audits pass)
 last_build_session: 2026-04-06
 total_python_files: 70
 total_typescript_files: 35

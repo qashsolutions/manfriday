@@ -325,7 +325,7 @@ gs://manfriday-kb/{user_id}/
 This is the sequence to build ManFriday, now that docs are complete:
 
 ```
-Phase I — Core KB engine (CODE-COMPLETE as of 2026-04-06):
+Phase I — Core KB engine ✅ COMPLETE (2026-04-06):
 
 Week 1:  workers/ingest/ — jina, rss, github, pdf, quality scorer          ✓ DONE
 Week 2:  workers/compile/ — index_writer, article_writer, backlinks,        ✓ DONE
@@ -335,10 +335,12 @@ Week 4:  web/ — wiki browser, Q&A interface, sources, auth, settings        �
 Week 5:  workers/lint/ — full 8-check checklist, web search, lint_queue     ✓ DONE
          memory system — episodes.jsonl, memory.md, output filing
 Week 6:  CLAUDE.md generator — onboarding step 3.5 (after sources)          ✓ DONE
-         Integration testing                                                 → NEXT
+         Spec audit: 7 gaps found, 7 fixed                                  ✓ DONE
+         E2E verification: all checks pass                                   ✓ DONE
+         GitHub Pages demo deployed                                          ✓ DONE
 
 Phase II — Personal agent layer:
-Week 7+: Gmail, Drive, Telegram connectors (stubs exist)
+Week 7+: Gmail, Drive, Telegram connectors (stubs exist)                    → IN PROGRESS
          Paid tier, Stripe billing (webhook exists, logic stub)
 
 Phase III — Power features:

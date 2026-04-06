@@ -155,11 +155,11 @@ At the start of every session:
 
 ## Build status
 
-Phase I is **code-complete and deployed** as of 2026-04-06.
+Phase I is **COMPLETE** as of 2026-04-06. Fully spec-aligned, deployed to GitHub Pages, all audits pass.
 
 ### Spec audit findings (2026-04-06)
 
-Audited against `skills_and_agents.md` — 4 gaps found and fixed:
+Final exhaustive audit against `build_prompt.md` + `skills_and_agents.md` — 7 gaps found and fixed:
 
 | Gap | Spec Requirement | Resolution |
 |-----|-----------------|------------|
