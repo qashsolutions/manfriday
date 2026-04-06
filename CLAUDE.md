@@ -157,6 +157,17 @@ At the start of every session:
 
 Phase I is **code-complete and deployed** as of 2026-04-06.
 
+### Spec audit findings (2026-04-06)
+
+Audited against `skills_and_agents.md` — 4 gaps found and fixed:
+
+| Gap | Spec Requirement | Resolution |
+|-----|-----------------|------------|
+| Interactive ingest | Agent 1 step 2: "DISCUSS with user before writing" | Added `interactive` flag to `compile_wiki` — when True, returns takeaways for user approval before writing |
+| Tool name wrappers | Spec defines `read_raw()`, `read_wiki()`, `write_wiki()` as named tools | Added wrapper functions in `api/tools/registry.py` matching spec names |
+| Playbook learning | Agent 4: "Detect patterns → update playbook" | Added `playbook_writer.py` — analyzes last 30 episodes for answer_format, detail_level, topics patterns → writes `playbooks/*.md` |
+| Active threads | Agent 4: "Recompute active_threads from last 30 episodes" post-Q&A | Added auto-recomputation in Q&A completion path, updates memory.md |
+
 ### E2E verification (2026-04-06)
 
 | Check | Result |

@@ -32,12 +32,82 @@ from workers.compile.log_writer import append_ingest_log
 from workers.compile.schema_writer import update_memory
 from workers.compile.lint_queue import read_lint_queue, write_lint_queue
 from workers.compile.output_ingester import get_unprocessed_outputs, process_output
+from workers.compile.playbook_writer import update_playbook, update_active_threads
 
 logger = logging.getLogger(__name__)
 
 
+async def compile_wiki_interactive(
+    slug: str,
+    user_id: str,
+    provider: str = "anthropic",
+) -> dict:
+    """Interactive compile — returns takeaways for user approval before writing.
+
+    Called by Ingest Agent in conversational mode (skills_and_agents.md, Agent 1 step 2).
+    Returns takeaways dict; caller decides whether to proceed with full compile.
+    """
+    raw_path = user_path(user_id, "raw", f"{slug}.md")
+    raw_content = read_text(raw_path)
+
+    # Generate takeaways via LLM
+    from shared.python.manfriday_core.llm import LLMConfig, call
+
+    config = LLMConfig(
+        provider=provider,
+        temperature=0.3,
+        max_tokens=500,
+        system_prompt="You are a wiki assistant. Summarize key takeaways from this source in 3-5 bullet points. Mention entities and concepts you'd create pages for.",
+    )
+    response = await call(
+        messages=[{"role": "user", "content": f"Source ({slug}):\n{raw_content[:6000]}"}],
+        config=config,
+        user_id=user_id,
+    )
+
+    return {
+        "slug": slug,
+        "takeaways": response.content,
+        "status": "awaiting_approval",
+    }
+
+
+async def compile_wiki_approved(slug: str, user_id: str, provider: str = "anthropic") -> dict:
+    """Execute compile for a single slug after user approves takeaways."""
+    raw_path = user_path(user_id, "raw", f"{slug}.md")
+    raw_content = read_text(raw_path)
+
+    article = await write_article(slug, user_id, provider)
+    entities = await extract_and_write_entities(slug, raw_content, user_id, provider)
+    concepts = await extract_and_write_concepts(slug, raw_content, user_id, provider)
+
+    pages_created = [e["name"] for e in entities if e["action"] == "created"]
+    pages_created += [c["name"] for c in concepts if c["action"] == "created"]
+    pages_updated = [e["name"] for e in entities if e["action"] == "updated"]
+    pages_updated += [c["name"] for c in concepts if c["action"] == "updated"]
+
+    append_ingest_log(
+        user_id=user_id,
+        source_title=slug,
+        pages_updated=pages_updated,
+        pages_created=[slug] + pages_created,
+        takeaway=f"Compiled {slug}: {len(entities)} entities, {len(concepts)} concepts",
+    )
+    mark_compiled(user_id, slug)
+
+    await rebuild_index(user_id, provider)
+    rebuild_backlinks(user_id)
+
+    return {
+        "slug": slug,
+        "entities": len(entities),
+        "concepts": len(concepts),
+        "pages_created": pages_created,
+    }
+
+
 async def compile_user(user_id: str, provider: str | None = None) -> dict:
-    """Run full compile pipeline for a user.
+    """Run full compile pipeline for a user (batch mode).
 
     Returns:
         Summary of compile results
@@ -119,6 +189,13 @@ async def compile_user(user_id: str, provider: str | None = None) -> dict:
 
     # 8. Update memory.md
     stats = update_memory(user_id)
+
+    # 8b. Post-compile: update playbook + active threads (Agent 4 spec)
+    try:
+        update_playbook(user_id)
+        update_active_threads(user_id)
+    except Exception as e:
+        logger.warning(f"Playbook/threads update failed: {e}")
 
     # 9. Process lint_queue.md — generate articles for pending candidates
     lint_processed = 0
