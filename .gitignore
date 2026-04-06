@@ -39,3 +39,4 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+web/tsconfig.tsbuildinfo

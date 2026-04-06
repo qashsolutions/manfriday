@@ -1,10 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 
+/** Auth-related route prefixes that should bypass the sidebar shell. */
+const AUTH_ROUTES = ["/signup", "/callback", "/setup", "/login"];
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
+
+  // Auth pages render without sidebar chrome
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
