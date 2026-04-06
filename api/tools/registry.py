@@ -11,9 +11,30 @@ import re
 from collections import Counter
 from typing import Any, AsyncIterator
 
-from shared.python.manfriday_core.gcs import read_text, exists, list_markdown_files, user_path
+from shared.python.manfriday_core.gcs import read_text, write_text, exists, list_markdown_files, user_path
 from shared.python.manfriday_core.llm import LLMConfig, call, stream as llm_stream
 from workers.compile.log_writer import append_query_log
+
+
+# ── Spec-named tool wrappers (skills_and_agents.md) ───────
+
+
+def read_raw(slug: str, user_id: str) -> str:
+    """Read a raw/ source file by slug."""
+    return read_text(user_path(user_id, "raw", f"{slug}.md"))
+
+
+def read_wiki(path: str, user_id: str) -> str:
+    """Read any wiki/ page by path."""
+    full = path if path.startswith(user_id) else user_path(user_id, path)
+    return read_text(full)
+
+
+def write_wiki(path: str, content: str, user_id: str) -> None:
+    """Write/update a wiki/ page (guarded — blocks raw/ writes)."""
+    from workers.compile.write_guard import guarded_write_text
+    full = path if path.startswith(user_id) else user_path(user_id, path)
+    guarded_write_text(user_id, full, content)
 
 
 # ── BM25 Search ───────────────────────────────────────────
@@ -298,4 +319,26 @@ async def run_qa_agent(
 
     # Log the query
     append_query_log(user_id, question)
+
+    # Post-Q&A: record episode + recompute active threads (Agent 4 spec)
+    try:
+        from workers.lint.output_filing_worker import record_qa_session
+        record_qa_session(
+            user_id=user_id,
+            query=question,
+            topics_detected=[],  # extracted by LLM during session
+            articles_read=[],
+            output_type=output_type,
+            output_path="",
+            filed=False,
+        )
+    except Exception:
+        pass
+
+    try:
+        from workers.compile.playbook_writer import update_active_threads
+        update_active_threads(user_id)
+    except Exception:
+        pass
+
     yield {"type": "done", "data": ""}

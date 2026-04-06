@@ -20,13 +20,33 @@ wiki_name: "{user's name for their wiki}"
 
 ---
 
+## Spec audit (2026-04-06)
+
+```yaml
+audit_date: 2026-04-06
+audited_against: skills_and_agents.md
+gaps_found: 4
+gaps_fixed: 4
+details:
+  - gap: interactive ingest mode (Agent 1 step 2)
+    status: fixed — added interactive flag to compile_wiki
+  - gap: tool name wrappers (read_raw, read_wiki, write_wiki)
+    status: fixed — wrapper functions in api/tools/registry.py
+  - gap: playbook learning (Agent 4 post-compile)
+    status: fixed — playbook_writer.py analyzes episode patterns
+  - gap: active_threads recomputation (Agent 4 post-Q&A)
+    status: fixed — auto-recompute after Q&A, updates memory.md
+```
+
+---
+
 ## Build state (updated 2026-04-06)
 
 ```yaml
 phase: I
-phase_status: code-complete + deployed
+phase_status: code-complete + deployed + spec-aligned
 last_build_session: 2026-04-06
-total_python_files: 67
+total_python_files: 70
 total_typescript_files: 35
 compile_status: clean (zero errors, both Python and TypeScript)
 branch: claude/review-codebase-uxz9o (merged to main)
