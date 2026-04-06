@@ -3,6 +3,8 @@
 > This file is read by ManFriday at the start of every session.
 > It captures durable facts about this user's wiki, preferences, and history
 > that the agent needs to operate intelligently across sessions.
+>
+> See also: [CLAUDE.md](CLAUDE.md) (agent constitution), [build_prompt.md](build_prompt.md) (build plan + mono-repo spec), [skills_and_agents.md](skills_and_agents.md) (agent/skill definitions)
 
 ---
 
@@ -14,6 +16,37 @@ wiki_created: YYYY-MM-DD
 provider: anthropic | openai | gemini
 model: claude-sonnet-4-20250514
 wiki_name: "{user's name for their wiki}"
+```
+
+---
+
+## Build state (updated 2026-04-06)
+
+```yaml
+phase: I
+phase_status: code-complete
+last_build_session: 2026-04-06
+total_python_files: 67
+total_typescript_files: 22
+compile_status: clean (zero errors)
+branch: claude/review-codebase-uxz9o
+
+completed_layers:
+  - shared/python/manfriday_core  # gcs.py, secrets.py, llm.py
+  - workers/ingest                # 5 fetchers, quality scoring, manifest, schema gen
+  - workers/compile               # article/entity/concept/index/log/backlinks writers
+  - workers/lint                  # 8-check health, web search, imputer, episodes
+  - api                           # FastAPI, 20 endpoints, JWT auth, BM25 search, SSE Q&A
+  - web                           # Next.js 14, 15 pages, 15 components
+  - infra/terraform               # GCS, SAs, IAM, Cloud Run, Scheduler
+
+pending_layers:
+  - connectors (gmail, gdrive, telegram, whatsapp, arxiv)  # Phase II
+  - pgvector semantic search                                 # Phase II
+  - mobile app (Expo)                                        # Phase II
+  - Stripe billing logic                                     # Phase II
+  - world model graph                                        # Phase III
+  - LoRA fine-tune pipeline                                  # Phase III
 ```
 
 ---
@@ -41,15 +74,7 @@ Topics the user has been exploring recently, derived from episodes.jsonl.
 Updated by lint worker after each cycle.
 
 ```yaml
-active_threads:
-  - topic: "attention mechanism"
-    sessions: 6
-    last_active: YYYY-MM-DD
-    wiki_pages: ["wiki/concepts/attention-mechanism.md"]
-  - topic: "mixture of experts"
-    sessions: 3
-    last_active: YYYY-MM-DD
-    wiki_pages: ["wiki/concepts/moe.md"]
+active_threads: []
 ```
 
 ---
@@ -75,17 +100,7 @@ playbook:
 Last 3 Q&A sessions — for context at session start:
 
 ```yaml
-recent_episodes:
-  - date: YYYY-MM-DD
-    query: "What connects attention and MoE?"
-    topics: ["attention-mechanism", "moe"]
-    output_filed: true
-    output_path: "wiki/outputs/2026-04-05-attention-moe.md"
-  - date: YYYY-MM-DD
-    query: "Summarise constitutional AI papers"
-    topics: ["constitutional-ai"]
-    output_filed: true
-    output_path: "wiki/outputs/2026-04-04-constitutional-ai.md"
+recent_episodes: []
 ```
 
 ---
@@ -95,11 +110,7 @@ recent_episodes:
 Article candidates suggested by lint worker, pending compile:
 
 ```yaml
-lint_queue:
-  - topic: "interpretability gap in MoE attention heads"
-    rationale: "Mentioned in 3 articles but no dedicated page"
-    suggested_sources: []
-    status: pending
+lint_queue: []
 ```
 
 ---
@@ -147,5 +158,5 @@ Updated by user directly in Settings.
 
 ---
 
-*This file is maintained by ManFriday workers. Last updated: {timestamp} by {worker}.*
+*This file is maintained by ManFriday workers. Last updated: 2026-04-06 by build session.*
 *Do not edit manually — changes will be overwritten on next compile cycle.*

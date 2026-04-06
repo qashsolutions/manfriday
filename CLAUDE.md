@@ -153,6 +153,50 @@ At the start of every session:
 3. Read last 5 entries of wiki/log.md
 4. You are now oriented. Confirm to user: "Wiki has N pages, N sources. Last activity: [date + action]."
 
+## Build status
+
+Phase I is **code-complete** as of 2026-04-06. All code compiles clean (67 Python files, 22 TypeScript files, zero errors).
+
+### What's built
+
+| Layer | Status | Files |
+|-------|--------|-------|
+| `shared/python/manfriday_core/` | Done | `gcs.py`, `secrets.py`, `llm.py` (Anthropic + OpenAI + Gemini) |
+| `workers/ingest/` | Done | 5 fetchers, 5 connector stubs, quality scoring, image co-locator, manifest, schema generator |
+| `workers/compile/` | Done | article/entity/concept writers, index/log/backlinks/schema writers, write guard, lint queue, output ingester |
+| `workers/lint/` | Done | 8-check health system, Brave Search, imputer, output filing worker |
+| `api/` | Done | FastAPI gateway, 20 endpoints, JWT auth, BM25 search, Q&A tool-use loop with SSE |
+| `web/` | Done | Next.js 14 + Tailwind, 15 components, 15 pages (5 auth + 10 app) |
+| `infra/terraform/` | Done | GCS, 4 service accounts, IAM conditions, Cloud Run, Cloud Scheduler |
+
+### What's NOT built yet (Phase II+)
+
+- Gmail, Drive, Telegram, WhatsApp, arXiv connectors (stubs only)
+- pgvector semantic search (BM25 only in Phase I)
+- World model graph
+- LoRA fine-tune pipeline
+- Stripe billing integration (webhook exists, logic is stub)
+- Mobile app (Expo directory exists, no code)
+
+## Related documents
+
+This file is the agent constitution — one of several specification documents in this repo:
+
+- **build_prompt.md** — Claude Code build prompt: mono-repo structure, Phase I weekly build plan, non-negotiables, local dev setup, and full API/worker/web specifications
+- **memory.md** — Cross-session persistent state template (wiki stats, active threads, playbook, episode history)
+- **skills_and_agents.md** — Four agents (Ingest, Query, Lint, Memory), six skills, GCS paths, and build order
+
+The `.docx` files contain the formal specifications:
+- `manfriday_brd_rtm_v2.docx` — Master BRD (52 requirements)
+- `manfriday_brd_addendum_v2_1.docx` / `v2_2.docx` — Addenda (REQ-053 through REQ-056)
+- `manfriday_tech_arch_v1_2.docx` / `_addendum_v1_2_1.docx` — Technical architecture
+- `manfriday_file_structure_v1_2.docx` / `_addendum_v1_2_1.docx` — File structure
+- `manfriday_claude_md_spec.docx` — CLAUDE.md specification
+- `manfriday_skills_agents.docx` — Skills and agents spec
+- `manfriday_adr_001.docx` — ADR: Five-layer memory + BM25 search
+- `manfriday_adr_002.docx` — ADR: Source quality scoring
+- `manfriday_wireframes.html` — Interactive UI wireframes
+
 ## How this file evolves
 
 When you and the user discover a better workflow, update this file. This is a living document. Treat it as the source of truth for how this wiki operates.
