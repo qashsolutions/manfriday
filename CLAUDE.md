@@ -155,7 +155,7 @@ At the start of every session:
 
 ## Build status
 
-Phase I + Phase II are **COMPLETE** as of 2026-04-06. 72 Python + 39 TypeScript files, zero compile errors, fully spec-aligned.
+Phase I + Phase II + Phase III are **COMPLETE** as of 2026-04-06. 80 Python + 39 Web TS + 6 Mobile TS files, zero compile errors, fully spec-aligned.
 
 ### Spec audit findings (2026-04-06)
 
@@ -211,12 +211,26 @@ Final exhaustive audit against `build_prompt.md` + `skills_and_agents.md` — 7 
 | `api/middleware/entitlement.py` | Done | Paid tier gating (arxiv, pgvector, priority_support) |
 | `web/` (Phase II) | Done | ConnectedAccountCard, SearchModeSelector, billing page, connected accounts page |
 
-### What's NOT built yet (Phase III)
+### Phase III — built 2026-04-06
 
-- pgvector semantic search (BM25 only — upgrade when wikis exceed 200 articles)
-- World model graph (entity relationship extraction + graph.json)
-- LoRA fine-tune pipeline (trigger: 500+ articles, power users)
-- Mobile app (Expo directory exists, no code)
+| Layer | Status | Files |
+|-------|--------|-------|
+| `workers/compile/embed_writer.py` | Done | Embedding pipeline (OpenAI/Google/Anthropic), batch migration |
+| `shared/python/manfriday_core/pgvector.py` | Done | pgvector client (asyncpg), store/search/delete embeddings |
+| `api/routers/search.py` | Done | Hybrid search: BM25 + semantic + hybrid mode selector |
+| `infra/terraform/pgvector.tf` | Done | Cloud SQL with pgvector, VPC connector, IAM |
+| `workers/compile/graph_builder.py` | Done | LLM-based entity relationship extraction |
+| `workers/compile/graph_schema.py` | Done | GraphEntity, GraphRelationship, WikiGraph dataclasses |
+| `api/routers/graph.py` | Done | GET /graph, /graph/entity/{name}, /graph/neighbors/{name} |
+| `workers/finetune/` | Done | LoRA trigger (500+ articles), training data prep, job submission, model registry |
+| `mobile/` | Done | Expo app: tabs (home, Q&A), share sheet, push notifications, offline sync, API client |
+
+### What remains (polish/ops)
+
+- Production deployment (Cloud Run, real GCS, Supabase prod)
+- E2E integration tests with real API keys
+- Load testing (10+ concurrent users)
+- App Store submission (iOS/Android)
 
 ## Related documents
 
