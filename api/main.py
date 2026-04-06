@@ -45,3 +45,25 @@ from api.routers.outputs import file_back as _file_back
 @app.post("/file-back", tags=["outputs"])
 async def file_back_root(req: FileBackRequest, user: dict = Depends(get_current_user)):
     return await _file_back(req, user)
+
+
+# Top-level /suppressed, /validate-key endpoints (spec requires root, not under /sources)
+from api.models.requests import ValidateKeyRequest
+from api.routers.sources import list_suppressed as _list_suppressed
+from api.routers.sources import restore_suppressed as _restore_suppressed
+from api.routers.sources import validate_api_key as _validate_key
+
+
+@app.get("/suppressed", tags=["sources"])
+async def suppressed_root(user: dict = Depends(get_current_user)):
+    return await _list_suppressed(user)
+
+
+@app.post("/suppressed/{slug}/restore", tags=["sources"])
+async def restore_suppressed_root(slug: str, user: dict = Depends(get_current_user)):
+    return await _restore_suppressed(slug, user)
+
+
+@app.post("/validate-key", tags=["sources"])
+async def validate_key_root(req: ValidateKeyRequest, user: dict = Depends(get_current_user)):
+    return await _validate_key(req, user)

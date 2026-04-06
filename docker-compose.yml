@@ -47,15 +47,34 @@ services:
     volumes:
       - gcs-data:/data
 
-  supabase:
+  supabase-db:
     image: supabase/postgres:15.1.0.117
     ports:
-      - "54321:5432"
+      - "54322:5432"
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: manfriday
     volumes:
       - supabase-data:/var/lib/postgresql/data
+
+  supabase-auth:
+    image: supabase/gotrue:v2.151.0
+    ports:
+      - "54321:9999"
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://localhost:54321
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:postgres@supabase-db:5432/manfriday?sslmode=disable
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+    depends_on:
+      - supabase-db
 
 volumes:
   gcs-data:
