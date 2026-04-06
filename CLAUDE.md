@@ -153,6 +153,31 @@ At the start of every session:
 3. Read last 5 entries of wiki/log.md
 4. You are now oriented. Confirm to user: "Wiki has N pages, N sources. Last activity: [date + action]."
 
+## Build status
+
+Phase I is **code-complete** as of 2026-04-06. All code compiles clean (67 Python files, 22 TypeScript files, zero errors).
+
+### What's built
+
+| Layer | Status | Files |
+|-------|--------|-------|
+| `shared/python/manfriday_core/` | Done | `gcs.py`, `secrets.py`, `llm.py` (Anthropic + OpenAI + Gemini) |
+| `workers/ingest/` | Done | 5 fetchers, 5 connector stubs, quality scoring, image co-locator, manifest, schema generator |
+| `workers/compile/` | Done | article/entity/concept writers, index/log/backlinks/schema writers, write guard, lint queue, output ingester |
+| `workers/lint/` | Done | 8-check health system, Brave Search, imputer, output filing worker |
+| `api/` | Done | FastAPI gateway, 20 endpoints, JWT auth, BM25 search, Q&A tool-use loop with SSE |
+| `web/` | Done | Next.js 14 + Tailwind, 15 components, 15 pages (5 auth + 10 app) |
+| `infra/terraform/` | Done | GCS, 4 service accounts, IAM conditions, Cloud Run, Cloud Scheduler |
+
+### What's NOT built yet (Phase II+)
+
+- Gmail, Drive, Telegram, WhatsApp, arXiv connectors (stubs only)
+- pgvector semantic search (BM25 only in Phase I)
+- World model graph
+- LoRA fine-tune pipeline
+- Stripe billing integration (webhook exists, logic is stub)
+- Mobile app (Expo directory exists, no code)
+
 ## Related documents
 
 This file is the agent constitution — one of several specification documents in this repo:

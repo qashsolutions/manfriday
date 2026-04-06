@@ -325,24 +325,24 @@ gs://manfriday-kb/{user_id}/
 This is the sequence to build ManFriday, now that docs are complete:
 
 ```
-Phase I — Core KB engine:
+Phase I — Core KB engine (CODE-COMPLETE as of 2026-04-06):
 
-Week 1:  workers/ingest/ — jina, rss, github, pdf, quality scorer
-Week 2:  workers/compile/ — index_writer, article_writer, backlinks, 
-                            entity_writer (NEW), log_writer (NEW)
-Week 3:  api/ — FastAPI gateway, all endpoints, tool registry
-Week 4:  web/ — wiki browser, Q&A interface, sources screen
-Week 5:  workers/lint/ — full checklist, web search, lint_queue
-         memory system — episodes.jsonl, memory.md
-Week 6:  CLAUDE.md generator — onboarding step 3.5 (after sources)
-         Integration testing
+Week 1:  workers/ingest/ — jina, rss, github, pdf, quality scorer          ✓ DONE
+Week 2:  workers/compile/ — index_writer, article_writer, backlinks,        ✓ DONE
+                            entity_writer, log_writer, schema_writer
+Week 3:  api/ — FastAPI gateway, all 20 endpoints, tool registry            ✓ DONE
+Week 4:  web/ — wiki browser, Q&A interface, sources, auth, settings        ✓ DONE
+Week 5:  workers/lint/ — full 8-check checklist, web search, lint_queue     ✓ DONE
+         memory system — episodes.jsonl, memory.md, output filing
+Week 6:  CLAUDE.md generator — onboarding step 3.5 (after sources)          ✓ DONE
+         Integration testing                                                 → NEXT
 
 Phase II — Personal agent layer:
-Week 7+: Gmail, Drive, Telegram connectors
-         Paid tier, Stripe billing
+Week 7+: Gmail, Drive, Telegram connectors (stubs exist)
+         Paid tier, Stripe billing (webhook exists, logic stub)
 
 Phase III — Power features:
-         pgvector semantic search
+         pgvector semantic search (BM25 in Phase I)
          World model graph
          LoRA fine-tune pipeline
 ```

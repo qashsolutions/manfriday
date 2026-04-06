@@ -1,5 +1,7 @@
 # ManFriday — Claude Code Build Prompt
 
+> **Status**: Phase I code-complete as of 2026-04-06. 67 Python files, 22 TypeScript files, zero compile errors. Next: integration testing (Week 6).
+
 ## Context for Claude Code
 
 You are building ManFriday (manfriday.app) — a personal LLM knowledge base and agent platform. Before writing a single line of code, read this entire prompt. Then confirm your understanding of the architecture before starting.
