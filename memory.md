@@ -63,8 +63,14 @@ domains:
   dev: https://dev.manfriday.app
   demo: https://qashsolutions.github.io/manfriday/
 hosting: Vercel (Next.js, auto-deploy on push)
+api: GCP Cloud Run (manfriday-api-142863638278.us-east1.run.app)
+storage: GCS bucket manfriday-kb (us-east1)
+auth: Supabase (Qash Solutions Inc, us-east1)
+secrets: GCP Secret Manager (enabled)
 dns: Hostinger → Vercel (A record + CNAMEs)
 www_redirect: 308 permanent → manfriday.app
+gcp_project_id: manfriday
+gcp_project_number: 142863638278
 
 e2e_verification:
   python_compile: pass (67 files)

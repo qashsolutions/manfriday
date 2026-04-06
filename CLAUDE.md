@@ -203,6 +203,17 @@ Domain config:
 - DNS hosted on Hostinger, pointing to Vercel
 - SSL auto-provisioned by Vercel
 
+### Production infrastructure
+
+| Service | Provider | Status |
+|---------|----------|--------|
+| Web UI | Vercel (Next.js) | Live at `manfriday.app` |
+| API | GCP Cloud Run | Live at `manfriday-api-142863638278.us-east1.run.app` |
+| Storage | GCS bucket `manfriday-kb` | Provisioned (us-east1) |
+| Auth | Supabase (Qash Solutions Inc org) | Provisioned (us-east1) |
+| Secrets | GCP Secret Manager | Enabled |
+| DNS | Hostinger → Vercel | Configured |
+
 ### What's built
 
 | Layer | Status | Files |
