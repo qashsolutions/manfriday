@@ -175,10 +175,11 @@ Final exhaustive audit against `build_prompt.md` + `skills_and_agents.md` — 7 
 
 | Check | Result |
 |-------|--------|
-| Python compile (67 files) | All clean, zero errors |
-| TypeScript compile (35 files) | All clean, zero errors |
+| Python compile (80 files) | All clean, zero errors |
+| TypeScript compile (39 Web + 6 Mobile TS) | All clean, zero errors |
 | Next.js static export (23 routes → 21 HTML pages) | Build successful |
 | GitHub Pages deployment | Live at `qashsolutions.github.io/manfriday` |
+| Vercel deployment | Live at `manfriday.app` |
 | Wiki home (stat cards, articles) | Renders with mock data |
 | Article view (wikilinks, backlinks, tags) | Renders correctly |
 | Q&A chat (SSE input, ToolTrace, OutputTypeSelector) | UI functional |
@@ -186,6 +187,21 @@ Final exhaustive audit against `build_prompt.md` + `skills_and_agents.md` — 7 
 | Settings (BYOK, ProviderSelector) | UI functional |
 | Auth flow (signup, callback, setup) | Pages render |
 | All 10 non-negotiables enforced in code | Verified |
+
+### Deployment
+
+| Environment | Branch | Domain | Status |
+|-------------|--------|--------|--------|
+| Production | `main` | `manfriday.app` | Live (Vercel) |
+| Staging | `staging` | `staging.manfriday.app` | Live (Vercel) |
+| Dev | `claude/review-codebase-uxz9o` | `dev.manfriday.app` | Live (Vercel) |
+| Demo | `main` | `qashsolutions.github.io/manfriday` | Live (GitHub Pages) |
+
+Domain config:
+- `manfriday.app` → Production (apex, primary)
+- `www.manfriday.app` → 308 permanent redirect to `manfriday.app`
+- DNS hosted on Hostinger, pointing to Vercel
+- SSL auto-provisioned by Vercel
 
 ### What's built
 
