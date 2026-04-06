@@ -351,10 +351,11 @@ Week 8:  Stripe billing — checkout, portal, webhook logic, entitlement      �
          Connected accounts UI — status, connect/disconnect, poll           ✓ DONE
          Entitlement middleware — paid tier gating for features              ✓ DONE
 
-Phase III — Power features:
-         pgvector semantic search (BM25 in Phase I)
-         World model graph
-         LoRA fine-tune pipeline
+Phase III — Power features ✅ COMPLETE (2026-04-06):
+Week 9:  pgvector semantic search — embed_writer, hybrid search, Cloud SQL  ✓ DONE
+         World model graph — relationship extraction, graph.json, API       ✓ DONE
+Week 10: LoRA fine-tune pipeline — trigger, training data, model registry   ✓ DONE
+         Mobile app (Expo) — tabs, share sheet, push, offline sync          ✓ DONE
 ```
 
 ---

@@ -44,12 +44,14 @@ details:
 ## Build state (updated 2026-04-06)
 
 ```yaml
-phase: I + II
-phase_status: COMPLETE (spec-aligned, deployed, all audits pass)
+phase: I + II + III
+phase_status: ALL PHASES COMPLETE
 phase_ii_completed: 2026-04-06
+phase_iii_completed: 2026-04-06
 last_build_session: 2026-04-06
-total_python_files: 72
-total_typescript_files: 39
+total_python_files: 80
+total_typescript_files_web: 39
+total_typescript_files_mobile: 6
 compile_status: clean (zero errors, both Python and TypeScript)
 branch: claude/review-codebase-uxz9o (merged to main)
 demo_url: https://qashsolutions.github.io/manfriday/
@@ -90,11 +92,13 @@ completed_phase_ii:
   - api/middleware/entitlement  # Paid tier gating
   - web: ConnectedAccountCard, SearchModeSelector, billing page, connected page
 
-pending_layers:
-  - pgvector semantic search     # Phase III (trigger: 200+ articles)
-  - mobile app (Expo)            # Phase III
-  - world model graph            # Phase III
-  - LoRA fine-tune pipeline      # Phase III (trigger: 500+ articles)
+completed_phase_iii:
+  - pgvector semantic search       # embed_writer + hybrid search + Cloud SQL terraform
+  - world model graph              # graph_builder + graph_schema + graph API
+  - LoRA fine-tune pipeline        # trigger + training data + job submission + model registry
+  - mobile app (Expo)              # tabs, share sheet, push notifications, offline sync
+
+pending_layers: []  # All phases complete
 ```
 
 ---

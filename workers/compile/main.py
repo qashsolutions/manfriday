@@ -33,6 +33,7 @@ from workers.compile.schema_writer import update_memory
 from workers.compile.lint_queue import read_lint_queue, write_lint_queue
 from workers.compile.output_ingester import get_unprocessed_outputs, process_output
 from workers.compile.playbook_writer import update_playbook, update_active_threads
+from workers.compile.graph_builder import build_graph
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +197,16 @@ async def compile_user(user_id: str, provider: str | None = None) -> dict:
         update_active_threads(user_id)
     except Exception as e:
         logger.warning(f"Playbook/threads update failed: {e}")
+
+    # 8c. Build world model graph (Phase III)
+    try:
+        graph = await build_graph(user_id, provider)
+        logger.info(
+            f"Graph built: {len(graph.entities)} entities, "
+            f"{len(graph.relationships)} relationships"
+        )
+    except Exception as e:
+        logger.warning(f"Graph build failed: {e}")
 
     # 9. Process lint_queue.md — generate articles for pending candidates
     lint_processed = 0
