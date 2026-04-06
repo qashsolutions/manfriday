@@ -11,9 +11,9 @@ const navItems = [
   { href: "/wiki", label: "Wiki Home", icon: BookIcon },
   { href: "/wiki/graph", label: "Graph", icon: GraphIcon },
   { href: "/qa", label: "Q&A", icon: ChatIcon },
-  { href: "/wiki/outputs", label: "Outputs", icon: OutputIcon },
+  { href: "/outputs", label: "Outputs", icon: OutputIcon },
   { href: "/sources", label: "Sources", icon: SourceIcon },
-  { href: "/wiki/memory", label: "Memory", icon: MemoryIcon },
+  { href: "/memory", label: "Memory", icon: MemoryIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 

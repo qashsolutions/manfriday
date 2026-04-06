@@ -21,7 +21,7 @@ import argparse
 import asyncio
 import logging
 
-from shared.python.manfriday_core.gcs import read_text, user_path
+from shared.python.manfriday_core.gcs import read_text, read_json, exists, user_path
 from workers.ingest.manifest import get_uncompiled, mark_compiled, read_manifest
 from workers.compile.article_writer import write_article
 from workers.compile.entity_writer import extract_and_write_entities
@@ -30,16 +30,26 @@ from workers.compile.index_writer import rebuild_index
 from workers.compile.backlinks import rebuild_backlinks
 from workers.compile.log_writer import append_ingest_log
 from workers.compile.schema_writer import update_memory
+from workers.compile.lint_queue import read_lint_queue, write_lint_queue
+from workers.compile.output_ingester import get_unprocessed_outputs, process_output
 
 logger = logging.getLogger(__name__)
 
 
-async def compile_user(user_id: str, provider: str = "anthropic") -> dict:
+async def compile_user(user_id: str, provider: str | None = None) -> dict:
     """Run full compile pipeline for a user.
 
     Returns:
         Summary of compile results
     """
+    # Read provider from preferences.json if not explicitly passed
+    if provider is None:
+        try:
+            prefs = read_json(user_path(user_id, "config", "preferences.json"))
+            provider = prefs.get("llm_provider", "anthropic")
+        except Exception:
+            provider = "anthropic"
+
     # Read CLAUDE.md for context (non-negotiable #2)
     try:
         claude_md = read_text(user_path(user_id, "CLAUDE.md"))
@@ -101,8 +111,8 @@ async def compile_user(user_id: str, provider: str = "anthropic") -> dict:
             logger.error(f"Failed to compile {slug}: {e}")
             continue
 
-    # 6. Rebuild index
-    rebuild_index(user_id)
+    # 6. Rebuild index (async — uses LLM for summaries)
+    await rebuild_index(user_id, provider)
 
     # 7. Rebuild backlinks
     rebuild_backlinks(user_id)
@@ -110,11 +120,47 @@ async def compile_user(user_id: str, provider: str = "anthropic") -> dict:
     # 8. Update memory.md
     stats = update_memory(user_id)
 
+    # 9. Process lint_queue.md — generate articles for pending candidates
+    lint_processed = 0
+    try:
+        queue_items = read_lint_queue(user_id)
+        pending = [i for i in queue_items if i.get("status") == "pending"]
+        for item in pending:
+            try:
+                article = await write_article(
+                    slug=item["topic"].lower().replace(" ", "-"),
+                    user_id=user_id,
+                    provider=provider,
+                )
+                item["status"] = "done"
+                lint_processed += 1
+            except Exception as e:
+                logger.warning(f"Failed to process lint candidate {item['topic']}: {e}")
+        if pending:
+            write_lint_queue(user_id, queue_items)
+    except Exception as e:
+        logger.warning(f"Lint queue processing failed: {e}")
+
+    # 10. Re-ingest raw/outputs/ as first-class compile inputs
+    outputs_processed = 0
+    try:
+        unprocessed_outputs = get_unprocessed_outputs(user_id)
+        for output in unprocessed_outputs:
+            try:
+                await process_output(output["slug"], user_id, provider)
+                outputs_processed += 1
+            except Exception as e:
+                logger.warning(f"Failed to process output {output['slug']}: {e}")
+    except Exception as e:
+        logger.warning(f"Output re-ingestion failed: {e}")
+
     result = {
         "items_compiled": len(total_articles),
         "entities_processed": len(total_entities),
         "concepts_processed": len(total_concepts),
         "wiki_stats": stats,
+        "lint_queue_processed": lint_processed,
+        "outputs_reingested": outputs_processed,
     }
     logger.info(f"Compile complete for {user_id}: {result}")
     return result

@@ -29,6 +29,7 @@ title: "{name}"
 entity_type: {entity_type}
 created: {today}
 updated: {today}
+first_seen: {today}
 sources: [{source_slug}]
 tags: []
 source_count: 1
@@ -40,13 +41,17 @@ source_count: 1
 
 {description}
 
+## Appearances
+
+- [[{source_slug}]] — first appearance ({today})
+
 ## Sources
 
-- [[{source_slug}]] — first appearance
+- [[{source_slug}]]
 """
 
 UPDATE_PROMPT = """Update this wiki entity page with new information from the source below.
-Preserve existing content and add new details. Update the 'updated' date, add the new source to the sources list, and increment source_count.
+Preserve existing content and add new details. Update the 'updated' date, add the new source to the sources list, increment source_count, and add a new entry to the Appearances section.
 
 Existing page:
 {existing}

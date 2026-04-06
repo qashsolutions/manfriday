@@ -40,13 +40,17 @@ source_count: 1
 
 {related_links}
 
+## Examples
+
+- *(from [[{source_slug}]])*
+
 ## Sources
 
 - [[{source_slug}]]
 """
 
 UPDATE_PROMPT = """Update this wiki concept page with new information from the source below.
-Preserve existing content, add new details and examples. Update 'updated' date, add new source, increment source_count.
+Preserve existing content, add new details and examples to the Examples section. Update 'updated' date, add new source, increment source_count.
 
 Existing page:
 {existing}

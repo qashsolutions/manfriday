@@ -144,6 +144,17 @@ TOOL_DEFINITIONS = [
             "required": ["title", "content"],
         },
     },
+    {
+        "name": "execute_python",
+        "description": "Execute Python code in a sandboxed environment (matplotlib, pandas). Returns stdout and image paths.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "code": {"type": "string", "description": "Python code to execute"},
+            },
+            "required": ["code"],
+        },
+    },
 ]
 
 
@@ -168,7 +179,46 @@ async def _execute_tool(tool_name: str, tool_input: dict, user_id: str) -> str:
         guarded_write_text(user_id, output_path, tool_input["content"])
         return f"Filed as {output_path}"
 
+    elif tool_name == "execute_python":
+        return await _execute_python(tool_input["code"], user_id)
+
     return f"Unknown tool: {tool_name}"
+
+
+async def _execute_python(code: str, user_id: str) -> str:
+    """Execute Python code in E2B sandbox. Returns stdout + image paths."""
+    try:
+        from e2b import Sandbox
+
+        sandbox = Sandbox()
+        execution = sandbox.run_code(code)
+
+        result_parts = []
+        if execution.logs.stdout:
+            result_parts.append(f"stdout:\n{execution.logs.stdout}")
+        if execution.logs.stderr:
+            result_parts.append(f"stderr:\n{execution.logs.stderr}")
+
+        # Check for matplotlib output
+        if execution.results:
+            for r in execution.results:
+                if hasattr(r, "png") and r.png:
+                    from datetime import datetime, timezone
+                    from shared.python.manfriday_core.gcs import write_bytes
+                    import base64
+
+                    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+                    img_path = user_path(user_id, "outputs", "images", f"{ts}.png")
+                    write_bytes(img_path, base64.b64decode(r.png), "image/png")
+                    result_parts.append(f"Image saved: {img_path}")
+
+        sandbox.close()
+        return "\n".join(result_parts) if result_parts else "(no output)"
+
+    except ImportError:
+        return "E2B sandbox not available. Install e2b package."
+    except Exception as e:
+        return f"Execution error: {e}"
 
 
 async def run_qa_agent(
