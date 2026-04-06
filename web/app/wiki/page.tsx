@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { demoFetch, mockStats, mockArticles } from "@/lib/mock-data";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -15,9 +16,10 @@ interface WikiStats {
 interface ArticleSummary {
   slug: string;
   title: string;
-  updated: string;
+  updated?: string;
+  created?: string;
   summary: string;
-  source_count: number;
+  source_count?: number;
 }
 
 export default function WikiHome() {
@@ -29,25 +31,28 @@ export default function WikiHome() {
   });
   const [recent, setRecent] = useState<ArticleSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const [statsRes, recentRes] = await Promise.all([
-          fetch(`${API}/wiki/stats`),
-          fetch(`${API}/wiki/recent?limit=10`),
-        ]);
+        const statsRes = await demoFetch(`${API}/wiki/stats`, {
+          total_pages: mockStats.total_pages,
+          entities: mockStats.total_entities,
+          concepts: mockStats.total_concepts,
+          articles: mockStats.total_articles,
+        });
+        setStats(await statsRes.json());
 
-        if (statsRes.ok) {
-          setStats(await statsRes.json());
-        }
-        if (recentRes.ok) {
-          setRecent(await recentRes.json());
-        }
-      } catch (e) {
-        setError("Could not connect to API. Is the backend running?");
-        console.error(e);
+        const recentRes = await demoFetch(`${API}/wiki/recent?limit=10`, mockArticles);
+        setRecent(await recentRes.json());
+      } catch {
+        setStats({
+          total_pages: mockStats.total_pages,
+          entities: mockStats.total_entities,
+          concepts: mockStats.total_concepts,
+          articles: mockStats.total_articles,
+        });
+        setRecent(mockArticles as ArticleSummary[]);
       } finally {
         setLoading(false);
       }
@@ -68,12 +73,6 @@ export default function WikiHome() {
         <h1 className="text-2xl font-bold text-white mb-1">Wiki</h1>
         <p className="text-gray-500">Your personal knowledge base at a glance.</p>
       </div>
-
-      {error && (
-        <div className="card border-yellow-500/30 bg-yellow-500/5 text-yellow-300 text-sm">
-          {error}
-        </div>
-      )}
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
