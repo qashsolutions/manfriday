@@ -4,6 +4,8 @@
 
 ManFriday operates as a multi-agent system. Each agent has a defined role, toolset, and trigger condition. Skills are reusable capability modules that agents call. This document defines both.
 
+> See also: [CLAUDE.md](CLAUDE.md) (agent constitution), [build_prompt.md](build_prompt.md) (build plan + mono-repo spec + non-negotiables), [memory.md](memory.md) (cross-session state template)
+
 ---
 
 ## Agents

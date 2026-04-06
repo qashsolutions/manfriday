@@ -3,6 +3,8 @@
 > This file is read by ManFriday at the start of every session.
 > It captures durable facts about this user's wiki, preferences, and history
 > that the agent needs to operate intelligently across sessions.
+>
+> See also: [CLAUDE.md](CLAUDE.md) (agent constitution), [build_prompt.md](build_prompt.md) (build plan + mono-repo spec), [skills_and_agents.md](skills_and_agents.md) (agent/skill definitions)
 
 ---
 
