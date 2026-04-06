@@ -155,7 +155,7 @@ At the start of every session:
 
 ## Build status
 
-Phase I is **COMPLETE** as of 2026-04-06. Fully spec-aligned, deployed to GitHub Pages, all audits pass.
+Phase I + Phase II are **COMPLETE** as of 2026-04-06. 72 Python + 39 TypeScript files, zero compile errors, fully spec-aligned.
 
 ### Spec audit findings (2026-04-06)
 
