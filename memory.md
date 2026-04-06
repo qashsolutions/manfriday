@@ -53,8 +53,18 @@ total_python_files: 80
 total_typescript_files_web: 39
 total_typescript_files_mobile: 6
 compile_status: clean (zero errors, both Python and TypeScript)
-branch: claude/review-codebase-uxz9o (merged to main)
-demo_url: https://qashsolutions.github.io/manfriday/
+branches:
+  dev: claude/review-codebase-uxz9o
+  staging: staging
+  prod: main
+domains:
+  prod: https://manfriday.app
+  staging: https://staging.manfriday.app
+  dev: https://dev.manfriday.app
+  demo: https://qashsolutions.github.io/manfriday/
+hosting: Vercel (Next.js, auto-deploy on push)
+dns: Hostinger → Vercel (A record + CNAMEs)
+www_redirect: 308 permanent → manfriday.app
 
 e2e_verification:
   python_compile: pass (67 files)
