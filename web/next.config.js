@@ -1,15 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/:path*`,
-      },
-    ];
+  output: "export",
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
+  images: {
+    unoptimized: true,
   },
+  trailingSlash: true,
 };
 
 module.exports = nextConfig;

@@ -4,10 +4,9 @@ import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
