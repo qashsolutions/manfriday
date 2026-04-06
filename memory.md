@@ -24,12 +24,26 @@ wiki_name: "{user's name for their wiki}"
 
 ```yaml
 phase: I
-phase_status: code-complete
+phase_status: code-complete + deployed
 last_build_session: 2026-04-06
 total_python_files: 67
-total_typescript_files: 22
-compile_status: clean (zero errors)
-branch: claude/review-codebase-uxz9o
+total_typescript_files: 35
+compile_status: clean (zero errors, both Python and TypeScript)
+branch: claude/review-codebase-uxz9o (merged to main)
+demo_url: https://qashsolutions.github.io/manfriday/
+
+e2e_verification:
+  python_compile: pass (67 files)
+  typescript_compile: pass (35 files)
+  nextjs_static_export: pass (23 routes, 21 HTML pages)
+  github_pages_deploy: pass (live)
+  wiki_home: pass (stat cards + articles render)
+  article_view: pass (wikilinks + backlinks + tags)
+  qa_chat: pass (SSE input + ToolTrace + OutputTypeSelector)
+  sources_page: pass (add form + quality badges)
+  settings_page: pass (BYOK + ProviderSelector)
+  auth_flow: pass (signup, callback, setup pages render)
+  non_negotiables: pass (all 10 enforced in code)
 
 completed_layers:
   - shared/python/manfriday_core  # gcs.py, secrets.py, llm.py
@@ -39,6 +53,7 @@ completed_layers:
   - api                           # FastAPI, 20 endpoints, JWT auth, BM25 search, SSE Q&A
   - web                           # Next.js 14, 15 pages, 15 components
   - infra/terraform               # GCS, SAs, IAM, Cloud Run, Scheduler
+  - github_pages                  # static demo with mock data, GitHub Actions CI
 
 pending_layers:
   - connectors (gmail, gdrive, telegram, whatsapp, arxiv)  # Phase II

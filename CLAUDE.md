@@ -155,7 +155,23 @@ At the start of every session:
 
 ## Build status
 
-Phase I is **code-complete** as of 2026-04-06. All code compiles clean (67 Python files, 22 TypeScript files, zero errors).
+Phase I is **code-complete and deployed** as of 2026-04-06.
+
+### E2E verification (2026-04-06)
+
+| Check | Result |
+|-------|--------|
+| Python compile (67 files) | All clean, zero errors |
+| TypeScript compile (35 files) | All clean, zero errors |
+| Next.js static export (23 routes → 21 HTML pages) | Build successful |
+| GitHub Pages deployment | Live at `qashsolutions.github.io/manfriday` |
+| Wiki home (stat cards, articles) | Renders with mock data |
+| Article view (wikilinks, backlinks, tags) | Renders correctly |
+| Q&A chat (SSE input, ToolTrace, OutputTypeSelector) | UI functional |
+| Sources (add form, quality badges) | UI functional |
+| Settings (BYOK, ProviderSelector) | UI functional |
+| Auth flow (signup, callback, setup) | Pages render |
+| All 10 non-negotiables enforced in code | Verified |
 
 ### What's built
 
@@ -168,6 +184,7 @@ Phase I is **code-complete** as of 2026-04-06. All code compiles clean (67 Pytho
 | `api/` | Done | FastAPI gateway, 20 endpoints, JWT auth, BM25 search, Q&A tool-use loop with SSE |
 | `web/` | Done | Next.js 14 + Tailwind, 15 components, 15 pages (5 auth + 10 app) |
 | `infra/terraform/` | Done | GCS, 4 service accounts, IAM conditions, Cloud Run, Cloud Scheduler |
+| GitHub Pages demo | Done | Static export with mock data, GitHub Actions workflow |
 
 ### What's NOT built yet (Phase II+)
 
