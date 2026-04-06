@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import ingest, compile, qa, wiki, outputs, sources, memory, schema, health, search, stripe
+from api.routers import ingest, compile, qa, wiki, outputs, sources, memory, schema, health, search, stripe, connectors, billing
 
 app = FastAPI(
     title="ManFriday API",
@@ -34,6 +34,8 @@ app.include_router(sources.router, prefix="/sources", tags=["sources"])
 app.include_router(memory.router, prefix="/memory", tags=["memory"])
 app.include_router(schema.router, prefix="/schema", tags=["schema"])
 app.include_router(stripe.router, tags=["stripe"])
+app.include_router(billing.router, prefix="/billing", tags=["billing"])
+app.include_router(connectors.router, prefix="/connectors", tags=["connectors"])
 
 # Top-level /file-back endpoint (spec requires this at root, not nested under /outputs)
 from fastapi import Depends
