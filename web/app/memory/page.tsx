@@ -32,10 +32,12 @@ export default function MemoryPage() {
         ]);
 
         if (episodesRes.ok) {
-          setEpisodes(await episodesRes.json());
+          const eData = await episodesRes.json();
+          setEpisodes(Array.isArray(eData) ? eData : eData.episodes || []);
         }
         if (topicsRes.ok) {
-          setTopics(await topicsRes.json());
+          const tData = await topicsRes.json();
+          setTopics(Array.isArray(tData) ? tData : tData.topics || []);
         }
 
         if (!episodesRes.ok && !topicsRes.ok) {
