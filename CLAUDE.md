@@ -266,6 +266,20 @@ Domain config:
 | Env vars (Vercel) | NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL |
 | Env vars (Cloud Run) | GCS_BUCKET, ENV, GCP_PROJECT, SUPABASE_JWT_SECRET, GOOGLE_OAUTH_CLIENT_ID/SECRET |
 
+### API key security (implemented 2026-04-07)
+
+| Layer | Implementation |
+|-------|---------------|
+| Encrypted in transit | HTTPS/TLS enforced on Vercel + Cloud Run |
+| Encrypted at rest | GCP Secret Manager (AES-256) |
+| Never displayed | `mask_key()` — first 8 + **** + last 4 chars |
+| Never returned by API | GET endpoints return `masked_key` only |
+| Never logged | `KeyRedactingFilter` strips key patterns from all logs |
+| Rate limited | 5 validate-key calls/min/user (HTTP 429) |
+| CSP headers | Prevents XSS key theft (`X-Frame-Options: DENY`) |
+| Cleared from browser | React state cleared immediately after save |
+| User informed | Security notice panel on Settings page |
+
 ### Known issues / TODO
 
 - Google OAuth consent shows "continue to supabase.co" instead of manfriday.app (Supabase handles OAuth flow — need to move to direct OAuth on backend to fix)

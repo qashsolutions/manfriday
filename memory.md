@@ -83,7 +83,19 @@ deployment_status:
   vercel_env_vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL
   password_policy: 8+ chars, lowercase + uppercase + digit + symbol (matches Supabase)
   landing_page: live (hero, BYOK, features, connectors, RAG comparison)
-  dark_light_mode: live (toggle in top bar, localStorage persisted)
+  dark_light_mode: live (toggle in user dropdown, localStorage persisted)
+  api_key_security:
+    encrypted_transit: HTTPS/TLS (Vercel + Cloud Run)
+    encrypted_rest: GCP Secret Manager (AES-256)
+    never_displayed: mask_key() first 8 + **** + last 4
+    never_returned: API returns masked_key only
+    never_logged: KeyRedactingFilter strips patterns
+    rate_limited: 5 validate-key/min/user (429)
+    csp_headers: X-Frame-Options DENY, nosniff, CSP
+    browser_cleared: React state cleared after save
+    user_informed: security notice panel on Settings page
+  nav_structure: Wiki | Q&A (Chat, Outputs, Memory) | Sources (All Sources, Knowledge Graph)
+  graph: child of Sources, force-directed SVG, measures container width, animated edge dots
 
 known_issues:
   - google_oauth_consent_shows_supabase_domain (need direct OAuth on backend to fix)
