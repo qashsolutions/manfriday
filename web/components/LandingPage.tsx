@@ -193,7 +193,7 @@ export default function LandingPage() {
           </Link>
         </div>
         <p className="text-sm text-muted">
-          Free forever. Bring your own API key. We never see your data.
+          Free for BYOK users. Bring your own API key. We never see your data.
         </p>
       </section>
 
@@ -400,7 +400,7 @@ export default function LandingPage() {
       {/* ── CTA ──────────────────────────────────────────── */}
       <section className="text-center space-y-6 pb-12">
         <h2 className="text-3xl font-bold">Start building your knowledge base</h2>
-        <p className="text-secondary text-lg">Free forever. Set up in 2 minutes. No credit card required.</p>
+        <p className="text-secondary text-lg">Free for BYOK users. Set up in 2 minutes. Bring your own API key.</p>
         <Link href="/signup" className="bg-accent hover:bg-accent-hover text-white font-semibold text-lg px-10 py-4 rounded-xl transition-all hover:shadow-lg hover:shadow-accent/25 inline-block">
           Sign up free
         </Link>
