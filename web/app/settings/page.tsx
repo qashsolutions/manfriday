@@ -183,9 +183,25 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <p className="text-xs text-gray-600 mt-2">
-            Key stored securely. ManFriday never displays your full key.
-          </p>
+          {/* Security notice */}
+          <div className="bg-surface-2 border border-surface-3 rounded-lg p-3 mt-3">
+            <div className="flex items-start gap-2">
+              <svg className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <div className="text-xs text-secondary space-y-1">
+                <p className="font-medium text-primary">Your key is secure</p>
+                <ul className="list-disc list-inside space-y-0.5 text-muted">
+                  <li>Encrypted at rest (AES-256 via GCP Secret Manager)</li>
+                  <li>Encrypted in transit (TLS/HTTPS)</li>
+                  <li>Never displayed after saving — only a masked preview is shown</li>
+                  <li>Never logged or stored in browser — cleared from memory after save</li>
+                  <li>To change your key, click "Replace key" — you cannot recover the current one</li>
+                  <li>ManFriday calls your LLM provider directly with your key — we never proxy or inspect your requests</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Message */}
