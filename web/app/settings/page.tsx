@@ -119,42 +119,21 @@ export default function SettingsPage() {
         <p className="text-gray-500 text-sm">Configure your LLM provider and API keys.</p>
       </div>
 
-      {/* How your key is protected — shown prominently before the form */}
+      {/* Security notice — crisp */}
       <div className="rounded-xl p-5 border-2 border-emerald-500/30 bg-emerald-500/5">
         <div className="flex items-start gap-3">
           <svg className="w-6 h-6 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
           <div>
-            <h3 className="font-semibold text-emerald-400 mb-2">How we protect your API key</h3>
-            <p className="text-sm text-secondary mb-3">
-              ManFriday uses a Bring Your Own Key (BYOK) model. Your key goes directly from your browser to our secure vault — we use it only to call your chosen LLM provider on your behalf. Here&apos;s exactly what happens:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5">&#10003;</span>
-                <span className="text-secondary"><strong className="text-primary">Encrypted in transit</strong> — your key is sent over HTTPS (TLS 1.3). Nobody can intercept it.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5">&#10003;</span>
-                <span className="text-secondary"><strong className="text-primary">Encrypted at rest</strong> — stored in Google Cloud Secret Manager with AES-256 encryption.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5">&#10003;</span>
-                <span className="text-secondary"><strong className="text-primary">Never visible again</strong> — once saved, only a masked version (e.g. sk-ant-****7x2Q) is shown. You cannot retrieve the full key.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5">&#10003;</span>
-                <span className="text-secondary"><strong className="text-primary">Never logged</strong> — our servers automatically redact API keys from all logs and error reports.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5">&#10003;</span>
-                <span className="text-secondary"><strong className="text-primary">Direct calls only</strong> — ManFriday calls Anthropic / OpenAI / Google directly with your key. We never proxy, inspect, or store your LLM conversations.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5">&#10003;</span>
-                <span className="text-secondary"><strong className="text-primary">You stay in control</strong> — replace or delete your key anytime. Revoke it at your provider&apos;s dashboard and it stops working immediately.</span>
-              </div>
+            <h3 className="font-semibold text-emerald-400 mb-3">Your key is secure</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+              <div><strong className="text-primary">Encrypted in transit</strong><br/><span className="text-muted">HTTPS/TLS 1.3</span></div>
+              <div><strong className="text-primary">Encrypted at rest</strong><br/><span className="text-muted">AES-256 vault</span></div>
+              <div><strong className="text-primary">Never visible after save</strong><br/><span className="text-muted">Masked display only</span></div>
+              <div><strong className="text-primary">Never logged</strong><br/><span className="text-muted">Auto-redacted from logs</span></div>
+              <div><strong className="text-primary">Direct provider calls</strong><br/><span className="text-muted">No proxy or inspection</span></div>
+              <div><strong className="text-primary">You control it</strong><br/><span className="text-muted">Replace or revoke anytime</span></div>
             </div>
           </div>
         </div>
