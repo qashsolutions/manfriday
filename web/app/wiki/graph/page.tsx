@@ -167,6 +167,7 @@ function forceLayout(
 
 export default function GraphPage() {
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -174,9 +175,7 @@ export default function GraphPage() {
   const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
   const [layoutNodes, setLayoutNodes] = useState<LayoutNode[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
-
-  const SVG_WIDTH = 1200;
-  const SVG_HEIGHT = 700;
+  const [dimensions, setDimensions] = useState({ width: 1200, height: 700 });
 
   // Fetch graph data from API with fallback to mock
   useEffect(() => {
@@ -213,9 +212,14 @@ export default function GraphPage() {
     loadGraph();
   }, []);
 
-  // Compute layout when graph data changes
+  // Measure container and compute layout when graph data changes
   useEffect(() => {
     if (!graphData) return;
+
+    // Measure actual container dimensions
+    const W = containerRef.current?.clientWidth || 1200;
+    const H = Math.max(window.innerHeight * 0.7, 500);
+    setDimensions({ width: W, height: H });
 
     const entities = Object.values(graphData.entities);
     const nodes: LayoutNode[] = entities.map((e) => ({
@@ -229,8 +233,27 @@ export default function GraphPage() {
       appearances: e.appearances,
     }));
 
-    const laid = forceLayout(nodes, graphData.relationships, SVG_WIDTH, SVG_HEIGHT);
+    const laid = forceLayout(nodes, graphData.relationships, W, H);
     setLayoutNodes(laid);
+  }, [graphData]);
+
+  // Re-layout on window resize
+  useEffect(() => {
+    function handleResize() {
+      if (!graphData || !containerRef.current) return;
+      const W = containerRef.current.clientWidth;
+      const H = Math.max(window.innerHeight * 0.7, 500);
+      setDimensions({ width: W, height: H });
+
+      const entities = Object.values(graphData.entities);
+      const nodes: LayoutNode[] = entities.map((e) => ({
+        id: e.id, name: e.name, type: e.type,
+        x: 0, y: 0, vx: 0, vy: 0, appearances: e.appearances,
+      }));
+      setLayoutNodes(forceLayout(nodes, graphData.relationships, W, H));
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [graphData]);
 
   // Filter
@@ -347,15 +370,13 @@ export default function GraphPage() {
         ) : (
           <div className="flex gap-4">
             {/* SVG graph */}
-            <div className="flex-1">
+            <div className="flex-1" ref={containerRef}>
               <svg
                 ref={svgRef}
-                width="100%"
-                height="100%"
-                style={{ minHeight: "70vh" }}
-                className="bg-surface-2 rounded-lg border border-surface-3"
-                viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-                preserveAspectRatio="none"
+                width={dimensions.width}
+                height={dimensions.height}
+                className="bg-surface-2 rounded-lg border border-surface-3 w-full"
+                viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
               >
                 <defs>
                   <marker
