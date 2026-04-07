@@ -252,10 +252,26 @@ Domain config:
 | `workers/finetune/` | Done | LoRA trigger (500+ articles), training data prep, job submission, model registry |
 | `mobile/` | Done | Expo app: tabs (home, Q&A), share sheet, push notifications, offline sync, API client |
 
-### What remains (polish/ops)
+### Current deployment status (2026-04-07)
 
-- Production deployment (Cloud Run, real GCS, Supabase prod)
-- E2E integration tests with real API keys
+| Component | Status |
+|-----------|--------|
+| Web UI (Vercel) | Live at `manfriday.app` — landing page, dark/light mode, auth |
+| API (Cloud Run) | Live at `manfriday-api-142863638278.us-east1.run.app` |
+| Supabase Auth | Configured — email signup (8+ chars, upper/lower/digit/symbol), Google OAuth |
+| Google OAuth | Configured — Client ID + Secret in Supabase + GCP, redirect URIs set |
+| Gmail/Drive scopes | Configured — gmail.readonly + drive.readonly in GCP Data Access |
+| GCS Storage | Bucket `manfriday-kb` provisioned (us-east1) |
+| DNS/Domains | manfriday.app (prod), staging.manfriday.app, dev.manfriday.app, www→308 redirect |
+| Env vars (Vercel) | NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL |
+| Env vars (Cloud Run) | GCS_BUCKET, ENV, GCP_PROJECT, SUPABASE_JWT_SECRET, GOOGLE_OAUTH_CLIENT_ID/SECRET |
+
+### Known issues / TODO
+
+- Google OAuth consent shows "continue to supabase.co" instead of manfriday.app (Supabase handles OAuth flow — need to move to direct OAuth on backend to fix)
+- E2E integration tests with real BYOK API keys
+- Stripe keys not yet configured (billing is code-complete but not wired)
+- Brave Search API key not yet configured (lint worker gap-filling)
 - Load testing (10+ concurrent users)
 - App Store submission (iOS/Android)
 

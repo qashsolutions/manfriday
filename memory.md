@@ -41,7 +41,7 @@ details:
 
 ---
 
-## Build state (updated 2026-04-06)
+## Build state (updated 2026-04-07)
 
 ```yaml
 phase: I + II + III
@@ -72,11 +72,33 @@ www_redirect: 308 permanent → manfriday.app
 gcp_project_id: manfriday
 gcp_project_number: 142863638278
 
+deployment_status:
+  web_ui: live (manfriday.app via Vercel)
+  api: live (Cloud Run manfriday-api-142863638278.us-east1.run.app)
+  supabase_auth: configured (email + Google OAuth)
+  google_oauth: configured (client ID/secret in Supabase + GCP)
+  gmail_drive_scopes: configured (gmail.readonly + drive.readonly)
+  gcs_storage: provisioned (manfriday-kb, us-east1)
+  cloud_run_env_vars: GCS_BUCKET, ENV, GCP_PROJECT, SUPABASE_JWT_SECRET, GOOGLE_OAUTH_*
+  vercel_env_vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL
+  password_policy: 8+ chars, lowercase + uppercase + digit + symbol (matches Supabase)
+  landing_page: live (hero, BYOK, features, connectors, RAG comparison)
+  dark_light_mode: live (toggle in top bar, localStorage persisted)
+
+known_issues:
+  - google_oauth_consent_shows_supabase_domain (need direct OAuth on backend to fix)
+  - stripe_keys_not_configured (billing code-complete but not wired)
+  - brave_search_key_not_configured (lint worker gap-filling)
+  - e2e_tests_with_real_byok_keys_pending
+
 e2e_verification:
-  python_compile: pass (67 files)
-  typescript_compile: pass (35 files)
-  nextjs_static_export: pass (23 routes, 21 HTML pages)
-  github_pages_deploy: pass (live)
+  python_compile: pass (80 files)
+  typescript_compile: pass (39 web + 6 mobile)
+  vercel_deploy: pass (manfriday.app live)
+  cloud_run_deploy: pass (API live, revision 5)
+  supabase_auth: pass (email signup works)
+  google_oauth: pass (flow works, consent shows supabase domain)
+  landing_page: pass (renders in dark + light mode)
   wiki_home: pass (stat cards + articles render)
   article_view: pass (wikilinks + backlinks + tags)
   qa_chat: pass (SSE input + ToolTrace + OutputTypeSelector)
