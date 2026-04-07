@@ -38,8 +38,8 @@ export default function CallbackPage() {
         // Check if user has completed BYOK setup
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData.session) {
-          // Redirect to key setup if new user, otherwise to wiki
-          router.replace("/setup/key");
+          // Redirect to wiki home after successful sign-in
+          router.replace("/wiki");
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Authentication failed.");
