@@ -15,7 +15,10 @@ const NAV_ITEMS = [
     { href: "/outputs", label: "Outputs" },
     { href: "/memory", label: "Memory" },
   ]},
-  { href: "/sources", label: "Sources" },
+  { href: "/sources", label: "Sources", children: [
+    { href: "/sources", label: "All Sources" },
+    { href: "/wiki/graph", label: "Knowledge Graph" },
+  ]},
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -102,9 +105,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         }`}
                       >
                         {item.label}
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
                       </Link>
                       <div className="absolute left-0 top-full mt-1 w-40 bg-surface-1 border border-surface-3 rounded-lg shadow-xl py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                         {item.children.map((child) => {
