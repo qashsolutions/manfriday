@@ -14,7 +14,6 @@ const navItems = [
   { href: "/outputs", label: "Outputs", icon: OutputIcon },
   { href: "/sources", label: "Sources", icon: SourceIcon },
   { href: "/memory", label: "Memory", icon: MemoryIcon },
-  { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 export default function Sidebar({ onClose }: SidebarProps) {
