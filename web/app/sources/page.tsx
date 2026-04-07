@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SourceQualityBadge from "@/components/SourceQualityBadge";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet, apiPost } from "@/lib/api";
 
 interface Source {
   id: string;
@@ -36,7 +35,7 @@ export default function SourcesPage() {
 
   async function loadSources() {
     try {
-      const res = await fetch(`${API}/sources`);
+      const res = await apiGet("/sources");
       if (res.ok) {
         setSources(await res.json());
       }
@@ -59,11 +58,7 @@ export default function SourcesPage() {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/sources`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), source_type: sourceType }),
-      });
+      const res = await apiPost("/sources", { url: url.trim(), source_type: sourceType });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));

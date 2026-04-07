@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { demoFetch, mockStats, mockArticles } from "@/lib/mock-data";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet } from "@/lib/api";
 
 interface WikiStats {
   total_pages: number;
@@ -35,16 +34,25 @@ export default function WikiHome() {
   useEffect(() => {
     async function load() {
       try {
-        const statsRes = await demoFetch(`${API}/wiki/stats`, {
-          total_pages: mockStats.total_pages,
-          entities: mockStats.total_entities,
-          concepts: mockStats.total_concepts,
-          articles: mockStats.total_articles,
-        });
-        setStats(await statsRes.json());
+        let statsRes: Response;
+        let recentRes: Response;
+        try {
+          statsRes = await apiGet("/wiki/stats");
+          recentRes = await apiGet("/wiki/recent?limit=10");
+        } catch {
+          statsRes = await demoFetch("", {
+            total_pages: mockStats.total_pages,
+            entities: mockStats.total_entities,
+            concepts: mockStats.total_concepts,
+            articles: mockStats.total_articles,
+          });
+          recentRes = await demoFetch("", mockArticles);
+        }
+        if (statsRes.ok) setStats(await statsRes.json());
+        else setStats({ total_pages: mockStats.total_pages, entities: mockStats.total_entities, concepts: mockStats.total_concepts, articles: mockStats.total_articles });
 
-        const recentRes = await demoFetch(`${API}/wiki/recent?limit=10`, mockArticles);
-        setRecent(await recentRes.json());
+        if (recentRes.ok) setRecent(await recentRes.json());
+        else setRecent(mockArticles as ArticleSummary[]);
       } catch {
         setStats({
           total_pages: mockStats.total_pages,
