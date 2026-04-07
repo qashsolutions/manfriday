@@ -37,7 +37,8 @@ export default function SourcesPage() {
     try {
       const res = await apiGet("/sources");
       if (res.ok) {
-        setSources(await res.json());
+        const data = await res.json();
+        setSources(Array.isArray(data) ? data : data.sources || []);
       }
     } catch {
       console.error("Failed to load sources");
