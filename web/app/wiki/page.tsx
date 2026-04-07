@@ -136,6 +136,34 @@ export default function WikiHome() {
           </div>
         )}
       </div>
+
+      {/* Knowledge Graph card */}
+      <div>
+        <Link href="/wiki/graph" className="card block hover:border-accent/50 transition-colors group">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold group-hover:text-accent transition-colors">Knowledge Graph</h2>
+              <p className="text-sm text-secondary mt-1">
+                See how your entities and concepts connect. Interactive force-directed visualization of relationships extracted from your wiki.
+              </p>
+            </div>
+            <div className="flex-shrink-0 ml-4">
+              <svg className="w-16 h-16 text-accent/30 group-hover:text-accent/60 transition-colors" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <circle cx="32" cy="16" r="6" />
+                <circle cx="14" cy="48" r="6" />
+                <circle cx="50" cy="48" r="6" />
+                <circle cx="52" cy="22" r="4" />
+                <circle cx="12" cy="26" r="4" />
+                <path d="M30 22L16 42" />
+                <path d="M34 22l14 20" />
+                <path d="M20 48h24" />
+                <path d="M37 18l13 5" />
+                <path d="M27 18l-13 7" />
+              </svg>
+            </div>
+          </div>
+        </Link>
+      </div>
     </div>
   );
 }
