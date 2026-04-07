@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+import { supabase } from "@/lib/supabase";
 
 function EyeIcon({ open }: { open: boolean }) {
   if (open) {
