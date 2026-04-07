@@ -90,8 +90,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Nav items — desktop */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
-                  || (item.children?.some(c => pathname === c.href || pathname.startsWith(c.href + "/")));
+                // Collect all child hrefs from ALL nav items to exclude from parent matching
+                const allChildHrefs = NAV_ITEMS.flatMap(n => n.children?.map(c => c.href) || []);
+                const isChildOfAnother = allChildHrefs.some(h => h !== item.href && pathname.startsWith(h));
+
+                const isActive = !isChildOfAnother && (
+                  pathname === item.href
+                  || pathname.startsWith(item.href + "/")
+                ) || (item.children?.some(c => pathname === c.href || pathname.startsWith(c.href + "/")));
 
                 if (item.children) {
                   return (
