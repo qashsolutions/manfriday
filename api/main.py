@@ -6,12 +6,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import ingest, compile, qa, wiki, outputs, sources, memory, schema, health, search, stripe, connectors, billing, graph
+from api.middleware.security import CSPHeadersMiddleware, install_log_redaction
+
+# Install log redaction BEFORE anything else logs
+install_log_redaction()
 
 app = FastAPI(
     title="ManFriday API",
     version="0.1.0",
     description="Personal LLM knowledge base gateway",
 )
+
+# Security headers (CSP, X-Frame-Options, etc.)
+app.add_middleware(CSPHeadersMiddleware)
 
 # CORS for web client
 app.add_middleware(
@@ -50,11 +57,12 @@ async def file_back_root(req: FileBackRequest, user: dict = Depends(get_current_
     return await _file_back(req, user)
 
 
-# Top-level /suppressed, /validate-key endpoints (spec requires root, not under /sources)
+# Top-level /suppressed, /validate-key, /settings/providers endpoints (spec requires root, not under /sources)
 from api.models.requests import ValidateKeyRequest
 from api.routers.sources import list_suppressed as _list_suppressed
 from api.routers.sources import restore_suppressed as _restore_suppressed
 from api.routers.sources import validate_api_key as _validate_key
+from api.routers.sources import get_providers as _get_providers
 
 
 @app.get("/suppressed", tags=["sources"])
@@ -70,3 +78,8 @@ async def restore_suppressed_root(slug: str, user: dict = Depends(get_current_us
 @app.post("/validate-key", tags=["sources"])
 async def validate_key_root(req: ValidateKeyRequest, user: dict = Depends(get_current_user)):
     return await _validate_key(req, user)
+
+
+@app.get("/settings/providers", tags=["settings"])
+async def settings_providers_root(user: dict = Depends(get_current_user)):
+    return await _get_providers(user)

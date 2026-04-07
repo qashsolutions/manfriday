@@ -73,6 +73,46 @@ def store_byok_key(provider: str, user_id: str, key: str) -> None:
     )
 
 
+def mask_key(key: str) -> str:
+    """Mask an API key: show first 8 + **** + last 4.
+
+    For short keys (<=12 chars), returns just '****' to avoid leaking the full key.
+    """
+    if not key or len(key) <= 12:
+        return "****"
+    return key[:8] + "****" + key[-4:]
+
+
+def key_exists(provider: str, user_id: str) -> bool:
+    """Check if a BYOK key exists for the given provider/user without returning it.
+
+    In development: checks env vars.
+    In production: checks GCP Secret Manager.
+    """
+    if ENV == "development":
+        env_key = f"BYOK_{provider.upper()}_{user_id.replace('-', '_').upper()}"
+        return bool(os.getenv(env_key) or os.getenv(f"BYOK_{provider.upper()}"))
+
+    from google.cloud import secretmanager
+
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/{GCP_PROJECT}/secrets/{_secret_name(provider, user_id)}/versions/latest"
+    try:
+        client.access_secret_version(request={"name": name})
+        return True
+    except Exception:
+        return False
+
+
+def get_masked_key(provider: str, user_id: str) -> str | None:
+    """Retrieve user's BYOK key and return it masked. Returns None if no key exists."""
+    try:
+        raw = get_byok_key(provider, user_id)
+        return mask_key(raw)
+    except Exception:
+        return None
+
+
 def delete_byok_key(provider: str, user_id: str) -> None:
     """Delete user's BYOK key from Secret Manager."""
     if ENV == "development":
