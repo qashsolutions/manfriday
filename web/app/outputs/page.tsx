@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet } from "@/lib/api";
 
 interface OutputItem {
   filename: string;
@@ -20,7 +19,7 @@ export default function OutputsPage() {
   useEffect(() => {
     async function loadOutputs() {
       try {
-        const res = await fetch(`${API}/outputs`);
+        const res = await apiGet("/outputs");
         if (res.ok) {
           setOutputs(await res.json());
         } else {

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet } from "@/lib/api";
 
 interface Episode {
   id: string;
@@ -28,8 +27,8 @@ export default function MemoryPage() {
     async function load() {
       try {
         const [episodesRes, topicsRes] = await Promise.all([
-          fetch(`${API}/memory/episodes`),
-          fetch(`${API}/memory/topics`),
+          apiGet("/memory/episodes"),
+          apiGet("/memory/topics"),
         ]);
 
         if (episodesRes.ok) {

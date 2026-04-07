@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiPost } from "@/lib/api";
 
 const INITIAL_URLS = ["", "", ""];
 
@@ -45,11 +44,7 @@ export default function SetupSourcesPage() {
 
     for (const url of validUrls) {
       try {
-        const res = await fetch(`${API}/ingest`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: url.trim() }),
-        });
+        const res = await apiPost("/ingest", { url: url.trim() });
 
         if (res.ok) {
           ingestResults.push({ url, ok: true });

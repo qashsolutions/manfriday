@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ProviderSelector, { type Provider } from "@/components/ProviderSelector";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet, apiPost, apiFetch } from "@/lib/api";
 
 interface ProviderConfig {
   provider: Provider;
@@ -30,7 +29,7 @@ export default function SettingsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API}/settings/providers`);
+        const res = await apiGet("/settings/providers");
         if (res.ok) {
           const configs: ProviderConfig[] = await res.json();
           const newKeys = { ...keys };
@@ -61,11 +60,7 @@ export default function SettingsPage() {
     setMessage(null);
 
     try {
-      const res = await fetch(`${API}/settings/providers/validate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, api_key: key }),
-      });
+      const res = await apiPost("/settings/providers/validate", { provider, api_key: key });
 
       const result = await res.json();
       setValidation((prev) => ({ ...prev, [provider]: result.valid }));
@@ -88,9 +83,8 @@ export default function SettingsPage() {
     setMessage(null);
 
     try {
-      const res = await fetch(`${API}/settings/providers`, {
+      const res = await apiFetch("/settings/providers", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider, api_key: key }),
       });
 

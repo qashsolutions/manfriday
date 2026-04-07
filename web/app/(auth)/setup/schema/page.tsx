@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiPost, apiFetch } from "@/lib/api";
 
 const DOMAINS = [
   { value: "ai_ml", label: "AI / Machine Learning" },
@@ -30,11 +29,7 @@ export default function SetupSchemaPage() {
     setPreview(null);
 
     try {
-      const res = await fetch(`${API}/schema/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wiki_name: wikiName.trim(), domain }),
-      });
+      const res = await apiPost("/schema/generate", { wiki_name: wikiName.trim(), domain });
 
       if (res.ok) {
         const data = await res.json();
@@ -57,9 +52,8 @@ export default function SetupSchemaPage() {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/schema`, {
+      const res = await apiFetch("/schema", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: preview }),
       });
 

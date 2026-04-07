@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet, apiPost } from "@/lib/api";
 
 interface Subscription {
   tier: "free" | "paid";
@@ -29,7 +28,7 @@ export default function BillingPage() {
   useEffect(() => {
     async function fetchSubscription() {
       try {
-        const res = await fetch(`${API}/billing/subscription`);
+        const res = await apiGet("/billing/subscription");
         if (res.ok) {
           setSubscription(await res.json());
         } else {
@@ -48,7 +47,7 @@ export default function BillingPage() {
     setActionLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/billing/checkout`, { method: "POST" });
+      const res = await apiPost("/billing/checkout", {});
       if (res.ok) {
         const { checkout_url } = await res.json();
         window.location.href = checkout_url;
@@ -66,7 +65,7 @@ export default function BillingPage() {
     setActionLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/billing/portal`);
+      const res = await apiGet("/billing/portal");
       if (res.ok) {
         const { portal_url } = await res.json();
         window.location.href = portal_url;

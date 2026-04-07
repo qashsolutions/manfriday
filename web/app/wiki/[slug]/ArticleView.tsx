@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import WikiRenderer from "@/components/WikiRenderer";
-import { demoFetch, mockWikiPage, mockBacklinks } from "@/lib/mock-data";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { mockWikiPage, mockBacklinks } from "@/lib/mock-data";
+import { apiGet } from "@/lib/api";
 
 interface WikiPage {
   slug: string;
@@ -40,11 +39,19 @@ export default function ArticleView() {
     async function load() {
       setLoading(true);
       try {
-        const pageRes = await demoFetch(`${API}/wiki/pages/${slug}`, { ...mockWikiPage, slug });
-        setPage(await pageRes.json());
+        const pageRes = await apiGet(`/wiki/pages/${slug}`);
+        if (pageRes.ok) {
+          setPage(await pageRes.json());
+        } else {
+          setPage({ ...mockWikiPage, slug } as WikiPage);
+        }
 
-        const blRes = await demoFetch(`${API}/wiki/pages/${slug}/backlinks`, mockBacklinks);
-        setBacklinks(await blRes.json());
+        const blRes = await apiGet(`/wiki/pages/${slug}/backlinks`);
+        if (blRes.ok) {
+          setBacklinks(await blRes.json());
+        } else {
+          setBacklinks(mockBacklinks);
+        }
       } catch {
         setPage({ ...mockWikiPage, slug } as WikiPage);
         setBacklinks(mockBacklinks);
