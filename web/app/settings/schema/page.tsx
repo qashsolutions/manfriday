@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet, apiFetch } from "@/lib/api";
 
 export default function SchemaEditorPage() {
   const [content, setContent] = useState("");
@@ -15,7 +14,7 @@ export default function SchemaEditorPage() {
   useEffect(() => {
     async function loadSchema() {
       try {
-        const res = await fetch(`${API}/schema`);
+        const res = await apiGet("/schema");
         if (res.ok) {
           const data = await res.json();
           const text = data.content || data.schema || "";
@@ -39,9 +38,8 @@ export default function SchemaEditorPage() {
     setMessage(null);
 
     try {
-      const res = await fetch(`${API}/schema`, {
+      const res = await apiFetch("/schema", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       });
 

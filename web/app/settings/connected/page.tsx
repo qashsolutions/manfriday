@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import ConnectedAccountCard, { type ConnectorType } from "@/components/ConnectedAccountCard";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet, apiPost } from "@/lib/api";
 
 const ALL_CONNECTORS: ConnectorType[] = ["gmail", "gdrive", "telegram", "whatsapp", "arxiv"];
 
@@ -25,7 +24,7 @@ export default function ConnectedAccountsPage() {
 
   const fetchAccounts = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/connectors/connected-accounts`);
+      const res = await apiGet("/connectors/connected-accounts");
       if (res.ok) {
         const data: ConnectedAccount[] = await res.json();
         const map = new Map<ConnectorType, ConnectedAccount>();
@@ -53,7 +52,7 @@ export default function ConnectedAccountsPage() {
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
       const popup = window.open(
-        `${API}/connectors/oauth/${type}`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/connectors/oauth/${type}`,
         `connect-${type}`,
         `width=${width},height=${height},left=${left},top=${top}`
       );
@@ -73,14 +72,10 @@ export default function ConnectedAccountsPage() {
     if (!apiKeyInput) return;
     setError(null);
     try {
-      const res = await fetch(`${API}/connectors/connect`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const res = await apiPost("/connectors/connect", {
           connector_type: apiKeyInput.type,
           api_key: apiKeyInput.key,
-        }),
-      });
+        });
       if (res.ok) {
         setApiKeyInput(null);
         await fetchAccounts();
@@ -96,7 +91,7 @@ export default function ConnectedAccountsPage() {
   async function handleDisconnect(type: ConnectorType) {
     setError(null);
     try {
-      const res = await fetch(`${API}/connectors/disconnect/${type}`, { method: "POST" });
+      const res = await apiPost(`/connectors/disconnect/${type}`, {});
       if (res.ok) {
         await fetchAccounts();
       } else {
@@ -111,7 +106,7 @@ export default function ConnectedAccountsPage() {
     setPolling(type);
     setError(null);
     try {
-      const res = await fetch(`${API}/connectors/poll/${type}`, { method: "POST" });
+      const res = await apiPost(`/connectors/poll/${type}`, {});
       if (!res.ok) {
         setError(`Failed to poll ${type}.`);
       } else {

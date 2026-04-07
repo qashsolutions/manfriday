@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ProviderSelector, { type Provider } from "@/components/ProviderSelector";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiPost } from "@/lib/api";
 
 export default function SetupKeyPage() {
   const router = useRouter();
@@ -28,11 +27,7 @@ export default function SetupKeyPage() {
     setValid(null);
 
     try {
-      const res = await fetch(`${API}/sources/validate-key`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, api_key: apiKey.trim() }),
-      });
+      const res = await apiPost("/sources/validate-key", { provider, api_key: apiKey.trim() });
 
       const result = await res.json();
 

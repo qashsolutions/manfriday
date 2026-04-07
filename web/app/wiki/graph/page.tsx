@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet } from "@/lib/api";
 
 // ── Types matching graph.json schema ──────────────────────
 
@@ -182,13 +181,7 @@ export default function GraphPage() {
   useEffect(() => {
     async function loadGraph() {
       try {
-        const token = typeof window !== "undefined" ? localStorage.getItem("sb-access-token") : null;
-        const headers: Record<string, string> = {};
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
-
-        const res = await fetch(`${API}/graph`, { headers });
+        const res = await apiGet("/graph");
         if (!res.ok) {
           throw new Error(`API returned ${res.status}`);
         }

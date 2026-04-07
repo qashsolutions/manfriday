@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SourceQualityBadge from "@/components/SourceQualityBadge";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiGet, apiPost } from "@/lib/api";
 
 interface SuppressedSource {
   slug: string;
@@ -22,7 +21,7 @@ export default function SuppressedSourcesPage() {
 
   async function loadSuppressed() {
     try {
-      const res = await fetch(`${API}/sources/suppressed`);
+      const res = await apiGet("/sources/suppressed");
       if (res.ok) {
         setItems(await res.json());
       } else {
@@ -43,9 +42,7 @@ export default function SuppressedSourcesPage() {
     setRestoring(slug);
 
     try {
-      const res = await fetch(`${API}/sources/suppressed/${slug}/restore`, {
-        method: "POST",
-      });
+      const res = await apiPost(`/sources/suppressed/${slug}/restore`, {});
 
       if (res.ok) {
         setItems((prev) => prev.filter((item) => item.slug !== slug));

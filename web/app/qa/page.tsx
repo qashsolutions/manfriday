@@ -4,8 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import WikiRenderer from "@/components/WikiRenderer";
 import ToolTrace, { type ToolCall } from "@/components/ToolTrace";
 import OutputTypeSelector, { type OutputType } from "@/components/OutputTypeSelector";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -57,9 +56,8 @@ export default function QAPage() {
     setStreaming(true);
 
     try {
-      const res = await fetch(`${API}/qa/stream`, {
+      const res = await apiFetch("/qa/stream", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query,
           output_type: outputType,
