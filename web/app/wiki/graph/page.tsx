@@ -106,8 +106,8 @@ function forceLayout(
 
   for (let iter = 0; iter < iterations; iter++) {
     const alpha = 1 - iter / iterations;
-    const repulsion = 12000 * alpha;
-    const attraction = 0.002 * alpha;
+    const repulsion = 40000 * alpha;
+    const attraction = 0.001 * alpha;
 
     // Repulsion between all pairs
     for (let i = 0; i < nodes.length; i++) {
@@ -144,8 +144,8 @@ function forceLayout(
 
     // Center gravity
     for (const n of nodes) {
-      n.vx += (cx - n.x) * 0.001;
-      n.vy += (cy - n.y) * 0.001;
+      n.vx += (cx - n.x) * 0.0005;
+      n.vy += (cy - n.y) * 0.0005;
     }
 
     // Apply velocity with damping
@@ -263,7 +263,7 @@ export default function GraphPage() {
   const relCount = graphData ? graphData.relationships.length : 0;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-1">
           <Link href="/wiki" className="text-sm text-secondary hover:text-accent">Wiki</Link>
@@ -271,7 +271,7 @@ export default function GraphPage() {
           <span className="text-sm font-medium">Knowledge Graph</span>
         </div>
         <h1 className="text-2xl font-bold mb-2">Knowledge Graph</h1>
-        <p className="text-secondary text-sm max-w-2xl">
+        <p className="text-secondary text-sm">
           Your wiki as a living network. Every time ManFriday ingests a source, it extracts
           <strong> people</strong>, <strong>organizations</strong>, <strong>projects</strong>, and <strong>concepts</strong> — then
           maps how they relate. Click any node to explore its connections. The more sources you add, the richer this graph becomes.
@@ -351,7 +351,8 @@ export default function GraphPage() {
               <svg
                 ref={svgRef}
                 width="100%"
-                height="500"
+                height="700"
+                style={{ minHeight: "600px" }}
                 className="bg-surface-2 rounded-lg border border-surface-3"
                 viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
               >

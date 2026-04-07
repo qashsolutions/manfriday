@@ -10,10 +10,12 @@ const AUTH_ROUTES = ["/signup", "/callback", "/setup", "/login"];
 
 const NAV_ITEMS = [
   { href: "/wiki", label: "Wiki" },
-  { href: "/qa", label: "Q&A" },
+  { href: "/qa", label: "Q&A", children: [
+    { href: "/qa", label: "Chat" },
+    { href: "/outputs", label: "Outputs" },
+    { href: "/memory", label: "Memory" },
+  ]},
   { href: "/sources", label: "Sources" },
-  { href: "/outputs", label: "Outputs" },
-  { href: "/memory", label: "Memory" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -85,7 +87,45 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Nav items — desktop */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                  || (item.children?.some(c => pathname === c.href || pathname.startsWith(c.href + "/")));
+
+                if (item.children) {
+                  return (
+                    <div key={item.href} className="relative group">
+                      <Link
+                        href={item.href}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1 ${
+                          isActive
+                            ? "bg-accent/10 text-accent"
+                            : "text-secondary hover:text-primary hover:bg-surface-2"
+                        }`}
+                      >
+                        {item.label}
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </Link>
+                      <div className="absolute left-0 top-full mt-1 w-40 bg-surface-1 border border-surface-3 rounded-lg shadow-xl py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                        {item.children.map((child) => {
+                          const childActive = pathname === child.href || pathname.startsWith(child.href + "/");
+                          return (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              className={`block px-4 py-2 text-sm transition-colors ${
+                                childActive ? "text-accent bg-accent/5" : "text-secondary hover:text-primary hover:bg-surface-2"
+                              }`}
+                            >
+                              {child.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.href}
