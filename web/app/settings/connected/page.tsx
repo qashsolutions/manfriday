@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import ConnectedAccountCard, { type ConnectorType } from "@/components/ConnectedAccountCard";
 import { apiGet, apiPost } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 const ALL_CONNECTORS: ConnectorType[] = ["gmail", "gdrive", "telegram", "whatsapp", "arxiv"];
 
@@ -76,14 +77,19 @@ export default function ConnectedAccountsPage() {
     fetchAccounts();
   }, [fetchAccounts]);
 
-  function handleConnect(type: ConnectorType) {
+  async function handleConnect(type: ConnectorType) {
     if (OAUTH_CONNECTORS.includes(type)) {
+      // Get user_id from Supabase session to pass to OAuth flow
+      const { data } = await supabase.auth.getSession();
+      const userId = data.session?.user?.id || "";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
       const width = 500;
       const height = 600;
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
       const popup = window.open(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/connectors/oauth/${type}`,
+        `${apiUrl}/connectors/oauth/${type}?user_id=${userId}`,
         `connect-${type}`,
         `width=${width},height=${height},left=${left},top=${top}`
       );
