@@ -17,16 +17,39 @@
     --surface-0: #ffffff;
     --surface-1: #f9fafb;
     --surface-2: #f3f4f6;
-    --surface-3: #e5e7eb;
+    --surface-3: #d1d5db;
     --text-primary: #111827;
-    --text-secondary: #4b5563;
-    --text-muted: #9ca3af;
+    --text-secondary: #374151;
+    --text-muted: #6b7280;
   }
 
   body {
     background-color: var(--surface-0);
     color: var(--text-primary);
     @apply antialiased;
+  }
+
+  .light .card {
+    @apply shadow-sm;
+  }
+
+  .light h1, .light h2, .light h3,
+  .light .text-white {
+    color: var(--text-primary) !important;
+  }
+
+  .light .text-gray-100,
+  .light .text-gray-200 {
+    color: var(--text-primary) !important;
+  }
+
+  .light .text-gray-300 {
+    color: var(--text-secondary) !important;
+  }
+
+  .light .text-gray-400,
+  .light .text-gray-500 {
+    color: var(--text-muted) !important;
   }
 
   ::-webkit-scrollbar {
