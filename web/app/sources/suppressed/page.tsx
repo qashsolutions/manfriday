@@ -23,7 +23,8 @@ export default function SuppressedSourcesPage() {
     try {
       const res = await apiGet("/sources/suppressed");
       if (res.ok) {
-        setItems(await res.json());
+        const data = await res.json();
+        setItems(Array.isArray(data) ? data : data.suppressed || data.items || []);
       } else {
         setError(`Failed to load suppressed sources: ${res.status}`);
       }

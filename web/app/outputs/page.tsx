@@ -21,7 +21,8 @@ export default function OutputsPage() {
       try {
         const res = await apiGet("/outputs");
         if (res.ok) {
-          setOutputs(await res.json());
+          const data = await res.json();
+          setOutputs(Array.isArray(data) ? data : data.outputs || []);
         } else {
           setError(`Failed to load outputs: ${res.status}`);
         }

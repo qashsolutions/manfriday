@@ -26,7 +26,8 @@ export default function ConnectedAccountsPage() {
     try {
       const res = await apiGet("/connectors/connected-accounts");
       if (res.ok) {
-        const data: ConnectedAccount[] = await res.json();
+        const raw = await res.json();
+        const data: ConnectedAccount[] = Array.isArray(raw) ? raw : raw.accounts || [];
         const map = new Map<ConnectorType, ConnectedAccount>();
         for (const a of data) {
           map.set(a.connector_type, a);
