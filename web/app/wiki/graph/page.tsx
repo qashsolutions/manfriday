@@ -88,26 +88,49 @@ function forceLayout(
   edges: GraphRelationship[],
   width: number,
   height: number,
-  iterations: number = 200,
+  iterations: number = 300,
 ): LayoutNode[] {
-  // Initialize positions in a wide circle — fill the space
+  // Initialize positions spread across the full space
   const cx = width / 2;
   const cy = height / 2;
-  const radius = Math.min(width, height) * 0.45;
-  nodes.forEach((n, i) => {
-    const angle = (2 * Math.PI * i) / nodes.length;
-    n.x = cx + radius * Math.cos(angle);
-    n.y = cy + radius * Math.sin(angle);
-    n.vx = 0;
-    n.vy = 0;
-  });
+  const padding = 80;
+  const usableW = width - padding * 2;
+  const usableH = height - padding * 2;
+
+  // For few nodes (<10): place in a large circle filling 80% of space
+  // For many nodes: place in a grid pattern
+  if (nodes.length <= 12) {
+    const radius = Math.min(usableW, usableH) * 0.4;
+    nodes.forEach((n, i) => {
+      const angle = (2 * Math.PI * i) / nodes.length - Math.PI / 2;
+      n.x = cx + radius * Math.cos(angle);
+      n.y = cy + radius * Math.sin(angle);
+      n.vx = 0;
+      n.vy = 0;
+    });
+  } else {
+    const cols = Math.ceil(Math.sqrt(nodes.length * (usableW / usableH)));
+    const rows = Math.ceil(nodes.length / cols);
+    const cellW = usableW / cols;
+    const cellH = usableH / rows;
+    nodes.forEach((n, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      n.x = padding + cellW * (col + 0.5);
+      n.y = padding + cellH * (row + 0.5);
+      n.vx = 0;
+      n.vy = 0;
+    });
+  }
 
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
   for (let iter = 0; iter < iterations; iter++) {
     const alpha = 1 - iter / iterations;
-    const repulsion = 80000 * alpha;
-    const attraction = 0.001 * alpha;
+    // Scale forces based on node count — fewer nodes need more spread
+    const nodeScale = Math.max(1, 20 / nodes.length);
+    const repulsion = 50000 * alpha * nodeScale;
+    const attraction = 0.0003 * alpha;
 
     // Repulsion between all pairs
     for (let i = 0; i < nodes.length; i++) {
@@ -135,10 +158,12 @@ function forceLayout(
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const force = dist * attraction;
-      a.vx += dx * force;
-      a.vy += dy * force;
-      b.vx -= dx * force;
+      // Only attract if nodes are far apart (> 200px), otherwise let repulsion dominate
+      const idealDist = 200;
+      const force = Math.max(0, (dist - idealDist)) * attraction;
+      a.vx += (dx / dist) * force;
+      a.vy += (dy / dist) * force;
+      b.vx -= (dx / dist) * force;
       b.vy -= dy * force;
     }
 
