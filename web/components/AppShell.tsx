@@ -86,7 +86,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Nav items — desktop */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                // Exact match for /wiki to avoid highlighting when on /wiki/graph
+                const isActive = item.href === "/wiki"
+                  ? pathname === "/wiki" || (pathname.startsWith("/wiki/") && !pathname.startsWith("/wiki/graph"))
+                  : pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <Link
                     key={item.href}
@@ -105,7 +108,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Right side */}
             <div className="ml-auto flex items-center gap-2">
-              <ThemeToggle />
 
               {/* Mobile hamburger */}
               <button
@@ -150,7 +152,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       <Link href="/settings/schema" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-secondary hover:bg-surface-2">
                         CLAUDE.md Editor
                       </Link>
-                      <div className="border-t border-surface-3 mt-1">
+                      <div className="border-t border-surface-3 mt-1 px-4 py-2 flex items-center justify-between">
+                        <span className="text-sm text-secondary">Theme</span>
+                        <ThemeToggle />
+                      </div>
+                      <div className="border-t border-surface-3">
                         <button onClick={() => { setDropdownOpen(false); handleSignOut(); }} className="flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-surface-2 w-full text-left">
                           Sign out
                         </button>
