@@ -88,12 +88,12 @@ function forceLayout(
   edges: GraphRelationship[],
   width: number,
   height: number,
-  iterations: number = 120,
+  iterations: number = 200,
 ): LayoutNode[] {
-  // Initialize positions in a circle
+  // Initialize positions in a wide circle — fill the space
   const cx = width / 2;
   const cy = height / 2;
-  const radius = Math.min(width, height) * 0.35;
+  const radius = Math.min(width, height) * 0.42;
   nodes.forEach((n, i) => {
     const angle = (2 * Math.PI * i) / nodes.length;
     n.x = cx + radius * Math.cos(angle);
@@ -106,8 +106,8 @@ function forceLayout(
 
   for (let iter = 0; iter < iterations; iter++) {
     const alpha = 1 - iter / iterations;
-    const repulsion = 3000 * alpha;
-    const attraction = 0.005 * alpha;
+    const repulsion = 12000 * alpha;
+    const attraction = 0.002 * alpha;
 
     // Repulsion between all pairs
     for (let i = 0; i < nodes.length; i++) {
@@ -144,14 +144,14 @@ function forceLayout(
 
     // Center gravity
     for (const n of nodes) {
-      n.vx += (cx - n.x) * 0.002;
-      n.vy += (cy - n.y) * 0.002;
+      n.vx += (cx - n.x) * 0.001;
+      n.vy += (cy - n.y) * 0.001;
     }
 
     // Apply velocity with damping
     for (const n of nodes) {
-      n.vx *= 0.6;
-      n.vy *= 0.6;
+      n.vx *= 0.7;
+      n.vy *= 0.7;
       n.x += n.vx;
       n.y += n.vy;
       // Clamp to bounds
@@ -175,8 +175,8 @@ export default function GraphPage() {
   const [layoutNodes, setLayoutNodes] = useState<LayoutNode[]>([]);
   const [filterType, setFilterType] = useState<string>("all");
 
-  const SVG_WIDTH = 800;
-  const SVG_HEIGHT = 500;
+  const SVG_WIDTH = 1200;
+  const SVG_HEIGHT = 700;
 
   // Fetch graph data from API with fallback to mock
   useEffect(() => {
@@ -369,7 +369,7 @@ export default function GraphPage() {
                   </marker>
                 </defs>
 
-                {/* Edges */}
+                {/* Edges with animated dots */}
                 {filteredEdges.map((edge, i) => {
                   const src = nodeMap.get(edge.source);
                   const tgt = nodeMap.get(edge.target);
@@ -377,30 +377,40 @@ export default function GraphPage() {
                   const isSelected =
                     selectedEntity === edge.source ||
                     selectedEntity === edge.target;
+                  const edgeId = `edge-${i}`;
                   return (
-                    <line
-                      key={`e-${i}`}
-                      x1={src.x}
-                      y1={src.y}
-                      x2={tgt.x}
-                      y2={tgt.y}
-                      stroke={isSelected ? "#60a5fa" : "#374151"}
-                      strokeWidth={isSelected ? 2 : 1}
-                      strokeOpacity={
-                        selectedEntity
-                          ? isSelected
-                            ? 0.9
-                            : 0.15
-                          : 0.5
-                      }
-                      markerEnd="url(#arrowhead)"
-                    />
+                    <g key={edgeId}>
+                      <line
+                        x1={src.x}
+                        y1={src.y}
+                        x2={tgt.x}
+                        y2={tgt.y}
+                        stroke={isSelected ? "#60a5fa" : "#4b5563"}
+                        strokeWidth={isSelected ? 2.5 : 1.5}
+                        strokeOpacity={
+                          selectedEntity
+                            ? isSelected
+                              ? 0.9
+                              : 0.15
+                            : 0.6
+                        }
+                        markerEnd="url(#arrowhead)"
+                      />
+                      {/* Animated dot traveling along edge */}
+                      <circle r="3" fill={isSelected ? "#60a5fa" : "#6366f1"} opacity={selectedEntity && !isSelected ? 0.1 : 0.7}>
+                        <animateMotion
+                          dur={`${4 + (i % 3) * 2}s`}
+                          repeatCount="indefinite"
+                          path={`M${src.x},${src.y} L${tgt.x},${tgt.y}`}
+                        />
+                      </circle>
+                    </g>
                   );
                 })}
 
                 {/* Nodes */}
                 {filteredNodes.map((node) => {
-                  const r = Math.max(6, Math.min(16, 4 + node.appearances * 1.5));
+                  const r = Math.max(12, Math.min(28, 8 + node.appearances * 2.5));
                   const isSelected = selectedEntity === node.id;
                   const isNeighbor = selectedRels.some(
                     (rel) => rel.source === node.id || rel.target === node.id
@@ -427,7 +437,7 @@ export default function GraphPage() {
                         y={node.y + r + 12}
                         textAnchor="middle"
                         fill={dimmed ? "#374151" : "#9ca3af"}
-                        fontSize="10"
+                        fontSize="13"
                       >
                         {node.name.length > 18
                           ? node.name.slice(0, 16) + "..."
