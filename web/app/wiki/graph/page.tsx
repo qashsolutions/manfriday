@@ -93,7 +93,7 @@ function forceLayout(
   // Initialize positions in a wide circle — fill the space
   const cx = width / 2;
   const cy = height / 2;
-  const radius = Math.min(width, height) * 0.42;
+  const radius = Math.min(width, height) * 0.45;
   nodes.forEach((n, i) => {
     const angle = (2 * Math.PI * i) / nodes.length;
     n.x = cx + radius * Math.cos(angle);
@@ -106,7 +106,7 @@ function forceLayout(
 
   for (let iter = 0; iter < iterations; iter++) {
     const alpha = 1 - iter / iterations;
-    const repulsion = 40000 * alpha;
+    const repulsion = 80000 * alpha;
     const attraction = 0.001 * alpha;
 
     // Repulsion between all pairs
@@ -155,8 +155,8 @@ function forceLayout(
       n.x += n.vx;
       n.y += n.vy;
       // Clamp to bounds
-      n.x = Math.max(40, Math.min(width - 40, n.x));
-      n.y = Math.max(40, Math.min(height - 40, n.y));
+      n.x = Math.max(60, Math.min(width - 60, n.x));
+      n.y = Math.max(60, Math.min(height - 60, n.y));
     }
   }
 
@@ -351,10 +351,11 @@ export default function GraphPage() {
               <svg
                 ref={svgRef}
                 width="100%"
-                height="700"
-                style={{ minHeight: "600px" }}
+                height="100%"
+                style={{ minHeight: "70vh" }}
                 className="bg-surface-2 rounded-lg border border-surface-3"
                 viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+                preserveAspectRatio="none"
               >
                 <defs>
                   <marker
