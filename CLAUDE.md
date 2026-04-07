@@ -266,6 +266,15 @@ Domain config:
 | Env vars (Vercel) | NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL |
 | Env vars (Cloud Run) | GCS_BUCKET, ENV, GCP_PROJECT, SUPABASE_JWT_SECRET, GOOGLE_OAUTH_CLIENT_ID/SECRET |
 
+### Free (BYOK) user flow
+
+1. Sign up (email or Google OAuth)
+2. Add their own API key (Anthropic/OpenAI/Gemini) in Settings — masked, secured, never visible again
+3. Start using: add URLs, PDFs, RSS → wiki builds → Q&A works
+4. Optionally connect Gmail/Drive (click Connect → Google OAuth → read-only access)
+5. Optionally connect Telegram (create bot via @BotFather → paste token)
+6. ManFriday reads all connected sources and builds the wiki automatically
+
 ### API key security (implemented 2026-04-07)
 
 | Layer | Implementation |
