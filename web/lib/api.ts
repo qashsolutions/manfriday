@@ -71,3 +71,12 @@ export function apiPost(path: string, body: unknown) {
 export function apiDelete(path: string) {
   return apiFetch(path, { method: "DELETE" });
 }
+
+/**
+ * Mask an API key for display: show first 8 chars + **** + last 4 chars.
+ * For short keys (<=12 chars), returns just "****" to prevent leaking.
+ */
+export function maskKey(key: string): string {
+  if (!key || key.length <= 12) return "****";
+  return key.slice(0, 8) + "****" + key.slice(-4);
+}

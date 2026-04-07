@@ -2,28 +2,31 @@
 
 import { useState, useEffect } from "react";
 import ProviderSelector, { type Provider } from "@/components/ProviderSelector";
-import { apiGet, apiPost, apiFetch } from "@/lib/api";
+import { apiGet, apiPost, maskKey } from "@/lib/api";
 
-interface ProviderConfig {
+interface ProviderStatus {
   provider: Provider;
-  api_key: string;
-  valid: boolean | null;
+  configured: boolean;
+  masked_key: string | null;
 }
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState<Provider>("anthropic");
-  const [keys, setKeys] = useState<Record<Provider, string>>({
-    anthropic: "",
-    openai: "",
-    gemini: "",
-  });
-  const [validation, setValidation] = useState<Record<Provider, boolean | null>>({
+  const [maskedKeys, setMaskedKeys] = useState<Record<Provider, string | null>>({
     anthropic: null,
     openai: null,
     gemini: null,
   });
+  const [configured, setConfigured] = useState<Record<Provider, boolean>>({
+    anthropic: false,
+    openai: false,
+    gemini: false,
+  });
+  // newKey holds the raw input ONLY while the user is actively entering a new key.
+  // It is cleared immediately after save/validate completes.
+  const [newKey, setNewKey] = useState("");
+  const [editing, setEditing] = useState(false);
   const [validating, setValidating] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
@@ -31,43 +34,57 @@ export default function SettingsPage() {
       try {
         const res = await apiGet("/settings/providers");
         if (res.ok) {
-          const configs: ProviderConfig[] = await res.json();
-          const newKeys = { ...keys };
-          const newValidation = { ...validation };
-          for (const c of configs) {
-            if (c.api_key) {
-              // masked key from API
-              newKeys[c.provider] = c.api_key;
-            }
-            newValidation[c.provider] = c.valid;
+          const statuses: ProviderStatus[] = await res.json();
+          const newMasked: Record<Provider, string | null> = { anthropic: null, openai: null, gemini: null };
+          const newConfigured: Record<Provider, boolean> = { anthropic: false, openai: false, gemini: false };
+          for (const s of statuses) {
+            newMasked[s.provider] = s.masked_key;
+            newConfigured[s.provider] = s.configured;
           }
-          setKeys(newKeys);
-          setValidation(newValidation);
+          setMaskedKeys(newMasked);
+          setConfigured(newConfigured);
         }
       } catch {
         // backend not available
       }
     }
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleValidate() {
-    const key = keys[provider];
-    if (!key) return;
+  // When switching providers, exit editing mode and clear any in-progress key
+  useEffect(() => {
+    setEditing(false);
+    setNewKey("");
+    setMessage(null);
+  }, [provider]);
+
+  async function handleSaveAndValidate() {
+    if (!newKey) return;
 
     setValidating(true);
     setMessage(null);
 
     try {
-      const res = await apiPost("/settings/providers/validate", { provider, api_key: key });
-
+      const res = await apiPost("/validate-key", { provider, api_key: newKey });
       const result = await res.json();
-      setValidation((prev) => ({ ...prev, [provider]: result.valid }));
-      setMessage({
-        text: result.valid ? "API key is valid." : result.error || "Invalid API key.",
-        type: result.valid ? "success" : "error",
-      });
+
+      if (res.status === 429) {
+        setMessage({ text: result.detail || "Rate limit exceeded. Try again in a minute.", type: "error" });
+        return;
+      }
+
+      if (result.valid) {
+        // Key validated and stored. Update masked display, clear raw key immediately.
+        const returnedMask = result.masked_key || maskKey(newKey);
+        setMaskedKeys((prev) => ({ ...prev, [provider]: returnedMask }));
+        setConfigured((prev) => ({ ...prev, [provider]: true }));
+        setMessage({ text: "Key validated and stored securely.", type: "success" });
+        // SECURITY: clear raw key from React state immediately
+        setNewKey("");
+        setEditing(false);
+      } else {
+        setMessage({ text: "Invalid API key. Please check and try again.", type: "error" });
+      }
     } catch {
       setMessage({ text: "Could not connect to API.", type: "error" });
     } finally {
@@ -75,30 +92,16 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleSave() {
-    const key = keys[provider];
-    if (!key) return;
-
-    setSaving(true);
+  function handleReplaceKey() {
+    setEditing(true);
+    setNewKey("");
     setMessage(null);
+  }
 
-    try {
-      const res = await apiFetch("/settings/providers", {
-        method: "PUT",
-        body: JSON.stringify({ provider, api_key: key }),
-      });
-
-      if (res.ok) {
-        setMessage({ text: "Saved successfully.", type: "success" });
-      } else {
-        const body = await res.json().catch(() => ({}));
-        setMessage({ text: body.detail || "Failed to save.", type: "error" });
-      }
-    } catch {
-      setMessage({ text: "Could not connect to API.", type: "error" });
-    } finally {
-      setSaving(false);
-    }
+  function handleCancelEdit() {
+    setEditing(false);
+    setNewKey("");
+    setMessage(null);
   }
 
   const keyPlaceholders: Record<Provider, string> = {
@@ -107,7 +110,7 @@ export default function SettingsPage() {
     gemini: "AIza...",
   };
 
-  const validIcon = validation[provider];
+  const isConfigured = configured[provider];
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -125,44 +128,64 @@ export default function SettingsPage() {
           <ProviderSelector selected={provider} onChange={setProvider} />
         </div>
 
-        {/* API key input */}
+        {/* API key section */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
             API Key
           </label>
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <input
-                type="password"
-                value={keys[provider]}
-                onChange={(e) =>
-                  setKeys((prev) => ({ ...prev, [provider]: e.target.value }))
-                }
-                placeholder={keyPlaceholders[provider]}
-                className="input-field w-full pr-10"
-              />
-              {validIcon !== null && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {validIcon ? (
-                    <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  )}
+
+          {isConfigured && !editing ? (
+            /* Show masked key with lock icon and replace button */
+            <div className="flex items-center gap-3">
+              <div className="flex-1 flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5">
+                <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="text-sm text-gray-400 font-mono">
+                  {maskedKeys[provider] || "****"}
                 </span>
+              </div>
+              <button
+                onClick={handleReplaceKey}
+                className="btn-secondary"
+              >
+                Replace key
+              </button>
+            </div>
+          ) : (
+            /* Input mode: new key entry with type="password" */
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="password"
+                  value={newKey}
+                  onChange={(e) => setNewKey(e.target.value)}
+                  placeholder={keyPlaceholders[provider]}
+                  className="input-field w-full"
+                  autoComplete="off"
+                />
+              </div>
+              <button
+                onClick={handleSaveAndValidate}
+                disabled={validating || !newKey}
+                className="btn-primary disabled:opacity-40"
+              >
+                {validating ? "Validating..." : "Save key"}
+              </button>
+              {editing && (
+                <button
+                  onClick={handleCancelEdit}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
               )}
             </div>
-            <button
-              onClick={handleValidate}
-              disabled={validating || !keys[provider]}
-              className="btn-secondary disabled:opacity-40"
-            >
-              {validating ? "Checking..." : "Validate"}
-            </button>
-          </div>
+          )}
+
+          <p className="text-xs text-gray-600 mt-2">
+            Key stored securely. ManFriday never displays your full key.
+          </p>
         </div>
 
         {/* Message */}
@@ -175,17 +198,6 @@ export default function SettingsPage() {
             {message.text}
           </p>
         )}
-
-        {/* Save */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleSave}
-            disabled={saving || !keys[provider]}
-            className="btn-primary disabled:opacity-40"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
       </div>
 
       {/* Provider status overview */}
@@ -196,20 +208,16 @@ export default function SettingsPage() {
             <div key={p} className="flex items-center justify-between">
               <span className="text-sm text-gray-300 capitalize">{p}</span>
               <div className="flex items-center gap-2">
-                {keys[p] ? (
+                {configured[p] ? (
                   <span className="text-xs text-gray-500 font-mono">
-                    {keys[p].slice(0, 8)}...
+                    {maskedKeys[p] || "****"}
                   </span>
                 ) : (
                   <span className="text-xs text-gray-600">Not configured</span>
                 )}
                 <span
                   className={`w-2 h-2 rounded-full ${
-                    validation[p] === true
-                      ? "bg-green-400"
-                      : validation[p] === false
-                        ? "bg-red-400"
-                        : "bg-gray-600"
+                    configured[p] ? "bg-green-400" : "bg-gray-600"
                   }`}
                 />
               </div>
