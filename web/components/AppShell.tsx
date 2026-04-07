@@ -10,10 +10,9 @@ const AUTH_ROUTES = ["/signup", "/callback", "/setup", "/login"];
 
 const NAV_ITEMS = [
   { href: "/wiki", label: "Wiki" },
-  { href: "/wiki/graph", label: "Graph" },
   { href: "/qa", label: "Q&A" },
-  { href: "/outputs", label: "Outputs" },
   { href: "/sources", label: "Sources" },
+  { href: "/outputs", label: "Outputs" },
   { href: "/memory", label: "Memory" },
 ];
 
@@ -86,10 +85,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Nav items — desktop */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_ITEMS.map((item) => {
-                // Exact match for /wiki to avoid highlighting when on /wiki/graph
-                const isActive = item.href === "/wiki"
-                  ? pathname === "/wiki" || (pathname.startsWith("/wiki/") && !pathname.startsWith("/wiki/graph"))
-                  : pathname === item.href || pathname.startsWith(item.href + "/");
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <Link
                     key={item.href}

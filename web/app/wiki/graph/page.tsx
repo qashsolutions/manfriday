@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import Link from "next/link";
 import { apiGet } from "@/lib/api";
 
 // ── Types matching graph.json schema ──────────────────────
@@ -264,13 +265,27 @@ export default function GraphPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white mb-1">World Model Graph</h1>
-        <p className="text-gray-500 text-sm">
-          Entity relationships extracted from wiki pages.
-          {isMock && (
-            <span className="ml-2 text-yellow-400">(sample data)</span>
-          )}
+        <div className="flex items-center gap-2 mb-1">
+          <Link href="/wiki" className="text-sm text-secondary hover:text-accent">Wiki</Link>
+          <span className="text-muted">/</span>
+          <span className="text-sm font-medium">Knowledge Graph</span>
+        </div>
+        <h1 className="text-2xl font-bold mb-2">Knowledge Graph</h1>
+        <p className="text-secondary text-sm max-w-2xl">
+          Your wiki as a living network. Every time ManFriday ingests a source, it extracts
+          <strong> people</strong>, <strong>organizations</strong>, <strong>projects</strong>, and <strong>concepts</strong> — then
+          maps how they relate. Click any node to explore its connections. The more sources you add, the richer this graph becomes.
         </p>
+        {isMock && (
+          <div className="mt-3 card border-accent/20 bg-accent/5 text-sm">
+            <p className="font-medium text-accent">Exploring with sample data</p>
+            <p className="text-secondary mt-1">
+              This is a demo graph showing AI research entities. Add your own sources on the
+              <Link href="/sources" className="text-accent hover:underline mx-1">Sources</Link>
+              page — your personal knowledge graph will build automatically as your wiki grows.
+            </p>
+          </div>
+        )}
       </div>
 
       {error && (
