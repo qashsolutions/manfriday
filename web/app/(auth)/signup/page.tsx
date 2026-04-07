@@ -26,10 +26,10 @@ function EyeIcon({ open }: { open: boolean }) {
 
 function validatePassword(pw: string): string | null {
   if (pw.length < 8) return "Password must be at least 8 characters.";
-  if (!/[a-zA-Z]/.test(pw)) return "Password must contain at least one letter.";
-  if (!/[0-9]/.test(pw)) return "Password must contain at least one number.";
-  const specialCount = (pw.match(/[^a-zA-Z0-9]/g) || []).length;
-  if (specialCount < 2) return "Password must contain at least 2 special characters (e.g. !@#$%).";
+  if (!/[a-z]/.test(pw)) return "Password must contain at least one lowercase letter.";
+  if (!/[A-Z]/.test(pw)) return "Password must contain at least one uppercase letter.";
+  if (!/[0-9]/.test(pw)) return "Password must contain at least one digit.";
+  if (!/[^a-zA-Z0-9]/.test(pw)) return "Password must contain at least one symbol (e.g. !@#$%).";
   return null;
 }
 
@@ -126,7 +126,7 @@ export default function SignupPage() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min 8 chars, 1 letter, 1 number, 2 special"
+              placeholder="Min 8 chars: lowercase, uppercase, digit, symbol"
               className="input-field w-full pr-10"
               minLength={8}
               required
