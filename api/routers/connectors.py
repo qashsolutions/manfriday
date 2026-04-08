@@ -1,10 +1,17 @@
-"""Connector routes — connect/disconnect/poll external services + OAuth flow."""
+"""Connector routes — connect/disconnect/poll external services + OAuth flow.
+
+Uses same-window redirect (not popup) with PKCE + short-lived state tokens.
+"""
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
+import secrets
+import time
+from base64 import urlsafe_b64encode
 from typing import Any
 from urllib.parse import urlencode
 
@@ -28,6 +35,7 @@ router = APIRouter()
 
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
 GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://manfriday.app")
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
@@ -44,6 +52,26 @@ CONNECTORS: dict[str, type[ConnectorBase]] = {
     "arxiv": ArxivConnector,
 }
 
+# In-memory store for PKCE verifiers + state tokens (short-lived, 5 min)
+_oauth_states: dict[str, dict[str, Any]] = {}
+_STATE_TTL = 300  # 5 minutes
+
+
+def _cleanup_expired_states() -> None:
+    cutoff = time.time() - _STATE_TTL
+    expired = [k for k, v in _oauth_states.items() if v["created"] < cutoff]
+    for k in expired:
+        del _oauth_states[k]
+
+
+def _generate_pkce() -> tuple[str, str]:
+    """Generate PKCE code_verifier and code_challenge."""
+    verifier = secrets.token_urlsafe(64)
+    challenge = urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()
+    ).rstrip(b"=").decode()
+    return verifier, challenge
+
 
 class ConnectRequest(BaseModel):
     connector_type: str
@@ -54,7 +82,7 @@ class DisconnectRequest(BaseModel):
     connector_type: str
 
 
-# ── OAuth flow ────────────────────────────────────────────
+# ── OAuth flow (same-window redirect + PKCE) ─────────────
 
 
 @router.get("/oauth/callback")
@@ -62,28 +90,28 @@ async def oauth_callback(
     code: str = "",
     state: str = "",
     error: str = "",
-    request: Request = None,
 ):
-    """Step 2: Google redirects here with auth code. Exchange for tokens."""
+    """Step 2: Google redirects here. Exchange code for tokens using PKCE verifier."""
     if error:
-        return HTMLResponse(f"<html><body><p>Authorization denied: {error}</p><script>setTimeout(()=>window.close(),2000)</script></body></html>")
+        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error={error}")
 
     if not code or not state:
-        raise HTTPException(status_code=400, detail="Missing code or state")
+        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error=missing_params")
 
-    # Parse state
-    try:
-        state_data = json.loads(state)
-        connector_type = state_data["type"]
-        user_id = state_data.get("uid", "unknown")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid state parameter")
+    # Validate state token
+    _cleanup_expired_states()
+    state_data = _oauth_states.pop(state, None)
 
-    # Callback URL must match exactly what we sent to Google
-    frontend_url = os.getenv("FRONTEND_URL", "https://manfriday.app")
-    callback_url = f"{frontend_url}/api/connectors/oauth/callback"
+    if not state_data:
+        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error=invalid_or_expired_state")
 
-    # Exchange code for tokens
+    connector_type = state_data["type"]
+    user_id = state_data["uid"]
+    code_verifier = state_data["verifier"]
+
+    callback_url = f"{FRONTEND_URL}/api/connectors/oauth/callback"
+
+    # Exchange code for tokens with PKCE verifier
     async with httpx.AsyncClient(timeout=15) as client:
         resp = await client.post(GOOGLE_TOKEN_URL, data={
             "code": code,
@@ -91,49 +119,49 @@ async def oauth_callback(
             "client_secret": GOOGLE_OAUTH_CLIENT_SECRET,
             "redirect_uri": callback_url,
             "grant_type": "authorization_code",
+            "code_verifier": code_verifier,
         })
 
     if resp.status_code != 200:
         logger.error("Token exchange failed: %s %s", resp.status_code, resp.text)
-        return HTMLResponse(f"<html><body><p>Token exchange failed. Please try again.</p><script>setTimeout(()=>window.close(),3000)</script></body></html>")
+        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error=token_exchange_failed")
 
     tokens = resp.json()
     tokens["client_id"] = GOOGLE_OAUTH_CLIENT_ID
     tokens["client_secret"] = GOOGLE_OAUTH_CLIENT_SECRET
 
-    # Store tokens for this user
+    # Store tokens
     store_tokens(connector_type, user_id, tokens)
     logger.info("OAuth tokens stored for %s/%s", connector_type, user_id)
 
-    # Close popup and notify parent window
-    return HTMLResponse(f"""<html><body style="font-family:system-ui;text-align:center;padding:40px">
-<p style="font-size:18px;color:#10b981">Connected successfully!</p>
-<p style="color:#666">This window will close automatically...</p>
-<p style="margin-top:20px"><a href="javascript:window.close()" style="color:#6366f1">Click here if it doesn't close</a></p>
-<script>
-try {{ window.opener && window.opener.postMessage({{type:'oauth_success',connector:'{connector_type}'}}, '*'); }} catch(e) {{}}
-window.close();
-setTimeout(function(){{ window.close(); }}, 500);
-setTimeout(function(){{ window.close(); }}, 1500);
-setTimeout(function(){{ document.body.innerHTML = '<p style="font-size:18px;color:#10b981">Connected! You can close this tab.</p>'; }}, 3000);
-</script>
-</body></html>""")
+    # Redirect back to Connected Accounts page with success
+    return RedirectResponse(f"{FRONTEND_URL}/settings/connected?connected={connector_type}")
 
 
 @router.get("/oauth/{connector_type}")
-async def oauth_initiate(connector_type: str, request: Request, user_id: str = ""):
-    """Step 1: Redirect user to Google OAuth consent screen."""
+async def oauth_initiate(connector_type: str, user_id: str = ""):
+    """Step 1: Redirect to Google consent screen with PKCE challenge."""
     if connector_type not in OAUTH_SCOPES:
         raise HTTPException(status_code=400, detail=f"OAuth not supported for: {connector_type}")
     if not GOOGLE_OAUTH_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google OAuth not configured")
 
-    # Callback URL — use the frontend domain (Vercel proxies /api/* to Cloud Run)
-    frontend_url = os.getenv("FRONTEND_URL", "https://manfriday.app")
-    callback_url = f"{frontend_url}/api/connectors/oauth/callback"
+    # Generate PKCE pair
+    code_verifier, code_challenge = _generate_pkce()
 
-    # Encode connector_type + user_id in state
-    state = json.dumps({"type": connector_type, "uid": user_id})
+    # Generate unique state token
+    state_token = secrets.token_urlsafe(32)
+
+    # Store state + PKCE verifier (5 min TTL)
+    _cleanup_expired_states()
+    _oauth_states[state_token] = {
+        "type": connector_type,
+        "uid": user_id,
+        "verifier": code_verifier,
+        "created": time.time(),
+    }
+
+    callback_url = f"{FRONTEND_URL}/api/connectors/oauth/callback"
 
     params = {
         "client_id": GOOGLE_OAUTH_CLIENT_ID,
@@ -142,7 +170,9 @@ async def oauth_initiate(connector_type: str, request: Request, user_id: str = "
         "scope": OAUTH_SCOPES[connector_type],
         "access_type": "offline",
         "prompt": "consent",
-        "state": state,
+        "state": state_token,
+        "code_challenge": code_challenge,
+        "code_challenge_method": "S256",
     }
 
     return RedirectResponse(url=f"{GOOGLE_AUTH_URL}?{urlencode(params)}")
