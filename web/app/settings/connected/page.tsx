@@ -53,6 +53,7 @@ export default function ConnectedAccountsPage() {
   const [apiKeyInput, setApiKeyInput] = useState<{ type: ConnectorType; key: string } | null>(null);
   const [expandedGuide, setExpandedGuide] = useState<ConnectorType | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const fetchAccounts = useCallback(async () => {
     try {
@@ -73,39 +74,31 @@ export default function ConnectedAccountsPage() {
     }
   }, []);
 
+  // Check for OAuth callback query params (same-window redirect flow)
   useEffect(() => {
-    fetchAccounts();
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get("connected");
+    const oauthError = params.get("error");
 
-    // Listen for OAuth popup success message
-    function handleMessage(e: MessageEvent) {
-      if (e.data?.type === "oauth_success") {
-        fetchAccounts();
-      }
+    if (connected) {
+      setSuccessMsg(`${connected === "gdrive" ? "Google Drive" : connected.charAt(0).toUpperCase() + connected.slice(1)} connected successfully!`);
+      // Clean URL without reload
+      window.history.replaceState({}, "", "/settings/connected");
     }
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+    if (oauthError) {
+      setError(`Connection failed: ${oauthError}`);
+      window.history.replaceState({}, "", "/settings/connected");
+    }
+
+    fetchAccounts();
   }, [fetchAccounts]);
 
   async function handleConnect(type: ConnectorType) {
     if (OAUTH_CONNECTORS.includes(type)) {
-      // Get user_id from Supabase session to pass to OAuth flow
+      // Same-window redirect — navigates away, Google consent, redirects back
       const { data } = await supabase.auth.getSession();
       const userId = data.session?.user?.id || "";
-      // OAuth goes through Vercel proxy → Cloud Run (user only sees manfriday.app)
-      const w = 500, h = 600;
-      const x = window.screenX + (window.outerWidth - w) / 2;
-      const y = window.screenY + (window.outerHeight - h) / 2;
-      const popup = window.open(
-        `/api/connectors/oauth/${type}?user_id=${userId}`,
-        `connect-${type}`,
-        `width=${w},height=${h},left=${x},top=${y}`
-      );
-      const timer = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(timer);
-          fetchAccounts();
-        }
-      }, 500);
+      window.location.href = `/api/connectors/oauth/${type}?user_id=${userId}`;
     } else if (API_KEY_CONNECTORS.includes(type)) {
       setApiKeyInput({ type, key: "" });
     }
@@ -182,6 +175,11 @@ export default function ConnectedAccountsPage() {
         </p>
       </div>
 
+      {successMsg && (
+        <div className="rounded-lg p-3 bg-emerald-500/10 border border-emerald-500/30 text-sm text-emerald-400">
+          {successMsg}
+        </div>
+      )}
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       {/* API key input */}
