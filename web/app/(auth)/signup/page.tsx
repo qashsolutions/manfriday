@@ -115,7 +115,7 @@ export default function SignupPage() {
       </button>
 
       <p className="text-xs text-center text-muted">
-        Recommended — also enables Gmail and Google Drive integration
+        Recommended — one-click Gmail &amp; Drive setup after signup
       </p>
 
       <div className="relative">
@@ -216,6 +216,10 @@ export default function SignupPage() {
           {loading ? "Creating account..." : "Sign up with email"}
         </button>
       </form>
+
+      <p className="text-xs text-center text-muted mt-2">
+        Using a non-Google email? You can connect Gmail &amp; Drive later in Settings.
+      </p>
 
       <p className="text-center text-sm text-muted">
         Already have an account?{" "}
