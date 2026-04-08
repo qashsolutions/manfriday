@@ -65,8 +65,10 @@ async def oauth_initiate(connector_type: str, request: Request, user_id: str = "
     if not GOOGLE_OAUTH_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google OAuth not configured")
 
-    # Callback URL on our API
-    callback_url = str(request.base_url).rstrip("/") + "/connectors/oauth/callback"
+    # Callback URL — use the frontend domain (Vercel proxies /api/* to Cloud Run)
+    # This ensures the redirect_uri matches what's registered in GCP OAuth console
+    frontend_url = os.getenv("FRONTEND_URL", "https://manfriday.app")
+    callback_url = f"{frontend_url}/api/connectors/oauth/callback"
 
     # Encode connector_type + user_id in state
     state = json.dumps({"type": connector_type, "uid": user_id})
@@ -107,7 +109,8 @@ async def oauth_callback(
         raise HTTPException(status_code=400, detail="Invalid state parameter")
 
     # Callback URL must match exactly what we sent to Google
-    callback_url = str(request.base_url).rstrip("/") + "/connectors/oauth/callback"
+    frontend_url = os.getenv("FRONTEND_URL", "https://manfriday.app")
+    callback_url = f"{frontend_url}/api/connectors/oauth/callback"
 
     # Exchange code for tokens
     async with httpx.AsyncClient(timeout=15) as client:
