@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 # Features that require a paid subscription.
 PAID_FEATURES: set[str] = {
-    "arxiv",
     "pgvector",
     "priority_support",
 }

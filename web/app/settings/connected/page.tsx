@@ -7,6 +7,27 @@ import { supabase } from "@/lib/supabase";
 
 const ALL_CONNECTORS: ConnectorType[] = ["gmail", "gdrive", "telegram", "whatsapp", "arxiv"];
 
+const ARXIV_CATEGORIES = [
+  { value: "cs.AI", label: "Artificial Intelligence" },
+  { value: "cs.CL", label: "Computation & Language (NLP)" },
+  { value: "cs.CV", label: "Computer Vision" },
+  { value: "cs.LG", label: "Machine Learning" },
+  { value: "cs.NE", label: "Neural & Evolutionary Computing" },
+  { value: "cs.IR", label: "Information Retrieval" },
+  { value: "cs.RO", label: "Robotics" },
+  { value: "cs.SE", label: "Software Engineering" },
+  { value: "cs.CR", label: "Cryptography & Security" },
+  { value: "cs.DB", label: "Databases" },
+  { value: "cs.DC", label: "Distributed Computing" },
+  { value: "cs.HC", label: "Human-Computer Interaction" },
+  { value: "stat.ML", label: "Statistics: Machine Learning" },
+  { value: "math.OC", label: "Optimization & Control" },
+  { value: "q-bio", label: "Quantitative Biology" },
+  { value: "q-fin", label: "Quantitative Finance" },
+  { value: "econ", label: "Economics" },
+  { value: "physics", label: "Physics (all)" },
+];
+
 interface ConnectedAccount {
   connector_type: ConnectorType;
   connected: boolean;
@@ -54,6 +75,8 @@ export default function ConnectedAccountsPage() {
   const [expandedGuide, setExpandedGuide] = useState<ConnectorType | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [arxivCategories, setArxivCategories] = useState<string[]>([]);
+  const [arxivSaving, setArxivSaving] = useState(false);
 
   const fetchAccounts = useCallback(async () => {
     try {
@@ -102,6 +125,35 @@ export default function ConnectedAccountsPage() {
     } else if (API_KEY_CONNECTORS.includes(type)) {
       setApiKeyInput({ type, key: "" });
     }
+  }
+
+  async function handleArxivSave() {
+    if (arxivCategories.length === 0) return;
+    setArxivSaving(true);
+    setError(null);
+    try {
+      const res = await apiPost("/connectors/connect", {
+        connector_type: "arxiv",
+        credentials: { categories: arxivCategories },
+      });
+      if (res.ok) {
+        setSuccessMsg("arXiv topics saved! New papers will be fetched automatically.");
+        await fetchAccounts();
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setError(body.detail || "Failed to save arXiv preferences.");
+      }
+    } catch {
+      setError("Could not connect to API.");
+    } finally {
+      setArxivSaving(false);
+    }
+  }
+
+  function toggleArxivCategory(cat: string) {
+    setArxivCategories(prev =>
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
   }
 
   async function handleSubmitApiKey() {
@@ -217,9 +269,53 @@ export default function ConnectedAccountsPage() {
         </div>
       )}
 
+      {/* arXiv — inline topic selector (free, no auth needed) */}
+      <div className="card space-y-4">
+        <div className="flex items-center gap-3">
+          <svg className="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+          <div>
+            <h3 className="font-semibold">arXiv Research Papers</h3>
+            <p className="text-xs text-muted">Select topics to auto-fetch new papers into your wiki</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {ARXIV_CATEGORIES.map((cat) => {
+            const selected = arxivCategories.includes(cat.value);
+            return (
+              <button
+                key={cat.value}
+                onClick={() => toggleArxivCategory(cat.value)}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  selected
+                    ? "bg-accent/15 text-accent border-accent/30"
+                    : "text-secondary border-surface-3 hover:border-accent/20 hover:text-primary"
+                }`}
+              >
+                {cat.label}
+                {selected && <span className="ml-1">&#10003;</span>}
+              </button>
+            );
+          })}
+        </div>
+        {arxivCategories.length > 0 && (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted">{arxivCategories.length} topic{arxivCategories.length !== 1 ? "s" : ""} selected: {arxivCategories.join(", ")}</p>
+            <button
+              onClick={handleArxivSave}
+              disabled={arxivSaving}
+              className="btn-primary text-sm disabled:opacity-40"
+            >
+              {arxivSaving ? "Saving..." : "Save topics"}
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Connector cards with guides */}
       <div className="space-y-4">
-        {ALL_CONNECTORS.map((type) => {
+        {ALL_CONNECTORS.filter(t => t !== "arxiv").map((type) => {
           const account = accounts.get(type);
           const connected = account?.connected ?? false;
           const info = CONNECTOR_INFO[type];
