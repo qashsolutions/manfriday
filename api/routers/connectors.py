@@ -57,35 +57,6 @@ class DisconnectRequest(BaseModel):
 # ── OAuth flow ────────────────────────────────────────────
 
 
-@router.get("/oauth/{connector_type}")
-async def oauth_initiate(connector_type: str, request: Request, user_id: str = ""):
-    """Step 1: Redirect user to Google OAuth consent screen."""
-    if connector_type not in OAUTH_SCOPES:
-        raise HTTPException(status_code=400, detail=f"OAuth not supported for: {connector_type}")
-    if not GOOGLE_OAUTH_CLIENT_ID:
-        raise HTTPException(status_code=500, detail="Google OAuth not configured")
-
-    # Callback URL — use the frontend domain (Vercel proxies /api/* to Cloud Run)
-    # This ensures the redirect_uri matches what's registered in GCP OAuth console
-    frontend_url = os.getenv("FRONTEND_URL", "https://manfriday.app")
-    callback_url = f"{frontend_url}/api/connectors/oauth/callback"
-
-    # Encode connector_type + user_id in state
-    state = json.dumps({"type": connector_type, "uid": user_id})
-
-    params = {
-        "client_id": GOOGLE_OAUTH_CLIENT_ID,
-        "redirect_uri": callback_url,
-        "response_type": "code",
-        "scope": OAUTH_SCOPES[connector_type],
-        "access_type": "offline",
-        "prompt": "consent",
-        "state": state,
-    }
-
-    return RedirectResponse(url=f"{GOOGLE_AUTH_URL}?{urlencode(params)}")
-
-
 @router.get("/oauth/callback")
 async def oauth_callback(
     code: str = "",
@@ -142,6 +113,34 @@ window.opener && window.opener.postMessage({{type:'oauth_success',connector:'{co
 setTimeout(()=>window.close(), 1500);
 </script>
 </body></html>""")
+
+
+@router.get("/oauth/{connector_type}")
+async def oauth_initiate(connector_type: str, request: Request, user_id: str = ""):
+    """Step 1: Redirect user to Google OAuth consent screen."""
+    if connector_type not in OAUTH_SCOPES:
+        raise HTTPException(status_code=400, detail=f"OAuth not supported for: {connector_type}")
+    if not GOOGLE_OAUTH_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+
+    # Callback URL — use the frontend domain (Vercel proxies /api/* to Cloud Run)
+    frontend_url = os.getenv("FRONTEND_URL", "https://manfriday.app")
+    callback_url = f"{frontend_url}/api/connectors/oauth/callback"
+
+    # Encode connector_type + user_id in state
+    state = json.dumps({"type": connector_type, "uid": user_id})
+
+    params = {
+        "client_id": GOOGLE_OAUTH_CLIENT_ID,
+        "redirect_uri": callback_url,
+        "response_type": "code",
+        "scope": OAUTH_SCOPES[connector_type],
+        "access_type": "offline",
+        "prompt": "consent",
+        "state": state,
+    }
+
+    return RedirectResponse(url=f"{GOOGLE_AUTH_URL}?{urlencode(params)}")
 
 
 # ── Standard connect/disconnect/poll ──────────────────────
