@@ -106,11 +106,16 @@ async def oauth_callback(
     logger.info("OAuth tokens stored for %s/%s", connector_type, user_id)
 
     # Close popup and notify parent window
-    return HTMLResponse(f"""<html><body>
-<p>Connected successfully! This window will close.</p>
+    return HTMLResponse(f"""<html><body style="font-family:system-ui;text-align:center;padding:40px">
+<p style="font-size:18px;color:#10b981">Connected successfully!</p>
+<p style="color:#666">This window will close automatically...</p>
+<p style="margin-top:20px"><a href="javascript:window.close()" style="color:#6366f1">Click here if it doesn't close</a></p>
 <script>
-window.opener && window.opener.postMessage({{type:'oauth_success',connector:'{connector_type}'}}, '*');
-setTimeout(()=>window.close(), 1500);
+try {{ window.opener && window.opener.postMessage({{type:'oauth_success',connector:'{connector_type}'}}, '*'); }} catch(e) {{}}
+window.close();
+setTimeout(function(){{ window.close(); }}, 500);
+setTimeout(function(){{ window.close(); }}, 1500);
+setTimeout(function(){{ document.body.innerHTML = '<p style="font-size:18px;color:#10b981">Connected! You can close this tab.</p>'; }}, 3000);
 </script>
 </body></html>""")
 
