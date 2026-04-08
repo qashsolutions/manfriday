@@ -78,6 +78,9 @@ deployment_status:
   supabase_auth: configured (email + Google OAuth)
   google_oauth: configured (client ID/secret in Supabase + GCP)
   gmail_drive_scopes: configured (gmail.readonly + drive.readonly)
+  gmail_oauth: working (same-window redirect, PKCE S256, 5-min state tokens, Secret Manager storage)
+  gmail_status: connected and tested (green dot, disconnect, poll now)
+  cloud_run_sa_permissions: secretmanager.admin granted to default compute SA
   gcs_storage: provisioned (manfriday-kb, us-east1)
   cloud_run_env_vars: GCS_BUCKET, ENV, GCP_PROJECT, SUPABASE_JWT_SECRET, GOOGLE_OAUTH_*
   vercel_env_vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL

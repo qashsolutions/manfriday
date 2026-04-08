@@ -261,6 +261,7 @@ Domain config:
 | Supabase Auth | Configured — email signup (8+ chars, upper/lower/digit/symbol), Google OAuth |
 | Google OAuth | Configured — Client ID + Secret in Supabase + GCP, redirect URIs set |
 | Gmail/Drive scopes | Configured — gmail.readonly + drive.readonly in GCP Data Access |
+| Gmail OAuth | Working — same-window redirect + PKCE + short-lived state tokens |
 | GCS Storage | Bucket `manfriday-kb` provisioned (us-east1) |
 | DNS/Domains | manfriday.app (prod), staging.manfriday.app, dev.manfriday.app, www→308 redirect |
 | Env vars (Vercel) | NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL |
