@@ -75,6 +75,15 @@ export default function ConnectedAccountsPage() {
 
   useEffect(() => {
     fetchAccounts();
+
+    // Listen for OAuth popup success message
+    function handleMessage(e: MessageEvent) {
+      if (e.data?.type === "oauth_success") {
+        fetchAccounts();
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [fetchAccounts]);
 
   async function handleConnect(type: ConnectorType) {
