@@ -93,17 +93,17 @@ async def oauth_callback(
 ):
     """Step 2: Google redirects here. Exchange code for tokens using PKCE verifier."""
     if error:
-        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error={error}")
+        return RedirectResponse(f"{FRONTEND_URL}/settings?error={error}")
 
     if not code or not state:
-        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error=missing_params")
+        return RedirectResponse(f"{FRONTEND_URL}/settings?error=missing_params")
 
     # Validate state token
     _cleanup_expired_states()
     state_data = _oauth_states.pop(state, None)
 
     if not state_data:
-        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error=invalid_or_expired_state")
+        return RedirectResponse(f"{FRONTEND_URL}/settings?error=invalid_or_expired_state")
 
     connector_type = state_data["type"]
     user_id = state_data["uid"]
@@ -124,7 +124,7 @@ async def oauth_callback(
 
     if resp.status_code != 200:
         logger.error("Token exchange failed: %s %s", resp.status_code, resp.text)
-        return RedirectResponse(f"{FRONTEND_URL}/settings/connected?error=token_exchange_failed")
+        return RedirectResponse(f"{FRONTEND_URL}/settings?error=token_exchange_failed")
 
     tokens = resp.json()
     tokens["client_id"] = GOOGLE_OAUTH_CLIENT_ID
@@ -135,7 +135,7 @@ async def oauth_callback(
     logger.info("OAuth tokens stored for %s/%s", connector_type, user_id)
 
     # Redirect back to Connected Accounts page with success
-    return RedirectResponse(f"{FRONTEND_URL}/settings/connected?connected={connector_type}")
+    return RedirectResponse(f"{FRONTEND_URL}/settings?connected={connector_type}")
 
 
 @router.get("/oauth/{connector_type}")
