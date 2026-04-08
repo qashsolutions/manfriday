@@ -183,13 +183,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         <p className="text-xs text-muted truncate">{user.email}</p>
                       </div>
                       <Link href="/settings" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-secondary hover:bg-surface-2">
-                        Settings & API Keys
+                        Settings
                       </Link>
                       <Link href="/settings/billing" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-secondary hover:bg-surface-2">
                         Billing
-                      </Link>
-                      <Link href="/settings/connected" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-secondary hover:bg-surface-2">
-                        Connected Accounts
                       </Link>
                       <Link href="/settings/schema" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-secondary hover:bg-surface-2">
                         CLAUDE.md Editor

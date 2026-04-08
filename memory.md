@@ -98,6 +98,9 @@ deployment_status:
     browser_cleared: React state cleared after save
     user_informed: security notice panel on Settings page
   nav_structure: Wiki | Q&A (Chat, Outputs, Memory) | Sources (All Sources, Knowledge Graph)
+  settings_page: merged — API key (auto-detect provider) + Gmail/Drive/Telegram + arXiv topics
+  whatsapp: code built but hidden from free users (requires Meta Business App, paid tier only)
+  api_key_auto_detect: sk-ant- → Anthropic, sk- → OpenAI, AIza → Gemini
   graph: child of Sources, force-directed SVG, measures container width, animated edge dots
 
 known_issues:

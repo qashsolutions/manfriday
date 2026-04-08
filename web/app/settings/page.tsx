@@ -1,249 +1,425 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import ProviderSelector, { type Provider } from "@/components/ProviderSelector";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { apiGet, apiPost, maskKey } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
+import { type ConnectorType } from "@/components/ConnectedAccountCard";
 
-interface ProviderStatus {
-  provider: Provider;
-  configured: boolean;
-  masked_key: string | null;
+/* ── Auto-detect provider from key prefix ─────────────────── */
+
+function detectProvider(key: string): "anthropic" | "openai" | "gemini" | null {
+  const trimmed = key.trim();
+  if (trimmed.startsWith("sk-ant-")) return "anthropic";
+  if (trimmed.startsWith("AIza")) return "gemini";
+  if (trimmed.startsWith("sk-")) return "openai";
+  return null;
 }
 
-export default function SettingsPage() {
-  const [provider, setProvider] = useState<Provider>("anthropic");
-  const [maskedKeys, setMaskedKeys] = useState<Record<Provider, string | null>>({
-    anthropic: null,
-    openai: null,
-    gemini: null,
-  });
-  const [configured, setConfigured] = useState<Record<Provider, boolean>>({
-    anthropic: false,
-    openai: false,
-    gemini: false,
-  });
-  // newKey holds the raw input ONLY while the user is actively entering a new key.
-  // It is cleared immediately after save/validate completes.
-  const [newKey, setNewKey] = useState("");
-  const [editing, setEditing] = useState(false);
-  const [validating, setValidating] = useState(false);
-  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+/* ── arXiv categories ─────────────────────────────────────── */
 
+const ARXIV_CATEGORIES = [
+  { value: "cs.AI", label: "Artificial Intelligence" },
+  { value: "cs.CL", label: "Computation & Language (NLP)" },
+  { value: "cs.CV", label: "Computer Vision" },
+  { value: "cs.LG", label: "Machine Learning" },
+  { value: "cs.NE", label: "Neural & Evolutionary Computing" },
+  { value: "cs.IR", label: "Information Retrieval" },
+  { value: "cs.RO", label: "Robotics" },
+  { value: "cs.SE", label: "Software Engineering" },
+  { value: "cs.CR", label: "Cryptography & Security" },
+  { value: "stat.ML", label: "Statistics: Machine Learning" },
+  { value: "q-bio", label: "Quantitative Biology" },
+  { value: "q-fin", label: "Quantitative Finance" },
+  { value: "econ", label: "Economics" },
+  { value: "physics", label: "Physics (all)" },
+];
+
+/* ── Connector types shown to free users ──────────────────── */
+
+const OAUTH_CONNECTORS: ConnectorType[] = ["gmail", "gdrive"];
+const FREE_CONNECTORS: ConnectorType[] = ["gmail", "gdrive", "telegram"];
+
+const CONNECTOR_LABELS: Record<string, string> = {
+  gmail: "Gmail",
+  gdrive: "Google Drive",
+  telegram: "Telegram",
+};
+
+const CONNECTOR_DESC: Record<string, string> = {
+  gmail: "Auto-ingest emails. Newsletters filtered.",
+  gdrive: "Import Docs, PDFs, and spreadsheets.",
+  telegram: "Ingest channel messages and starred content.",
+};
+
+interface ConnectorStatus {
+  connector_type: string;
+  connected: boolean;
+}
+
+/* ── Main Settings Page ───────────────────────────────────── */
+
+export default function SettingsPage() {
+  // API Key state
+  const [newKey, setNewKey] = useState("");
+  const [detectedProvider, setDetectedProvider] = useState<string | null>(null);
+  const [configuredKey, setConfiguredKey] = useState<{ provider: string; masked: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [keyMsg, setKeyMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  // Connector state
+  const [connectors, setConnectors] = useState<Map<string, boolean>>(new Map());
+  const [telegramInput, setTelegramInput] = useState("");
+  const [telegramConnecting, setTelegramConnecting] = useState(false);
+  const [connectorMsg, setConnectorMsg] = useState<string | null>(null);
+
+  // arXiv state
+  const [arxivCategories, setArxivCategories] = useState<string[]>([]);
+  const [arxivSaving, setArxivSaving] = useState(false);
+
+  const [error, setError] = useState<string | null>(null);
+
+  // Auto-detect provider as user types
+  useEffect(() => {
+    setDetectedProvider(detectProvider(newKey));
+  }, [newKey]);
+
+  // Load existing config
   useEffect(() => {
     async function load() {
       try {
-        const res = await apiGet("/settings/providers");
-        if (res.ok) {
-          const statuses: ProviderStatus[] = await res.json();
-          const newMasked: Record<Provider, string | null> = { anthropic: null, openai: null, gemini: null };
-          const newConfigured: Record<Provider, boolean> = { anthropic: false, openai: false, gemini: false };
-          for (const s of statuses) {
-            newMasked[s.provider] = s.masked_key;
-            newConfigured[s.provider] = s.configured;
+        // Load API key status
+        const keyRes = await apiGet("/settings/providers");
+        if (keyRes.ok) {
+          const providers = await keyRes.json();
+          const configured = (Array.isArray(providers) ? providers : []).find(
+            (p: any) => p.configured
+          );
+          if (configured) {
+            setConfiguredKey({ provider: configured.provider, masked: configured.masked_key });
           }
-          setMaskedKeys(newMasked);
-          setConfigured(newConfigured);
         }
-      } catch {
-        // backend not available
-      }
+      } catch {}
+
+      try {
+        // Load connector status
+        const connRes = await apiGet("/connectors/connected-accounts");
+        if (connRes.ok) {
+          const raw = await connRes.json();
+          const data: ConnectorStatus[] = Array.isArray(raw) ? raw : raw.accounts || [];
+          const map = new Map<string, boolean>();
+          for (const c of data) {
+            map.set(c.connector_type, c.connected);
+          }
+          setConnectors(map);
+        }
+      } catch {}
     }
     load();
   }, []);
 
-  // When switching providers, exit editing mode and clear any in-progress key
-  useEffect(() => {
-    setEditing(false);
-    setNewKey("");
-    setMessage(null);
-  }, [provider]);
-
-  async function handleSaveAndValidate() {
-    if (!newKey) return;
-
-    setValidating(true);
-    setMessage(null);
-
+  // Save API key
+  async function handleSaveKey() {
+    if (!newKey || !detectedProvider) return;
+    setSaving(true);
+    setKeyMsg(null);
     try {
-      const res = await apiPost("/validate-key", { provider, api_key: newKey });
+      const res = await apiPost("/validate-key", { provider: detectedProvider, api_key: newKey });
       const result = await res.json();
-
       if (res.status === 429) {
-        setMessage({ text: result.detail || "Rate limit exceeded. Try again in a minute.", type: "error" });
-        return;
-      }
-
-      if (result.valid) {
-        // Key validated and stored. Update masked display, clear raw key immediately.
-        const returnedMask = result.masked_key || maskKey(newKey);
-        setMaskedKeys((prev) => ({ ...prev, [provider]: returnedMask }));
-        setConfigured((prev) => ({ ...prev, [provider]: true }));
-        setMessage({ text: "Key validated and stored securely.", type: "success" });
-        // SECURITY: clear raw key from React state immediately
+        setKeyMsg({ text: "Rate limit exceeded. Try again in a minute.", type: "error" });
+      } else if (result.valid) {
+        setConfiguredKey({ provider: detectedProvider, masked: result.masked_key || maskKey(newKey) });
+        setKeyMsg({ text: `${detectedProvider.charAt(0).toUpperCase() + detectedProvider.slice(1)} key validated and stored.`, type: "success" });
         setNewKey("");
         setEditing(false);
       } else {
-        setMessage({ text: "Invalid API key. Please check and try again.", type: "error" });
+        setKeyMsg({ text: "Invalid key. Please check and try again.", type: "error" });
       }
     } catch {
-      setMessage({ text: "Could not connect to API.", type: "error" });
+      setKeyMsg({ text: "Could not connect to API.", type: "error" });
     } finally {
-      setValidating(false);
+      setSaving(false);
     }
   }
 
-  function handleReplaceKey() {
-    setEditing(true);
-    setNewKey("");
-    setMessage(null);
+  // OAuth connect (same-window redirect)
+  async function handleOAuthConnect(type: ConnectorType) {
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user?.id || "";
+    window.location.href = `/api/connectors/oauth/${type}?user_id=${userId}`;
   }
 
-  function handleCancelEdit() {
-    setEditing(false);
-    setNewKey("");
-    setMessage(null);
+  // Telegram connect
+  async function handleTelegramConnect() {
+    if (!telegramInput) return;
+    setTelegramConnecting(true);
+    setConnectorMsg(null);
+    try {
+      const res = await apiPost("/connectors/connect", {
+        connector_type: "telegram",
+        credentials: { bot_token: telegramInput },
+      });
+      if (res.ok) {
+        setConnectors(prev => new Map(prev).set("telegram", true));
+        setTelegramInput("");
+        setConnectorMsg("Telegram connected!");
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setConnectorMsg(body.detail || "Failed to connect Telegram.");
+      }
+    } catch {
+      setConnectorMsg("Could not connect to API.");
+    } finally {
+      setTelegramConnecting(false);
+    }
   }
 
-  const keyPlaceholders: Record<Provider, string> = {
-    anthropic: "sk-ant-...",
-    openai: "sk-...",
-    gemini: "AIza...",
-  };
+  // Disconnect
+  async function handleDisconnect(type: string) {
+    try {
+      const res = await apiPost("/connectors/disconnect", { connector_type: type });
+      if (res.ok) {
+        setConnectors(prev => new Map(prev).set(type, false));
+      }
+    } catch {}
+  }
 
-  const isConfigured = configured[provider];
+  // arXiv save
+  async function handleArxivSave() {
+    if (arxivCategories.length === 0) return;
+    setArxivSaving(true);
+    try {
+      await apiPost("/connectors/connect", {
+        connector_type: "arxiv",
+        credentials: { categories: arxivCategories },
+      });
+      setConnectorMsg("arXiv topics saved!");
+    } catch {}
+    setArxivSaving(false);
+  }
+
+  // Check for OAuth callback params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get("connected");
+    const oauthError = params.get("error");
+    if (connected) {
+      setConnectorMsg(`${CONNECTOR_LABELS[connected] || connected} connected successfully!`);
+      setConnectors(prev => new Map(prev).set(connected, true));
+      window.history.replaceState({}, "", "/settings");
+    }
+    if (oauthError) {
+      setError(`Connection failed: ${oauthError}`);
+      window.history.replaceState({}, "", "/settings");
+    }
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white mb-1">Settings</h1>
-        <p className="text-gray-500 text-sm">Configure your LLM provider and API keys.</p>
+        <h1 className="text-2xl font-bold mb-1">Settings</h1>
+        <p className="text-sm text-secondary">API key, connected sources, and research topics.</p>
       </div>
 
-      {/* Security notice — crisp */}
-      <div className="rounded-xl p-5 border-2 border-emerald-500/30 bg-emerald-500/5">
-        <div className="flex items-start gap-3">
-          <svg className="w-6 h-6 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <div>
-            <h3 className="font-semibold text-emerald-400 mb-3">Your key is secure</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-              <div><strong className="text-primary">Encrypted in transit</strong><br/><span className="text-muted">HTTPS/TLS 1.3</span></div>
-              <div><strong className="text-primary">Encrypted at rest</strong><br/><span className="text-muted">AES-256 vault</span></div>
-              <div><strong className="text-primary">Never visible after save</strong><br/><span className="text-muted">Masked display only</span></div>
-              <div><strong className="text-primary">Never logged</strong><br/><span className="text-muted">Auto-redacted from logs</span></div>
-              <div><strong className="text-primary">Direct provider calls</strong><br/><span className="text-muted">No proxy or inspection</span></div>
-              <div><strong className="text-primary">You control it</strong><br/><span className="text-muted">Replace or revoke anytime</span></div>
+      {error && <p className="text-sm text-red-400">{error}</p>}
+      {connectorMsg && (
+        <div className="rounded-lg p-3 bg-emerald-500/10 border border-emerald-500/30 text-sm text-emerald-400">
+          {connectorMsg}
+        </div>
+      )}
+
+      {/* ── API Key ────────────────────────────────────────── */}
+      <div className="card space-y-4">
+        <h2 className="font-semibold text-lg">Your API Key</h2>
+
+        {configuredKey && !editing ? (
+          <div className="flex items-center gap-3">
+            <div className="flex-1 flex items-center gap-2 bg-surface-2 border border-surface-3 rounded-lg px-4 py-2.5">
+              <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span className="text-sm font-mono text-muted">{configuredKey.masked}</span>
+              <span className="text-xs text-accent ml-2">{configuredKey.provider}</span>
             </div>
+            <button onClick={() => { setEditing(true); setNewKey(""); setKeyMsg(null); }} className="btn-secondary text-sm">
+              Replace
+            </button>
           </div>
-        </div>
-      </div>
-
-      {/* Provider selector */}
-      <div className="card space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-3">
-            LLM Provider
-          </label>
-          <ProviderSelector selected={provider} onChange={setProvider} />
-        </div>
-
-        {/* API key section */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            API Key
-          </label>
-
-          {isConfigured && !editing ? (
-            /* Show masked key with lock icon and replace button */
-            <div className="flex items-center gap-3">
-              <div className="flex-1 flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5">
-                <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <span className="text-sm text-gray-400 font-mono">
-                  {maskedKeys[provider] || "****"}
-                </span>
-              </div>
-              <button
-                onClick={handleReplaceKey}
-                className="btn-secondary"
-              >
-                Replace key
-              </button>
-            </div>
-          ) : (
-            /* Input mode: new key entry with type="password" */
+        ) : (
+          <div className="space-y-3">
             <div className="flex gap-3">
-              <div className="relative flex-1">
-                <input
-                  type="password"
-                  value={newKey}
-                  onChange={(e) => setNewKey(e.target.value)}
-                  placeholder={keyPlaceholders[provider]}
-                  className="input-field w-full"
-                  autoComplete="off"
-                />
-              </div>
+              <input
+                type="password"
+                value={newKey}
+                onChange={(e) => setNewKey(e.target.value)}
+                placeholder="Paste your Anthropic, OpenAI, or Gemini key"
+                className="input-field flex-1"
+                autoComplete="off"
+              />
               <button
-                onClick={handleSaveAndValidate}
-                disabled={validating || !newKey}
-                className="btn-primary disabled:opacity-40"
+                onClick={handleSaveKey}
+                disabled={saving || !newKey || !detectedProvider}
+                className="btn-primary disabled:opacity-40 text-sm"
               >
-                {validating ? "Validating..." : "Save key"}
+                {saving ? "Validating..." : "Save"}
               </button>
               {editing && (
-                <button
-                  onClick={handleCancelEdit}
-                  className="btn-secondary"
-                >
+                <button onClick={() => { setEditing(false); setNewKey(""); setKeyMsg(null); }} className="btn-secondary text-sm">
                   Cancel
                 </button>
               )}
             </div>
-          )}
+            {newKey && detectedProvider && (
+              <p className="text-xs text-emerald-400">Detected: {detectedProvider}</p>
+            )}
+            {newKey && !detectedProvider && newKey.length > 3 && (
+              <p className="text-xs text-amber-400">Unrecognized key format. We accept Anthropic (sk-ant-), OpenAI (sk-), and Gemini (AIza) keys.</p>
+            )}
+          </div>
+        )}
 
-          {/* Inline hint */}
-          <p className="text-xs text-muted mt-2">
-            Your key is encrypted and stored securely. You cannot view it after saving — only replace it.
+        {keyMsg && (
+          <p className={`text-xs ${keyMsg.type === "success" ? "text-emerald-400" : "text-red-400"}`}>
+            {keyMsg.text}
           </p>
+        )}
+
+        <p className="text-xs text-muted">
+          Encrypted at rest (AES-256) &bull; Never displayed after save &bull; Never logged &bull; <Link href="/settings/security" className="text-accent hover:underline">Security details</Link>
+        </p>
+      </div>
+
+      {/* ── Connected Sources ──────────────────────────────── */}
+      <div className="card space-y-4">
+        <h2 className="font-semibold text-lg">Connected Sources</h2>
+        <p className="text-xs text-muted">ManFriday reads these sources and builds your wiki automatically.</p>
+
+        <div className="space-y-3">
+          {/* Gmail */}
+          <div className="flex items-center justify-between py-2 border-b border-surface-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-2 h-2 rounded-full ${connectors.get("gmail") ? "bg-emerald-400" : "bg-gray-500"}`} />
+              <div>
+                <p className="text-sm font-medium">Gmail</p>
+                <p className="text-xs text-muted">{CONNECTOR_DESC.gmail}</p>
+              </div>
+            </div>
+            {connectors.get("gmail") ? (
+              <button onClick={() => handleDisconnect("gmail")} className="text-xs text-red-400 hover:text-red-300">Disconnect</button>
+            ) : (
+              <button onClick={() => handleOAuthConnect("gmail")} className="btn-primary text-xs px-3 py-1">Connect</button>
+            )}
+          </div>
+
+          {/* Google Drive */}
+          <div className="flex items-center justify-between py-2 border-b border-surface-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-2 h-2 rounded-full ${connectors.get("gdrive") ? "bg-emerald-400" : "bg-gray-500"}`} />
+              <div>
+                <p className="text-sm font-medium">Google Drive</p>
+                <p className="text-xs text-muted">{CONNECTOR_DESC.gdrive}</p>
+              </div>
+            </div>
+            {connectors.get("gdrive") ? (
+              <button onClick={() => handleDisconnect("gdrive")} className="text-xs text-red-400 hover:text-red-300">Disconnect</button>
+            ) : (
+              <button onClick={() => handleOAuthConnect("gdrive")} className="btn-primary text-xs px-3 py-1">Connect</button>
+            )}
+          </div>
+
+          {/* Telegram */}
+          <div className="py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${connectors.get("telegram") ? "bg-emerald-400" : "bg-gray-500"}`} />
+                <div>
+                  <p className="text-sm font-medium">Telegram</p>
+                  <p className="text-xs text-muted">{CONNECTOR_DESC.telegram}</p>
+                </div>
+              </div>
+              {connectors.get("telegram") ? (
+                <button onClick={() => handleDisconnect("telegram")} className="text-xs text-red-400 hover:text-red-300">Disconnect</button>
+              ) : null}
+            </div>
+            {!connectors.get("telegram") && (
+              <div className="mt-2 ml-5">
+                <p className="text-xs text-muted mb-2">Message @BotFather on Telegram → /newbot → copy token:</p>
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    value={telegramInput}
+                    onChange={(e) => setTelegramInput(e.target.value)}
+                    placeholder="Paste bot token..."
+                    className="input-field flex-1 text-sm"
+                    autoComplete="off"
+                  />
+                  <button
+                    onClick={handleTelegramConnect}
+                    disabled={telegramConnecting || !telegramInput}
+                    className="btn-primary text-xs px-3 py-1 disabled:opacity-40"
+                  >
+                    {telegramConnecting ? "..." : "Connect"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+      </div>
 
-        {/* Message */}
-        {message && (
-          <p
-            className={`text-sm ${
-              message.type === "success" ? "text-green-400" : "text-red-400"
-            }`}
-          >
-            {message.text}
-          </p>
+      {/* ── arXiv Topics ───────────────────────────────────── */}
+      <div className="card space-y-4">
+        <h2 className="font-semibold text-lg">arXiv Research Topics</h2>
+        <p className="text-xs text-muted">Select topics to auto-fetch new papers into your wiki.</p>
+        <div className="flex flex-wrap gap-2">
+          {ARXIV_CATEGORIES.map((cat) => {
+            const selected = arxivCategories.includes(cat.value);
+            return (
+              <button
+                key={cat.value}
+                onClick={() => setArxivCategories(prev =>
+                  prev.includes(cat.value) ? prev.filter(c => c !== cat.value) : [...prev, cat.value]
+                )}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  selected
+                    ? "bg-accent/15 text-accent border-accent/30"
+                    : "text-secondary border-surface-3 hover:border-accent/20"
+                }`}
+              >
+                {cat.label}{selected ? " ✓" : ""}
+              </button>
+            );
+          })}
+        </div>
+        {arxivCategories.length > 0 && (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted">{arxivCategories.length} selected</p>
+            <button onClick={handleArxivSave} disabled={arxivSaving} className="btn-primary text-xs px-3 py-1 disabled:opacity-40">
+              {arxivSaving ? "Saving..." : "Save topics"}
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Provider status overview */}
-      <div className="card">
-        <h2 className="text-sm font-semibold text-gray-300 mb-4">Provider Status</h2>
-        <div className="space-y-3">
-          {(["anthropic", "openai", "gemini"] as Provider[]).map((p) => (
-            <div key={p} className="flex items-center justify-between">
-              <span className="text-sm text-gray-300 capitalize">{p}</span>
-              <div className="flex items-center gap-2">
-                {configured[p] ? (
-                  <span className="text-xs text-gray-500 font-mono">
-                    {maskedKeys[p] || "****"}
-                  </span>
-                ) : (
-                  <span className="text-xs text-gray-600">Not configured</span>
-                )}
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    configured[p] ? "bg-green-400" : "bg-gray-600"
-                  }`}
-                />
-              </div>
+      {/* ── Security ───────────────────────────────────────── */}
+      <div className="rounded-xl p-4 border-2 border-emerald-500/30 bg-emerald-500/5">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <div>
+            <h3 className="font-semibold text-emerald-400 text-sm mb-2">Your data is secure</h3>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div><strong>Encrypted in transit</strong><br/><span className="text-muted">HTTPS/TLS</span></div>
+              <div><strong>Encrypted at rest</strong><br/><span className="text-muted">AES-256</span></div>
+              <div><strong>Never visible</strong><br/><span className="text-muted">Masked after save</span></div>
+              <div><strong>Never logged</strong><br/><span className="text-muted">Auto-redacted</span></div>
+              <div><strong>Direct calls</strong><br/><span className="text-muted">No proxy</span></div>
+              <div><strong>You control it</strong><br/><span className="text-muted">Replace anytime</span></div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </div>

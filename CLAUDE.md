@@ -274,7 +274,11 @@ Domain config:
 3. Start using: add URLs, PDFs, RSS → wiki builds → Q&A works
 4. Optionally connect Gmail/Drive (click Connect → Google OAuth → read-only access)
 5. Optionally connect Telegram (create bot via @BotFather → paste token)
-6. ManFriday reads all connected sources and builds the wiki automatically
+6. Optionally select arXiv topics (free, public API)
+7. ManFriday reads all connected sources and builds the wiki automatically
+
+Note: WhatsApp connector is built but hidden from free users (requires Meta Business App).
+Will be available in paid tier where we handle the Meta integration.
 
 ### API key security (implemented 2026-04-07)
 
