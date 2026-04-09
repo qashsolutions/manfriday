@@ -101,6 +101,14 @@ deployment_status:
   settings_page: merged — API key (auto-detect provider) + Gmail/Drive/Telegram + arXiv topics
   whatsapp: code built but hidden from free users (requires Meta Business App, paid tier only)
   api_key_auto_detect: sk-ant- → Anthropic, sk- → OpenAI, AIza → Gemini
+  security_audit: 2026-04-07 — 5 critical + 14 high fixed
+  jwt_auth: strict HS256 only (no fallback)
+  stripe_webhook: rejects unsigned when secret not set
+  oauth_flow: POST /oauth/start (authenticated) replaces GET with user_id param
+  path_traversal: wiki + file-back endpoints validate user prefix
+  qa_status: fixed (endpoint, field names, SSE events aligned)
+  openai_tools: format + args parsing fixed
+  gemini_tools: FunctionDeclaration implemented
   graph: child of Sources, force-directed SVG, measures container width, animated edge dots
 
 known_issues:
