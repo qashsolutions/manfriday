@@ -294,6 +294,23 @@ Will be available in paid tier where we handle the Meta integration.
 | Cleared from browser | React state cleared immediately after save |
 | User informed | Security notice panel on Settings page |
 
+### Security audit (2026-04-07)
+
+Full code audit performed. 5 critical + 14 high issues found and fixed:
+
+| Fix | Issue | Resolution |
+|-----|-------|-----------|
+| C-01 | JWT auth bypass via unverified fallback | Removed base64 fallback, strict HS256 only |
+| C-02 | Stripe webhook accepted unsigned events | Returns 503 when secret not configured |
+| C-03 | OAuth accepted unauthenticated user_id | New POST /oauth/start with JWT auth |
+| C-39 | Q&A completely broken (3 mismatches) | Fixed endpoint URL, field names, SSE events |
+| H-04 | Client secret stored in user tokens | Removed, reads from env vars |
+| H-05 | Path traversal in wiki read | Validates no ".." and user prefix |
+| H-06 | Path traversal in file-back | Validates output_path belongs to user |
+| H-15 | OpenAI tool format wrong | input_schema → parameters |
+| H-16 | OpenAI tool args not parsed | json.loads(arguments) |
+| H-17 | Gemini tool use not implemented | Added FunctionDeclaration support |
+
 ### Known issues / TODO
 
 - Google OAuth consent shows "continue to supabase.co" instead of manfriday.app (Supabase handles OAuth flow — need to move to direct OAuth on backend to fix)
