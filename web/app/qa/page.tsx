@@ -56,12 +56,11 @@ export default function QAPage() {
     setStreaming(true);
 
     try {
-      const res = await apiFetch("/qa/stream", {
+      const res = await apiFetch("/qa", {
         method: "POST",
         body: JSON.stringify({
-          query,
+          question: query,
           output_type: outputType,
-          history: messages.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
 
@@ -95,24 +94,34 @@ export default function QAPage() {
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
+        // Parse SSE: sse_starlette sends "event: <type>\ndata: <payload>"
+        let currentEvent = "";
         for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            currentEvent = line.slice(7).trim();
+            continue;
+          }
+
           if (!line.startsWith("data: ")) continue;
           const data = line.slice(6);
 
           if (data === "[DONE]") break;
 
-          try {
-            const event = JSON.parse(data);
+          // Use the named event type from the "event:" line
+          const eventType = currentEvent || "";
+          currentEvent = ""; // reset after consuming
 
-            if (event.type === "text_delta") {
+          try {
+            if (eventType === "text") {
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId
-                    ? { ...m, content: m.content + event.text }
+                    ? { ...m, content: m.content + data }
                     : m
                 )
               );
-            } else if (event.type === "tool_start") {
+            } else if (eventType === "tool_trace") {
+              const parsed = JSON.parse(data);
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId
@@ -121,9 +130,9 @@ export default function QAPage() {
                         tools: [
                           ...m.tools,
                           {
-                            id: event.tool_call_id,
-                            name: event.name,
-                            input: event.input,
+                            id: crypto.randomUUID(),
+                            name: parsed.tool,
+                            input: parsed.input,
                             status: "running" as const,
                           },
                         ],
@@ -131,19 +140,19 @@ export default function QAPage() {
                     : m
                 )
               );
-            } else if (event.type === "tool_end") {
+            } else if (eventType === "tool_result") {
+              const parsed = JSON.parse(data);
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId
                     ? {
                         ...m,
                         tools: m.tools.map((t) =>
-                          t.id === event.tool_call_id
+                          t.name === parsed.tool && t.status === "running"
                             ? {
                                 ...t,
-                                output: event.output,
+                                output: parsed.result,
                                 status: "success" as const,
-                                duration_ms: event.duration_ms,
                               }
                             : t
                         ),
@@ -151,6 +160,8 @@ export default function QAPage() {
                     : m
                 )
               );
+            } else if (eventType === "done") {
+              break;
             }
           } catch {
             // skip malformed events

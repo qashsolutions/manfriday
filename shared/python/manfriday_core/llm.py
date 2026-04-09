@@ -7,6 +7,7 @@ Every LLM call in ManFriday routes through `call()` or `stream()`.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator
@@ -174,7 +175,15 @@ async def _call_openai(
     }
     if config.tools:
         kwargs["tools"] = [
-            {"type": "function", "function": t} for t in config.tools
+            {
+                "type": "function",
+                "function": {
+                    "name": t["name"],
+                    "description": t.get("description", ""),
+                    "parameters": t.get("input_schema", t.get("parameters", {})),
+                },
+            }
+            for t in config.tools
         ]
 
     response = await client.chat.completions.create(**kwargs)
@@ -183,10 +192,14 @@ async def _call_openai(
     tool_calls = []
     if choice.message.tool_calls:
         for tc in choice.message.tool_calls:
+            try:
+                parsed_args = json.loads(tc.function.arguments)
+            except (json.JSONDecodeError, TypeError):
+                parsed_args = {}
             tool_calls.append({
                 "id": tc.id,
                 "name": tc.function.name,
-                "input": tc.function.arguments,
+                "input": parsed_args,
             })
 
     return LLMResponse(
@@ -234,9 +247,28 @@ async def _call_gemini(
     import google.generativeai as genai
 
     genai.configure(api_key=api_key)
+
+    # Build Gemini tools from config.tools if provided
+    gemini_tools = None
+    if config.tools:
+        func_declarations = []
+        for t in config.tools:
+            schema = t.get("input_schema", t.get("parameters", {}))
+            # Gemini FunctionDeclaration does not support "required" at the top level
+            # of parameters in all SDK versions; pass it within the schema as-is.
+            func_declarations.append(
+                genai.types.FunctionDeclaration(
+                    name=t["name"],
+                    description=t.get("description", ""),
+                    parameters=schema,
+                )
+            )
+        gemini_tools = [genai.types.Tool(function_declarations=func_declarations)]
+
     model = genai.GenerativeModel(
         model_name=config.resolved_model,
         system_instruction=config.system_prompt,
+        tools=gemini_tools,
     )
 
     # Convert messages to Gemini format
@@ -253,14 +285,30 @@ async def _call_gemini(
         ),
     )
 
+    # Extract text and tool calls from response
+    content = ""
+    tool_calls = []
+    if response.candidates:
+        for part in response.candidates[0].content.parts:
+            if hasattr(part, "text") and part.text:
+                content += part.text
+            elif hasattr(part, "function_call") and part.function_call:
+                fc = part.function_call
+                tool_calls.append({
+                    "id": f"gemini-{fc.name}",
+                    "name": fc.name,
+                    "input": dict(fc.args) if fc.args else {},
+                })
+
     return LLMResponse(
-        content=response.text,
+        content=content,
         model=config.resolved_model,
         provider="gemini",
         usage={
             "input": getattr(response.usage_metadata, "prompt_token_count", 0),
             "output": getattr(response.usage_metadata, "candidates_token_count", 0),
         },
+        tool_calls=tool_calls,
     )
 
 
@@ -270,9 +318,26 @@ async def _stream_gemini(
     import google.generativeai as genai
 
     genai.configure(api_key=api_key)
+
+    # Build Gemini tools from config.tools if provided
+    gemini_tools = None
+    if config.tools:
+        func_declarations = []
+        for t in config.tools:
+            schema = t.get("input_schema", t.get("parameters", {}))
+            func_declarations.append(
+                genai.types.FunctionDeclaration(
+                    name=t["name"],
+                    description=t.get("description", ""),
+                    parameters=schema,
+                )
+            )
+        gemini_tools = [genai.types.Tool(function_declarations=func_declarations)]
+
     model = genai.GenerativeModel(
         model_name=config.resolved_model,
         system_instruction=config.system_prompt,
+        tools=gemini_tools,
     )
 
     gemini_history = []

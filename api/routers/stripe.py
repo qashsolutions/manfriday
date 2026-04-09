@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+ENV = os.getenv("ENV", "development")
 
 # In-memory idempotency cache: event_id -> timestamp processed.
 # In production this would be backed by a persistent store (Redis / GCS),
@@ -188,12 +189,22 @@ async def stripe_webhook(request: Request):
             event = stripe.Webhook.construct_event(
                 payload, sig_header, STRIPE_WEBHOOK_SECRET
             )
-        else:
-            # Dev mode — parse without verification
+        elif ENV == "development":
+            # Dev mode only — parse without verification
+            logger.warning("Stripe webhook signature not verified (dev mode)")
             event = json.loads(payload)
+        else:
+            # Production/staging: reject unsigned webhooks
+            logger.error("STRIPE_WEBHOOK_SECRET not configured — rejecting webhook")
+            raise HTTPException(
+                status_code=503,
+                detail="Stripe webhooks not configured",
+            )
     except stripe.error.SignatureVerificationError as e:
         logger.warning("Stripe signature verification failed: %s", e)
         raise HTTPException(status_code=400, detail="Invalid signature")
+    except HTTPException:
+        raise  # re-raise our own 503
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Webhook error: {e}")
 

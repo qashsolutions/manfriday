@@ -1,10 +1,13 @@
 """Shared OAuth 2.0 helper for Google connectors (Gmail, Drive).
 
 Handles token storage, refresh, and revocation via Secret Manager.
+Client credentials (client_id, client_secret) are read from environment
+variables — never from stored user tokens.
 """
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import httpx
@@ -13,6 +16,8 @@ from shared.python.manfriday_core.secrets import get_byok_key, store_byok_key, d
 
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke"
+GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
 
 
 def _secret_name(service: str, user_id: str) -> str:
@@ -85,10 +90,12 @@ def delete_tokens(service: str, user_id: str) -> None:
 async def get_valid_access_token(
     service: str,
     user_id: str,
-    client_id: str,
-    client_secret: str,
 ) -> str | None:
-    """Get a valid access token, refreshing if expired."""
+    """Get a valid access token, refreshing if expired.
+
+    Client credentials are read from env vars (GOOGLE_OAUTH_CLIENT_ID,
+    GOOGLE_OAUTH_CLIENT_SECRET) — never from stored user tokens.
+    """
     tokens = load_tokens(service, user_id)
     if not tokens:
         return None
@@ -99,7 +106,9 @@ async def get_valid_access_token(
         return tokens.get("access_token")
 
     try:
-        new_tokens = await refresh_token(refresh_tok, client_id, client_secret)
+        new_tokens = await refresh_token(
+            refresh_tok, GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET
+        )
         new_tokens["refresh_token"] = refresh_tok  # preserve refresh token
         store_tokens(service, user_id, new_tokens)
         return new_tokens["access_token"]

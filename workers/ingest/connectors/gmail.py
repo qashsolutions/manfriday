@@ -155,8 +155,6 @@ class GmailConnector(ConnectorBase):
         access_token = await get_valid_access_token(
             "gmail",
             user_id,
-            tokens["client_id"],
-            tokens["client_secret"],
         )
         if not access_token:
             raise RuntimeError(f"Unable to obtain valid access token for Gmail user {user_id}")
