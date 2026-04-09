@@ -85,6 +85,61 @@ class DisconnectRequest(BaseModel):
 # ── OAuth flow (same-window redirect + PKCE) ─────────────
 
 
+class OAuthStartRequest(BaseModel):
+    connector_type: str
+
+
+@router.post("/oauth/start")
+async def oauth_start(
+    req: OAuthStartRequest,
+    user: dict = Depends(get_current_user),
+):
+    """Step 1 (authenticated): Create state + PKCE, return Google consent URL.
+
+    The frontend calls this POST first (with auth header), gets the redirect
+    URL, then navigates the browser to it. This ensures user_id comes from
+    the verified JWT, not from a query parameter.
+    """
+    connector_type = req.connector_type
+
+    if connector_type not in OAUTH_SCOPES:
+        raise HTTPException(status_code=400, detail=f"OAuth not supported for: {connector_type}")
+    if not GOOGLE_OAUTH_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+
+    # Generate PKCE pair
+    code_verifier, code_challenge = _generate_pkce()
+
+    # Generate unique state token
+    state_token = secrets.token_urlsafe(32)
+
+    # Store state + PKCE verifier (5 min TTL) — user_id comes from JWT
+    _cleanup_expired_states()
+    _oauth_states[state_token] = {
+        "type": connector_type,
+        "uid": user["user_id"],
+        "verifier": code_verifier,
+        "created": time.time(),
+    }
+
+    callback_url = f"{FRONTEND_URL}/api/connectors/oauth/callback"
+
+    params = {
+        "client_id": GOOGLE_OAUTH_CLIENT_ID,
+        "redirect_uri": callback_url,
+        "response_type": "code",
+        "scope": OAUTH_SCOPES[connector_type],
+        "access_type": "offline",
+        "prompt": "consent",
+        "state": state_token,
+        "code_challenge": code_challenge,
+        "code_challenge_method": "S256",
+    }
+
+    url = f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
+    return {"url": url}
+
+
 @router.get("/oauth/callback")
 async def oauth_callback(
     code: str = "",
@@ -127,10 +182,10 @@ async def oauth_callback(
         return RedirectResponse(f"{FRONTEND_URL}/settings?error=token_exchange_failed")
 
     tokens = resp.json()
-    tokens["client_id"] = GOOGLE_OAUTH_CLIENT_ID
-    tokens["client_secret"] = GOOGLE_OAUTH_CLIENT_SECRET
+    # Do NOT store client_id/client_secret in user tokens — the oauth helper
+    # reads these from env vars (GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET)
 
-    # Store tokens
+    # Store tokens (access_token, refresh_token, expiry — no secrets)
     store_tokens(connector_type, user_id, tokens)
     logger.info("OAuth tokens stored for %s/%s", connector_type, user_id)
 
@@ -139,43 +194,12 @@ async def oauth_callback(
 
 
 @router.get("/oauth/{connector_type}")
-async def oauth_initiate(connector_type: str, user_id: str = ""):
-    """Step 1: Redirect to Google consent screen with PKCE challenge."""
-    if connector_type not in OAUTH_SCOPES:
-        raise HTTPException(status_code=400, detail=f"OAuth not supported for: {connector_type}")
-    if not GOOGLE_OAUTH_CLIENT_ID:
-        raise HTTPException(status_code=500, detail="Google OAuth not configured")
-
-    # Generate PKCE pair
-    code_verifier, code_challenge = _generate_pkce()
-
-    # Generate unique state token
-    state_token = secrets.token_urlsafe(32)
-
-    # Store state + PKCE verifier (5 min TTL)
-    _cleanup_expired_states()
-    _oauth_states[state_token] = {
-        "type": connector_type,
-        "uid": user_id,
-        "verifier": code_verifier,
-        "created": time.time(),
-    }
-
-    callback_url = f"{FRONTEND_URL}/api/connectors/oauth/callback"
-
-    params = {
-        "client_id": GOOGLE_OAUTH_CLIENT_ID,
-        "redirect_uri": callback_url,
-        "response_type": "code",
-        "scope": OAUTH_SCOPES[connector_type],
-        "access_type": "offline",
-        "prompt": "consent",
-        "state": state_token,
-        "code_challenge": code_challenge,
-        "code_challenge_method": "S256",
-    }
-
-    return RedirectResponse(url=f"{GOOGLE_AUTH_URL}?{urlencode(params)}")
+async def oauth_initiate_legacy(connector_type: str):
+    """Legacy GET endpoint — rejected. Use POST /connectors/oauth/start instead."""
+    raise HTTPException(
+        status_code=400,
+        detail="This endpoint is deprecated. Use POST /connectors/oauth/start with an auth token.",
+    )
 
 
 # ── Standard connect/disconnect/poll ──────────────────────

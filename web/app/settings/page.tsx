@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { apiGet, apiPost, maskKey } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
 import { type ConnectorType } from "@/components/ConnectedAccountCard";
 
 /* ── Auto-detect provider from key prefix ─────────────────── */
@@ -146,9 +145,18 @@ export default function SettingsPage() {
 
   // OAuth connect (same-window redirect)
   async function handleOAuthConnect(type: ConnectorType) {
-    const { data } = await supabase.auth.getSession();
-    const userId = data.session?.user?.id || "";
-    window.location.href = `/api/connectors/oauth/${type}?user_id=${userId}`;
+    try {
+      const res = await apiPost("/connectors/oauth/start", { connector_type: type });
+      if (res.ok) {
+        const { url } = await res.json();
+        window.location.href = url;
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setError(body.detail || "Failed to start OAuth flow.");
+      }
+    } catch {
+      setError("Could not connect to API.");
+    }
   }
 
   // Telegram connect

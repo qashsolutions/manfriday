@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from api.middleware.auth import get_current_user
 from api.models.requests import FileBackRequest
 from shared.python.manfriday_core.gcs import (
@@ -30,6 +30,14 @@ async def list_outputs(user: dict = Depends(get_current_user)):
 async def file_back(req: FileBackRequest, user: dict = Depends(get_current_user)):
     """Tag + copy output to raw/outputs/ for re-ingestion by compile."""
     uid = user["user_id"]
+
+    # Path traversal protection: output_path must belong to authenticated user
+    expected_prefix = user_path(uid, "")
+    if ".." in req.output_path or not req.output_path.startswith(expected_prefix):
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied: output path does not belong to authenticated user",
+        )
 
     if not exists(req.output_path):
         return {"error": "Output not found"}

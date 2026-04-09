@@ -12,6 +12,14 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 logger = logging.getLogger(__name__)
 
 JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
+ENV = os.getenv("ENV", "development")
+
+# Fail-fast: in production, a missing JWT secret is a critical misconfiguration.
+if ENV == "production" and not JWT_SECRET:
+    logger.critical(
+        "SUPABASE_JWT_SECRET is empty in production! "
+        "All authenticated requests will be rejected."
+    )
 
 security = HTTPBearer()
 
@@ -19,10 +27,18 @@ security = HTTPBearer()
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> dict[str, Any]:
-    """Validate Supabase JWT and return user claims."""
+    """Validate Supabase JWT and return user claims.
+
+    If HS256 verification fails, returns 401 — never falls through
+    to an unverified decode.
+    """
     token = credentials.credentials
 
-    # Try python-jose HS256 decode
+    if not JWT_SECRET:
+        logger.error("JWT_SECRET is not configured — rejecting request")
+        raise HTTPException(status_code=401, detail="Authentication not configured")
+
+    # Verify JWT with python-jose HS256
     try:
         from jose import jwt, JWTError
 
@@ -39,25 +55,10 @@ async def get_current_user(
             return _extract_user(payload)
         except JWTError as e:
             logger.warning("HS256 decode failed: %s", e)
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
     except ImportError:
-        logger.warning("python-jose not available")
-
-    # Fallback: decode without verification (trust Supabase-issued tokens)
-    # This is safe because tokens come from our own Supabase instance
-    try:
-        import base64
-        import json
-
-        parts = token.split(".")
-        if len(parts) == 3:
-            # Decode payload (part 1)
-            padded = parts[1] + "=" * (-len(parts[1]) % 4)
-            payload = json.loads(base64.urlsafe_b64decode(padded))
-            user = _extract_user(payload)
-            logger.info("JWT decoded via fallback for user %s", user["user_id"])
-            return user
-    except Exception as e:
-        logger.warning("Fallback JWT decode failed: %s", e)
+        logger.error("python-jose not available — cannot verify JWTs")
+        raise HTTPException(status_code=401, detail="Authentication not configured")
 
     raise HTTPException(status_code=401, detail="Invalid or expired token")
 

@@ -68,10 +68,21 @@ async def wiki_recent(limit: int = 10, user: dict = Depends(get_current_user)):
 @router.get("/{path:path}")
 async def read_wiki_page(path: str, user: dict = Depends(get_current_user)):
     """Read a wiki page by path."""
-    full_path = user_path(user["user_id"], "wiki", path)
+    uid = user["user_id"]
+
+    # Path traversal protection
+    if ".." in path:
+        raise HTTPException(status_code=400, detail="Invalid path: directory traversal not allowed")
+
+    full_path = user_path(uid, "wiki", path)
 
     if not full_path.endswith(".md"):
         full_path += ".md"
+
+    # Verify the resolved path stays within the user's wiki directory
+    expected_prefix = user_path(uid, "wiki")
+    if not full_path.startswith(expected_prefix):
+        raise HTTPException(status_code=400, detail="Invalid path: outside user wiki")
 
     if not exists(full_path):
         raise HTTPException(status_code=404, detail=f"Wiki page not found: {path}")
