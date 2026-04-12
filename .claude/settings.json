@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(pip install:*)",
+      "Bash(pytest:*)",
+      "Bash(make:*)",
+      "Bash(docker compose:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Edit(/home/user/manfriday/**)",
+      "Write(/home/user/manfriday/**)"
+    ],
+    "deny": [
+      "Edit(/home/user/manfriday/raw/**)",
+      "Write(/home/user/manfriday/raw/**)",
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/user/manfriday/.claude/hooks/validate-requirements.sh",
+            "timeout": 15,
+            "statusMessage": "Validating requirements.txt"
+          },
+          {
+            "type": "command",
+            "command": "/home/user/manfriday/.claude/hooks/validate-compose.sh",
+            "timeout": 30,
+            "statusMessage": "Validating docker-compose.yml"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/user/manfriday/.claude/hooks/session-start.sh",
+            "timeout": 10,
+            "statusMessage": "Loading ManFriday wiki state"
+          }
+        ]
+      }
+    ]
+  }
+}
