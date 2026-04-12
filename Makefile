@@ -26,16 +26,16 @@ validate-key:
 
 # ── Tests ──────────────────────────────────────────────────
 test:
-	pytest tests/ -v --tb=short
+	python3 -m pytest tests/ -v --tb=short
 
 test-ingest:
-	pytest tests/workers/ingest/ -v
+	python3 -m pytest tests/workers/ingest/ -v
 
 test-compile:
-	pytest tests/workers/compile/ -v
+	python3 -m pytest tests/workers/compile/ -v
 
 test-api:
-	pytest tests/api/ -v
+	python3 -m pytest tests/api/ -v
 
 # ── Deploy ─────────────────────────────────────────────────
 deploy-staging:
