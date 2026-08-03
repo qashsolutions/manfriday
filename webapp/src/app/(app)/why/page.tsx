@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loadChannelData, fmtNum, type ChannelData } from "@/lib/channelData";
-import { Explain, RatioBar } from "@/components/Explain";
+import { Explain, RatioBar, Thumb } from "@/components/Explain";
 
 export default function WhyPage() {
   const [data, setData] = useState<ChannelData | null>(null);
@@ -27,6 +27,14 @@ export default function WhyPage() {
           </div>
         </div>
       ) : (
+        <>
+        {!data.flagsActive && (
+          <div className="aside-note" style={{ marginBottom: 12 }}>
+            <b>Early days — ratios shown as context, not verdicts</b>
+            Until your videos regularly pass ~100 views, the ×-numbers below are too small to judge.
+            They firm up on their own as your channel grows.
+          </div>
+        )}
         <div className="card">
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
@@ -40,15 +48,20 @@ export default function WhyPage() {
               {data.videos.map((v) => (
                 <tr key={v.id} style={{ borderBottom: "1px solid var(--line2)" }}>
                   <td style={{ padding: "9px 10px" }}>
-                    <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
-                    <div style={{ color: "var(--ink3)", fontSize: 11.5 }}>
-                      {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
-                      {v.is_short ? " · Short" : ""}
+                    <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                      <Thumb url={v.thumbnail_url} alt="" />
+                      <div>
+                        <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
+                        <div style={{ color: "var(--ink3)", fontSize: 11.5 }}>
+                          {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
+                          {v.is_short ? " · Short" : ""}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td className="num" style={{ padding: "9px 10px" }}>{fmtNum(v.view_count)}</td>
                   <td style={{ padding: "9px 10px", minWidth: 150 }}>
-                    <RatioBar ratio={v.ratio} />
+                    <RatioBar ratio={v.ratio} muted={!data.flagsActive} />
                   </td>
                   <td style={{ padding: "9px 10px" }}>
                     <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">Open</Link>
@@ -63,6 +76,7 @@ export default function WhyPage() {
             what="Open the red ones to see where viewers left; study the green ones — they're your patterns to repeat."
           />
         </div>
+        </>
       )}
     </>
   );

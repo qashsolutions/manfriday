@@ -27,12 +27,21 @@ export type ChannelData = {
   channel: { id: string; title: string | null; handle: string | null; subscriber_count: number | null } | null;
   baselines: Partial<Record<"longform" | "shorts", Baseline>>;
   videos: VideoPerf[];
+  /** false = the channel's numbers are too small for ×-comparisons to mean anything yet */
+  flagsActive: boolean;
 };
+
+/** Flags only mean something once a format has a real sample and real views. */
+const MIN_MEDIAN_FOR_FLAGS = 100;
+const MIN_SAMPLE_FOR_FLAGS = 5;
+function formatHasSignal(b: Baseline | undefined): boolean {
+  return !!b && b.median_views >= MIN_MEDIAN_FOR_FLAGS && b.sample_size >= MIN_SAMPLE_FOR_FLAGS;
+}
 
 export async function loadChannelData(): Promise<ChannelData> {
   const supabase = supabaseBrowser();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { channel: null, baselines: {}, videos: [] };
+  if (!user) return { channel: null, baselines: {}, videos: [], flagsActive: false };
 
   const { data: chans } = await supabase
     .from("channels")
@@ -40,7 +49,7 @@ export async function loadChannelData(): Promise<ChannelData> {
     .eq("is_owned", true)
     .limit(1);
   const channel = (chans?.[0] as ChannelData["channel"]) ?? null;
-  if (!channel) return { channel: null, baselines: {}, videos: [] };
+  if (!channel) return { channel: null, baselines: {}, videos: [], flagsActive: false };
 
   const [{ data: bl }, { data: vids }, { data: snaps }] = await Promise.all([
     supabase
@@ -73,20 +82,31 @@ export async function loadChannelData(): Promise<ChannelData> {
   }
 
   const videos: VideoPerf[] = ((vids ?? []) as Omit<VideoPerf, "view_count" | "views_per_day" | "ratio" | "flag">[]).map((v) => {
+    const b = v.is_short ? baselines.shorts : baselines.longform;
+    const hasSignal = formatHasSignal(b);
     const snap = latestSnap.get(v.id);
-    const med = v.is_short ? baselines.shorts?.median_views : baselines.longform?.median_views;
     const views = snap?.view_count ?? null;
-    const ratio = views !== null && med ? Math.round((views / med) * 100) / 100 : null;
+    const ratio = views !== null && b?.median_views ? Math.round((views / b.median_views) * 100) / 100 : null;
     return {
       ...v,
       view_count: views,
       views_per_day: snap?.views_per_day ?? null,
       ratio,
-      flag: ratio === null ? null : ratio >= 2 ? "outperformer" : ratio <= 0.5 ? "underperformer" : "typical",
+      // No verdicts on noise: flags only exist where the format has real signal.
+      flag: !hasSignal || ratio === null
+        ? null
+        : ratio >= 2 ? "outperformer" : ratio <= 0.5 ? "underperformer" : "typical",
     };
   });
 
-  return { channel, baselines, videos };
+  const flagsActive = formatHasSignal(baselines.longform) || formatHasSignal(baselines.shorts);
+  return { channel, baselines, videos, flagsActive };
+}
+
+/** Days since publish; null when unknown. */
+export function daysAgo(publishedAt: string | null): number | null {
+  if (!publishedAt) return null;
+  return Math.floor((Date.now() - Date.parse(publishedAt)) / 86_400_000);
 }
 
 export function fmtNum(n: number | null | undefined): string {

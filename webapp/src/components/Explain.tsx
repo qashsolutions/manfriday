@@ -16,12 +16,24 @@ export function Explain({ why, how, what }: { why?: string; how?: string; what?:
   );
 }
 
-/** Small horizontal ratio bar: this video vs the channel's normal (1.0×). */
-export function RatioBar({ ratio }: { ratio: number | null }) {
+/** Video thumbnail with a quiet fallback block. */
+export function Thumb({ url, alt }: { url: string | null; alt: string }) {
+  const base: React.CSSProperties = {
+    width: 66, height: 37, borderRadius: 5, flex: "none", objectFit: "cover",
+    background: "var(--line2)", display: "block",
+  };
+  if (!url) return <span style={base} aria-hidden />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={url} alt={alt} style={base} loading="lazy" />;
+}
+
+/** Small horizontal ratio bar: this video vs the channel's normal (1.0×).
+    muted = thin-data mode: the ratio renders as context, never as a verdict color. */
+export function RatioBar({ ratio, muted }: { ratio: number | null; muted?: boolean }) {
   if (ratio === null) return <span style={{ color: "var(--ink3)" }}>—</span>;
   const max = 3;
   const pct = Math.min(ratio, max) / max * 100;
-  const color = ratio >= 2 ? "var(--good)" : ratio <= 0.5 ? "var(--crit)" : "var(--ink3)";
+  const color = muted ? "var(--ink3)" : ratio >= 2 ? "var(--good)" : ratio <= 0.5 ? "var(--crit)" : "var(--ink3)";
   const normalPct = (1 / max) * 100;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 130 }}>

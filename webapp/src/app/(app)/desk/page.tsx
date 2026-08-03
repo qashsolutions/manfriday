@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { loadChannelData, fmtNum, type ChannelData } from "@/lib/channelData";
-import { Explain } from "@/components/Explain";
+import { loadChannelData, fmtNum, daysAgo, type ChannelData } from "@/lib/channelData";
+import { Explain, RatioBar, Thumb } from "@/components/Explain";
 
 export default function DeskPage() {
   const supabase = supabaseBrowser();
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
-  const [data, setData] = useState<ChannelData>({ channel: null, baselines: {}, videos: [] });
+  const [data, setData] = useState<ChannelData>({ channel: null, baselines: {}, videos: [], flagsActive: false });
   const [openTips, setOpenTips] = useState(0);
   const [running, setRunning] = useState(false);
   const [runErr, setRunErr] = useState<string | null>(null);
@@ -56,15 +56,16 @@ export default function DeskPage() {
   }
 
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
-  const { channel, baselines, videos } = data;
+  const { channel, baselines, videos, flagsActive } = data;
   const hasBaseline = Boolean(baselines.longform || baselines.shorts);
+  // Attention = real outliers among RECENT uploads only — a 4-year-old video
+  // doesn't "need attention," and flags don't exist at all on thin data.
   const attention = [...videos]
-    .filter((v) => v.flag)
-    .sort((a, b) => {
-      const rank = (f: string | null) => (f === "underperformer" ? 0 : f === "outperformer" ? 1 : 2);
-      return rank(a.flag) - rank(b.flag);
-    })
+    .filter((v) => (v.flag === "underperformer" || v.flag === "outperformer"))
+    .filter((v) => { const d = daysAgo(v.published_at); return d !== null && d <= 120; })
+    .sort((a, b) => (a.flag === "underperformer" ? 0 : 1) - (b.flag === "underperformer" ? 0 : 1))
     .slice(0, 5);
+  const recent = videos.slice(0, 5);
 
   if (loading) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Opening the Desk…</div>;
 
@@ -155,30 +156,52 @@ export default function DeskPage() {
 
           <div className="card" style={{ marginTop: 14 }}>
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-              <h4 style={{ margin: 0, fontSize: 13.5 }}>Needs your attention</h4>
+              <h4 style={{ margin: 0, fontSize: 13.5 }}>
+                {flagsActive ? "Needs your attention" : "Your recent videos"}
+              </h4>
               <Link href="/why" style={{ fontSize: 12, color: "var(--acc)" }}>all videos →</Link>
             </div>
-            {attention.length === 0 ? (
+
+            {!flagsActive && (
+              <div className="aside-note" style={{ margin: "10px 0 4px" }}>
+                <b>Early days — no verdicts yet, on purpose</b>
+                With videos under ~100 views, ×-comparisons are noise, not judgment. The team tracks
+                everything below; flags switch on by themselves as your numbers grow.
+              </div>
+            )}
+
+            {(flagsActive ? attention : recent).length === 0 ? (
               <p style={{ color: "var(--ink2)", fontSize: 13 }}>
                 Nothing unusual right now — your recent videos are tracking close to your normal.
               </p>
             ) : (
               <table className="t" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 8 }}>
                 <tbody>
-                  {attention.map((v) => (
+                  {(flagsActive ? attention : recent).map((v) => (
                     <tr key={v.id} style={{ borderTop: "1px solid var(--line2)" }}>
                       <td style={{ padding: "9px 10px 9px 0" }}>
-                        <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
-                        <div style={{ color: "var(--ink3)", fontSize: 11.5 }}>
-                          {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
-                          {v.is_short ? " · Short" : ""}
+                        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                          <Thumb url={v.thumbnail_url} alt="" />
+                          <div>
+                            <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
+                            <div style={{ color: "var(--ink3)", fontSize: 11.5 }}>
+                              {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
+                              {v.is_short ? " · Short" : ""}
+                            </div>
+                          </div>
                         </div>
                       </td>
-                      <td className="num" style={{ padding: "9px 10px" }}>{fmtNum(v.view_count)} views</td>
-                      <td style={{ padding: "9px 0" }}>
-                        {v.flag === "underperformer" && <span className="pill crit">{v.ratio}× — well below normal</span>}
-                        {v.flag === "outperformer" && <span className="pill good">{v.ratio}× — a hit</span>}
-                        {v.flag === "typical" && <span className="pill mut">about normal</span>}
+                      <td className="num" style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{fmtNum(v.view_count)} views</td>
+                      <td style={{ padding: "9px 0", minWidth: 150 }}>
+                        <RatioBar ratio={v.ratio} muted={!flagsActive} />
+                      </td>
+                      <td style={{ padding: "9px 0 9px 10px" }}>
+                        {v.flag === "underperformer" && (
+                          <Link href={`/why/${v.id}`} className="btn btn-acc btn-sm">Why?</Link>
+                        )}
+                        {v.flag === "outperformer" && (
+                          <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">What worked?</Link>
+                        )}
                       </td>
                     </tr>
                   ))}

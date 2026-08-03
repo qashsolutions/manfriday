@@ -89,6 +89,9 @@ export default function WhyDetailPage() {
           {v.flag === "underperformer" && <span className="delta dn">well below your normal</span>}
           {v.flag === "outperformer" && <span className="delta up">a hit — worth studying</span>}
           {v.flag === "typical" && <span className="delta fl">about normal</span>}
+          {v.flag === null && (
+            <span className="delta fl">early days — verdicts unlock as your views grow</span>
+          )}
         </div>
       </div>
 
