@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style>
+    text { font-family: -apple-system, "Helvetica Neue", "Segoe UI", Arial, sans-serif; }
+    .kick { font-size: 22px; font-weight: 600; letter-spacing: 5px; fill: #898781; }
+    .h1   { font-size: 84px; font-weight: 700; letter-spacing: -1.5px; fill: #0b0b0b; }
+    .val  { font-size: 62px; font-weight: 700; letter-spacing: -1px; fill: #0b0b0b; }
+    .clm  { font-size: 28px; fill: #52514e; }
+    .src  { font-size: 21px; fill: #898781; }
+    .yr   { font-size: 20px; font-weight: 600; fill: #52514e; }
+    .take { font-size: 34px; font-weight: 600; fill: #0b0b0b; }
+    .foot { font-size: 20px; font-weight: 600; fill: #0b0b0b; }
+    .pg   { font-size: 20px; fill: #898781; }
+  </style>
+  <rect width="1920" height="1080" fill="#ffffff"/>
+
+  <rect x="120" y="96" width="56" height="8" rx="2" fill="#2a78d6"/>
+  <text class="kick" x="120" y="152">WHAT OUR RESEARCH SHOWS — 2025–26 SOURCES ONLY</text>
+
+  <text class="h1" x="120" y="280">Winning is measurable now.</text>
+
+  <line x1="120" y1="352" x2="1800" y2="352" stroke="#e1e0d9" stroke-width="1"/>
+
+  <!-- row 1 -->
+  <text class="val" x="120" y="438">+$75K/yr</text>
+  <text class="clm" x="620" y="418">Creators with 3+ income streams out-earn</text>
+  <text class="clm" x="620" y="454">single-stream peers (1,000+ surveyed)</text>
+  <rect x="1724" y="408" width="76" height="36" rx="18" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="1762" y="433" text-anchor="middle">2025</text>
+  <text class="src" x="1708" y="432" text-anchor="end">Cookie Finance</text>
+  <line x1="120" y1="490" x2="1800" y2="490" stroke="#e1e0d9" stroke-width="1"/>
+
+  <!-- row 2 -->
+  <text class="val" x="120" y="576">$133K · +33%</text>
+  <text class="clm" x="620" y="556">Median full-time creator income, rising fast —</text>
+  <text class="clm" x="620" y="592">the professional class is pulling away</text>
+  <rect x="1724" y="546" width="76" height="36" rx="18" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="1762" y="571" text-anchor="middle">2025</text>
+  <text class="src" x="1708" y="570" text-anchor="end">Cookie Finance</text>
+  <line x1="120" y1="628" x2="1800" y2="628" stroke="#e1e0d9" stroke-width="1"/>
+
+  <!-- row 3 -->
+  <text class="val" x="120" y="714">Satisfaction</text>
+  <text class="clm" x="620" y="694">YouTube now ranks on viewer satisfaction, not raw</text>
+  <text class="clm" x="620" y="730">watch time — and packaging is A/B-testable in-platform</text>
+  <rect x="1700" y="684" width="100" height="36" rx="18" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="1750" y="709" text-anchor="middle">2025–26</text>
+  <text class="src" x="1684" y="708" text-anchor="end">YouTube, official</text>
+  <line x1="120" y1="766" x2="1800" y2="766" stroke="#e1e0d9" stroke-width="1"/>
+
+  <!-- row 4 -->
+  <text class="val" x="120" y="852">n = 4,470</text>
+  <text class="clm" x="620" y="832">Peer-reviewed, 7-year panel: consistent, low-risk</text>
+  <text class="clm" x="620" y="868">execution predicts profitability — passion does not</text>
+  <rect x="1724" y="822" width="76" height="36" rx="18" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="1762" y="847" text-anchor="middle">2025</text>
+  <text class="src" x="1708" y="846" text-anchor="end">Nature Sci. Reports</text>
+  <line x1="120" y1="904" x2="1800" y2="904" stroke="#e1e0d9" stroke-width="1"/>
+
+  <rect x="120" y="958" width="14" height="14" rx="3" fill="#2a78d6"/>
+  <text class="take" x="158" y="974">Every winner has an analyst. The business of one doesn&#8217;t. Yet.</text>
+
+  <text class="foot" x="120" y="1024">manfriday</text>
+  <text class="pg" x="1800" y="1024" text-anchor="end">02 / 04</text>
+</svg>

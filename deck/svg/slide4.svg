@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style>
+    text { font-family: -apple-system, "Helvetica Neue", "Segoe UI", Arial, sans-serif; }
+    .kick { font-size: 22px; font-weight: 600; letter-spacing: 5px; fill: #898781; }
+    .h1   { font-size: 68px; font-weight: 700; letter-spacing: -1px; fill: #0b0b0b; }
+    .tt   { font-size: 34px; font-weight: 600; fill: #0b0b0b; }
+    .ts   { font-size: 25px; fill: #52514e; }
+    .close{ font-size: 30px; font-weight: 600; fill: #0b0b0b; }
+    .attr { font-size: 17px; fill: #898781; }
+    .foot { font-size: 20px; font-weight: 600; fill: #0b0b0b; }
+    .pg   { font-size: 20px; fill: #898781; }
+  </style>
+  <rect width="1920" height="1080" fill="#ffffff"/>
+
+  <rect x="120" y="96" width="56" height="8" rx="2" fill="#2a78d6"/>
+  <text class="kick" x="120" y="152">WHAT CREATORS GET</text>
+
+  <text class="h1" x="120" y="278">Hours back. Views up. A business, not a bet.</text>
+
+  <!-- tile 1 -->
+  <rect x="120" y="380" width="48" height="6" rx="2" fill="#2a78d6"/>
+  <text class="tt" x="120" y="448">Package like the top 1%</text>
+  <text class="ts" x="120" y="492">Every upload graded against real watch-time</text>
+  <text class="ts" x="120" y="526">and search demand — before you publish.</text>
+
+  <!-- tile 2 -->
+  <rect x="1020" y="380" width="48" height="6" rx="2" fill="#2a78d6"/>
+  <text class="tt" x="1020" y="448">See real retention, not vibes</text>
+  <text class="ts" x="1020" y="492">Your analytics and most-replayed peaks,</text>
+  <text class="ts" x="1020" y="526">cross-read with your actual script.</text>
+
+  <!-- tile 3 -->
+  <rect x="120" y="620" width="48" height="6" rx="2" fill="#2a78d6"/>
+  <text class="tt" x="120" y="688">Make what viewers already want</text>
+  <text class="ts" x="120" y="732">Comments mined into a ranked backlog</text>
+  <text class="ts" x="120" y="766">of proven, requested ideas.</text>
+
+  <!-- tile 4 -->
+  <rect x="1020" y="620" width="48" height="6" rx="2" fill="#2a78d6"/>
+  <text class="tt" x="1020" y="688">Run on autopilot</text>
+  <text class="ts" x="1020" y="732">Monitoring, cataloging and reporting</text>
+  <text class="ts" x="1020" y="766">happen while you create.</text>
+
+  <text class="close" x="120" y="928">Built on what the 2025 data proved matters: distribution · income · time.</text>
+  <text class="attr" x="120" y="972">Sources — Billion Dollar Boy 2025 · Cookie Finance 2025 · eMarketer 2025 · Gusto/Simply Business 2025 · Influencer Marketing Hub 2025 · Nature Scientific Reports 2025 · Epidemic Sound 2025 · YouTube official 2025–26</text>
+
+  <text class="foot" x="120" y="1024">manfriday</text>
+  <text class="pg" x="1800" y="1024" text-anchor="end">04 / 04</text>
+</svg>

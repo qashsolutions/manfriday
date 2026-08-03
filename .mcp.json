@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "youtube": {
+      "command": "/Users/cvr/dev/manfriday/youtube-mcp/.venv/bin/python",
+      "args": ["/Users/cvr/dev/manfriday/youtube-mcp/server.py"],
+      "env": {
+        "YOUTUBE_API_KEY": "${YOUTUBE_API_KEY:-}"
+      }
+    }
+  }
+}

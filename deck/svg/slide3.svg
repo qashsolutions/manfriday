@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style>
+    text { font-family: -apple-system, "Helvetica Neue", "Segoe UI", Arial, sans-serif; }
+    .kick { font-size: 22px; font-weight: 600; letter-spacing: 5px; fill: #898781; }
+    .mark { font-size: 118px; font-weight: 700; letter-spacing: -3.5px; fill: #0b0b0b; }
+    .def  { font-size: 26px; fill: #898781; }
+    .vp   { font-size: 48px; font-weight: 600; letter-spacing: -0.5px; fill: #0b0b0b; }
+    .num  { font-size: 24px; font-weight: 700; letter-spacing: 2px; fill: #898781; }
+    .pt   { font-size: 33px; font-weight: 600; fill: #0b0b0b; }
+    .ps   { font-size: 24px; fill: #52514e; }
+    .sv   { font-size: 21px; fill: #898781; }
+    .strip{ font-size: 24px; fill: #898781; }
+    .foot { font-size: 20px; font-weight: 600; fill: #0b0b0b; }
+    .pg   { font-size: 20px; fill: #898781; }
+  </style>
+  <rect width="1920" height="1080" fill="#ffffff"/>
+
+  <rect x="120" y="96" width="56" height="8" rx="2" fill="#2a78d6"/>
+  <text class="kick" x="120" y="152">THE ANSWER</text>
+
+  <text class="mark" x="120" y="316">manfriday</text>
+  <text class="def" x="120" y="376">man friday (n.) — the trusted right hand who handles everything</text>
+
+  <text class="vp" x="120" y="484">An AI analyst team for the business of one.</text>
+
+  <!-- vp 1 -->
+  <rect x="120" y="582" width="56" height="6" rx="2" fill="#2a78d6"/>
+  <text class="num" x="120" y="636">01</text>
+  <text class="pt" x="120" y="686">Your own analyst team</text>
+  <text class="ps" x="120" y="728">Real retention curves, packaging graded</text>
+  <text class="ps" x="120" y="760">on live watch-time, competitive baselines</text>
+  <text class="ps" x="120" y="792">— specialist agents on official data.</text>
+  <text class="sv" x="120" y="838">answers: running blind · underearning</text>
+
+  <!-- vp 2 -->
+  <rect x="720" y="582" width="56" height="6" rx="2" fill="#2a78d6"/>
+  <text class="num" x="720" y="636">02</text>
+  <text class="pt" x="720" y="686">It learns your channel</text>
+  <text class="ps" x="720" y="728">Every upload, retention curve and</text>
+  <text class="ps" x="720" y="760">comment teaches the next call — what</text>
+  <text class="ps" x="720" y="792">worked, what didn&#8217;t, what to make next.</text>
+  <text class="sv" x="720" y="838">answers: algorithm volatility</text>
+
+  <!-- vp 3 -->
+  <rect x="1320" y="582" width="56" height="6" rx="2" fill="#2a78d6"/>
+  <text class="num" x="1320" y="636">03</text>
+  <text class="pt" x="1320" y="686">Always-on research</text>
+  <text class="ps" x="1320" y="728">Daily sweeps of the web and your</text>
+  <text class="ps" x="1320" y="760">keywords; drop any video URL and its</text>
+  <text class="ps" x="1320" y="792">transcript and comments are mined.</text>
+  <text class="sv" x="1320" y="838">answers: no time for it all</text>
+
+  <text class="strip" x="120" y="948">25 tools · 10 specialist agents · a learning ledger · official YouTube APIs first · exports to Notion and Drive</text>
+
+  <text class="foot" x="120" y="1024">manfriday</text>
+  <text class="pg" x="1800" y="1024" text-anchor="end">03 / 04</text>
+</svg>

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style>
+    text { font-family: -apple-system, "Helvetica Neue", "Segoe UI", Arial, sans-serif; }
+    .kick { font-size: 22px; font-weight: 600; letter-spacing: 5px; fill: #898781; }
+    .h1   { font-size: 84px; font-weight: 700; letter-spacing: -1.5px; fill: #0b0b0b; }
+    .sub  { font-size: 30px; fill: #52514e; }
+    .val  { font-size: 96px; font-weight: 700; letter-spacing: -1.5px; fill: #0b0b0b; }
+    .lbl  { font-size: 23px; fill: #52514e; }
+    .src  { font-size: 19px; fill: #898781; }
+    .yr   { font-size: 19px; font-weight: 600; fill: #52514e; }
+    .foot { font-size: 20px; font-weight: 600; fill: #0b0b0b; }
+    .pg   { font-size: 20px; fill: #898781; }
+  </style>
+  <rect width="1920" height="1080" fill="#ffffff"/>
+
+  <rect x="120" y="96" width="56" height="8" rx="2" fill="#2a78d6"/>
+  <text class="kick" x="120" y="152">MANFRIDAY — WHY WE EXIST</text>
+
+  <text class="h1" x="120" y="280">Creators run real businesses.</text>
+  <text class="h1" x="120" y="384">Most run them blind.</text>
+  <text class="sub" x="120" y="456">One person doing everything — and the 2025 data says it is breaking them.</text>
+
+  <!-- tile 1 -->
+  <rect x="120" y="588" width="56" height="6" rx="2" fill="#2a78d6"/>
+  <text class="val" x="120" y="704">52%</text>
+  <text class="lbl" x="120" y="754">report burnout — money strain</text>
+  <text class="lbl" x="120" y="786">is the top driver</text>
+  <rect x="120" y="820" width="70" height="34" rx="17" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="155" y="843" text-anchor="middle">2025</text>
+  <text class="src" x="206" y="843">Billion Dollar Boy</text>
+
+  <!-- tile 2 -->
+  <rect x="555" y="588" width="56" height="6" rx="2" fill="#2a78d6"/>
+  <text class="val" x="555" y="704">41%</text>
+  <text class="lbl" x="555" y="754">say time is their #1 challenge</text>
+  <text class="lbl" x="555" y="786">— ahead of marketing</text>
+  <rect x="555" y="820" width="70" height="34" rx="17" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="590" y="843" text-anchor="middle">2025</text>
+  <text class="src" x="641" y="843">Gusto · Simply Business</text>
+
+  <!-- tile 3 -->
+  <rect x="990" y="588" width="56" height="6" rx="2" fill="#2a78d6"/>
+  <text class="val" x="990" y="704">&lt;$15K</text>
+  <text class="lbl" x="990" y="754">what most creators earn a</text>
+  <text class="lbl" x="990" y="786">year, at any follower count</text>
+  <rect x="990" y="820" width="70" height="34" rx="17" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="1025" y="843" text-anchor="middle">2025</text>
+  <text class="src" x="1076" y="843">Influencer Marketing Hub</text>
+
+  <!-- tile 4 -->
+  <rect x="1425" y="588" width="56" height="6" rx="2" fill="#2a78d6"/>
+  <text class="val" x="1425" y="704">#1</text>
+  <text class="lbl" x="1425" y="754">business threat: algorithm</text>
+  <text class="lbl" x="1425" y="786">volatility — not rivals</text>
+  <rect x="1425" y="820" width="70" height="34" rx="17" fill="none" stroke="#e1e0d9" stroke-width="1.5"/>
+  <text class="yr" x="1460" y="843" text-anchor="middle">2025</text>
+  <text class="src" x="1511" y="843">eMarketer</text>
+
+  <text class="foot" x="120" y="1024">manfriday</text>
+  <text class="pg" x="1800" y="1024" text-anchor="end">01 / 04</text>
+</svg>
