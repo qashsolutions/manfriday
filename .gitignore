@@ -20,3 +20,6 @@ reports/
 # strategy research — local only, never commit
 deck/findings.md
 deck/mockup-eval.md
+
+# build artifacts
+.next/
