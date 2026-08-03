@@ -189,6 +189,19 @@ scopes requested in context.
   `purge-api-cache` job active (every 30 min, confirmed in `cron.job`);
   12 migrations recorded; security advisor clean except the intentional
   items explained above.
-- Not yet exercised: no real sign-up has fired `handle_new_user`, and
-  `export_my_data()` has no caller until the web app exists. Smoke-test both
-  when the first auth flow is wired up.
+- Full SQL test suite passed 2026-08-03 (two simulated users, seeded all 14
+  tables, cleaned up to empty afterwards): `handle_new_user` auto-created
+  profiles from Google-style metadata · `moddatetime` fires · category CHECK
+  and the `(user_id, yt_video_id)` dedup key reject bad rows · the
+  `resolved`+verdict ledger state inserts cleanly (the migration-7 fix) ·
+  RLS verified from both sides via `set_config('request.jwt.claims', ...)`:
+  each user sees only their rows, cross-tenant insert fails 42501,
+  append-only snapshot update touches 0 rows, `google_oauth_tokens` SELECT
+  is permission-denied even for the owner, anon sees nothing ·
+  `export_my_data()` returns the caller's full dataset incl. token metadata
+  with no ciphertext · the purge job's DELETE removes only expired cache
+  rows · deleting an auth user cascaded every one of their rows across all
+  12 per-user tables in one statement while the other user and the shared
+  caches survived.
+- Still untested with real traffic: an actual Google sign-in through the
+  dashboard-configured provider (the provider isn't enabled yet — see above).

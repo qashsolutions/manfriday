@@ -32,6 +32,8 @@ A YouTube analysis/marketing toolkit for Claude Code, built in three sessions
 README.md                    setup + usage documentation (updated Aug 2 evening:
                              25-tool table incl. ledger, 10-agent layout)
 status_aug2.md               this file
+sqlstatus_aug3.md            Supabase layer status: migration ledger, code
+                             audit, full SQL test log, gotchas (Aug 3)
 .claude/yt-profile.md        channel-profile template (currently unfilled)
 .claude/yt-ledger.jsonl      recommendation-ledger state (gitignored; created on
                              first log_recommendation call — not yet present)
@@ -287,9 +289,15 @@ sets it with every verdict) — fixed in migration 7 along with the missing
 `notes`/`resolved_at`/`baseline_error`/`result_baseline_error` fields.
 
 **Not live-tested**: the other 8 agents (their underlying tools are all
-verified). On the Supabase side: `handle_new_user` (no real sign-up yet) and
-`export_my_data()` (no caller until the web app) — smoke-test both when the
-first auth flow is wired.
+verified). On the Supabase side, a full SQL test suite passed Aug 3 (two
+simulated users → seed all 14 tables → verify → purge → project left empty):
+sign-up trigger, updated_at trigger, CHECK/unique rejections, the
+resolved+verdict ledger state, RLS isolation from both users' perspectives
+(cross-tenant insert 42501, append-only update = 0 rows, token table
+permission-denied, anon sees nothing), `export_my_data()` complete and
+ciphertext-free, cache purge, and the one-statement account-deletion cascade.
+Only a real Google sign-in remains untested (provider not yet enabled in the
+dashboard).
 
 ## 8. Known limitations (by design or constraint)
 
