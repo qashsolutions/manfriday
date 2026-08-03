@@ -38,4 +38,14 @@ always-on AI analyst team at creator prices. Differentiators no competitor
 ships: retention-curve × transcript analysis, the recommendation ledger
 (closed learning loop), genuinely agentic operation, private+public data in
 one reasoning chain. Web app design bar: premium flagship quality, modern,
-light background.
+light background. Users meet a "team of six" analysts — never tech jargon.
+
+Approved v3 screen mockups: artifact
+claude.ai/code/artifact/91ef2bfa-126b-417a-b67d-fe2fe6bacd9d (source:
+session scratchpad `manfriday-flow-mockups.html`; eval scorecard in
+local-only `deck/mockup-eval.md`). Hosting: **Vercel**. Build order: app
+shell + Desk → Why-it-died → Titles & thumbnails → Ledger → Weekly
+report → onboarding. API hard limits to respect in ALL product work:
+no thumbnail impressions/CTR, no audience overlap, no best-time-to-publish,
+no search-volume trends — status_aug2.md §12 lists the verified
+substitutions.

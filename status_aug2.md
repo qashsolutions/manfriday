@@ -17,6 +17,7 @@ projections.
 9. [Explicitly NOT built](#9-explicitly-not-built-decided-not-forgotten) — decided, not forgotten
 10. [Next steps](#10-next-steps) — Phases 0–4 roadmap
 11. [Aug 3 update — Supabase layer live](#11-aug-3-update--supabase-layer-live-applied-audited-tested-end-to-end) — applied, audited, tested end to end
+12. [Web app design (Aug 3): mockups, evaluation, decisions](#12-web-app-design-aug-3-mockups-evaluation-decisions) — v1→v3 flow, multi-agent eval, hosting, the 3 post-build decision points
 
 ## 1. What this project is
 
@@ -532,3 +533,68 @@ the local OAuth token to the real content channel, Google app verification
 to leave Testing mode, production URLs at launch (Site URL →
 manfriday.app), and the web app itself — the schema is ready and waiting
 for it.
+
+## 12. Web app design (Aug 3): mockups, evaluation, decisions
+
+**Screen-flow mockups, v1 → v3** (private design artifact:
+claude.ai/code/artifact/91ef2bfa-126b-417a-b67d-fe2fe6bacd9d). One scenario
+carried through the entire product — landing → connect → first analysis →
+first results → daily Desk → "Why videos win or die" → titles &
+thumbnails → idea list → Ledger → weekly report (phone) → data settings.
+11 screens after v3 (the sign-in interstitial was deleted so "two clicks to
+first results" is literally true).
+
+- **v1 → v2** (user review): the team became a named **team of six**
+  (Retention Analyst, Packaging Analyst, Audience Analyst, the Scout, the
+  Researcher, the Scorekeeper) introduced on the landing page; the profile
+  form left the critical path; all technical language and name-drops
+  removed from product copy.
+- **v2 → v3** (7-agent evaluation + API audit): 4 creator personas + 2
+  auditors + adversarial critic scored every screen on so-what / how /
+  value from the user's chair (all 6 would sign up; conversion path
+  S4/S6/S10 strongest; detailed scorecard in local-only
+  `deck/mockup-eval.md`). Applied: apply-loop closed everywhere (Copy /
+  Open in YouTube Studio / Mark applied), price+proof before the connect
+  wall, "Today's one thing" Desk strip, day-1 empty-state specs, honesty
+  fixes. **API-truth substitutions verified against Google's docs**:
+  thumbnail impressions/CTR do NOT exist in the Analytics API (Studio-only)
+  → replaced with Browse-reach collapse from traffic-source data;
+  "audience overlap" → content-gap from public data; best-time-to-publish
+  and search-trend claims deleted (no API source).
+
+**Decisions locked:** light theme, premium-flagship bar · responsive web +
+installable PWA, no native apps at launch · team-of-six as the interface
+(bylines on every artifact) · **hosting on Vercel** (cost-driven choice
+over AWS) · pricing parked for later evaluation · build order: app shell +
+Desk → Why-it-died → Titles & thumbnails → Ledger → Weekly report →
+onboarding.
+
+**Open build items carried from v3:** the package detail view, the daily
+brief cadence (product says "every day", heartbeat is weekly), a
+"report a wrong claim" affordance on quoted transcript lines.
+
+**Three post-build decision points (build all three eventually; SEQUENCE
+to be decided after the web app ships):**
+1. **Cross-platform integrations** — Instagram, TikTok, Facebook. Note
+   from the Aug 3 feasibility analysis: those platforms' APIs don't expose
+   retention-grade data, so parity of insight isn't achievable —
+   realistic scope is the distribution/repurposing layer on top of
+   YouTube-depth.
+2. **Mobile-specific features** beyond the PWA (what, if anything, needs
+   more than the installable web app + push + email digests).
+3. **Direct video/reel analysis** — feed the actual video content to
+   Claude for multimodal analysis via a third-party video API/MCP.
+   Candidate named: Higgsfield MCP/API — verify fit when scoping
+   (Higgsfield is primarily a video *generation* platform; direct
+   *analysis* may need a video-understanding API instead). This option
+   deepens the existing moat rather than broadening platforms.
+
+**Build phase started (Aug 3, later).** Stack: Next.js (App Router,
+TypeScript) in `webapp/`, Supabase JS + SSR clients, deploy target Vercel.
+Scope additions from the user for v1 settings: **email-OTP login**
+alongside Google sign-in, **MFA** (authenticator app), **dark/light mode
+toggle** (supersedes the earlier light-only decision — both themes ship),
+connections management (see what's connected, disconnect), **pause
+account** (new `profiles.paused_at`, migration 13), delete account, and a
+payment/billing surface (pricing still parked — surface ships as
+placeholder).
