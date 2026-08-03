@@ -4,6 +4,20 @@ Everything below is taken directly from the code and configuration on disk and
 from live tests executed during the build sessions of Aug 1–3, 2026. No
 projections.
 
+## Contents
+
+1. [What this project is](#1-what-this-project-is) — the four deliverables
+2. [File inventory](#2-file-inventory) — every file and what it's for
+3. [Access architecture](#3-access-architecture-as-implemented-in-serverpy) — APIs first, scraping last; hardening
+4. [The 25 MCP tools](#4-the-25-mcp-tools-from-mcptool-definitions) — public / OAuth / Notion / ledger
+5. [The 10 agents](#5-the-10-agents-claudeagents) — roles + 2026 algorithm heuristics
+6. [Configuration state](#6-configuration-state-verified-on-disk--by-live-call) — keys, OAuth, Notion, per-item status
+7. [Verification log](#7-verification-log-live-tests-actually-executed) — every live test, chronological
+8. [Known limitations](#8-known-limitations-by-design-or-constraint) — scraping surfaces, quota, single-user OAuth
+9. [Explicitly NOT built](#9-explicitly-not-built-decided-not-forgotten) — decided, not forgotten
+10. [Next steps](#10-next-steps) — Phases 0–4 roadmap
+11. [Aug 3 update — Supabase layer live](#11-aug-3-update--supabase-layer-live-applied-audited-tested-end-to-end) — applied, audited, tested end to end
+
 ## 1. What this project is
 
 A YouTube analysis/marketing toolkit for Claude Code, built in three sessions
@@ -34,6 +48,10 @@ README.md                    setup + usage documentation (updated Aug 2 evening:
 status_aug2.md               this file
 sqlstatus_aug3.md            Supabase layer status: migration ledger, code
                              audit, full SQL test log, gotchas (Aug 3)
+CLAUDE.md                    session guide: project map, doc pointers, rules
+deck/findings.md             competitive research + product focus (Aug 3) —
+                             LOCAL ONLY, deliberately gitignored; not in the
+                             public repo
 .claude/yt-profile.md        channel-profile template (currently unfilled)
 .claude/yt-ledger.jsonl      recommendation-ledger state (gitignored; created on
                              first log_recommendation call — not yet present)
@@ -44,6 +62,8 @@ deck/svg/slide1-4.svg        editable slide sources (1920x1080 SVG)
 supabase/SETUP.md            Supabase layer reference: schema, security model,
                              sovereignty flows, remaining dashboard steps
 supabase/migrations/         the 12 applied migrations, mirrored 1:1
+supabase/test-signin.html    localhost sign-in test page (publishable key
+                             only; used for the verified real sign-in, §11)
 youtube-mcp/server.py        the MCP server (25 tools)
 youtube-mcp/authorize.py     one-time OAuth browser flow
 youtube-mcp/requirements.txt mcp, yt-dlp, youtube-transcript-api,
@@ -178,6 +198,8 @@ point.
 | Google Drive export | ✅ verified from inside an agent (second-restart session): connector present, agent loaded `create_file` via ToolSearch and uploaded a real .md (no Google-Doc conversion). Connector is session-level — agents degrade to local files in sessions without it |
 | `.claude/yt-profile.md` | Template only — not filled in |
 | MCP server registration | ✅ `.mcp.json` present; server connects live in-session after restart (verified Aug 2 post-restart: all 22 then-existing tools registered, `get_oauth_status` + `get_video_info` succeed with `source: youtube_data_api`). All 25 tools live after the second restart — the 3 ledger tools and the thumbnail-cover change MCP-verified end-to-end (§7) |
+| Supabase project | ✅ `jxlhvxkaetuhtmwjvlym` — 12 migrations, 14 RLS tables, bucket + pg_cron applied Aug 2–3; full test suite passed incl. a real Google sign-in (§11, `sqlstatus_aug3.md`) |
+| Supabase Google provider | ✅ enabled Aug 3 with the **web** client (`client_secret_web.json`); Supabase callback registered on it; Site URL `http://localhost:3000` for dev — switch to manfriday.app at launch. The Desktop client's secret does NOT work here (different client) |
 
 ## 7. Verification log (live tests actually executed)
 
@@ -296,8 +318,10 @@ resolved+verdict ledger state, RLS isolation from both users' perspectives
 (cross-tenant insert 42501, append-only update = 0 rows, token table
 permission-denied, anon sees nothing), `export_my_data()` complete and
 ciphertext-free, cache purge, and the one-statement account-deletion cascade.
-Only a real Google sign-in remains untested (provider not yet enabled in the
-dashboard).
+The final gap closed later on Aug 3: Google provider enabled (web client) and
+a real sign-in verified end to end — auth.users + Google identity +
+auto-created profile + `export_my_data()` over PostgREST with the real
+session JWT (details in sqlstatus_aug3.md).
 
 ## 8. Known limitations (by design or constraint)
 
@@ -442,3 +466,69 @@ To take this stack multi-user:
    server key unrestricted-by-app + API-restricted as today.
 4. The MCP server's tool logic is reusable server-side as-is; only credential
    plumbing (per-user tokens instead of `.env`/token file) changes.
+
+## 11. Aug 3 update — Supabase layer live (applied, audited, tested end to end)
+
+Everything here happened Aug 2 late–Aug 3 through the Supabase MCP server and
+is recorded in full detail in `sqlstatus_aug3.md`; this is the summary of
+record.
+
+**Applied.** Fresh project `jxlhvxkaetuhtmwjvlym` (verified empty first: 0
+tables / 0 migrations / 0 auth users) now carries **12 migrations → 14
+RLS-enabled tables** — 12 per-user, every one cascading directly from
+`auth.users`, plus 2 shared caches (`thumbnails` + `api_cache`) — the
+`thumbnails` storage bucket, `moddatetime` + `pg_cron` extensions, and the
+`purge-api-cache` job (every 30 min, confirmed active in `cron.job`).
+Migrations mirrored 1:1 in `supabase/migrations/`; reference in
+`supabase/SETUP.md`.
+
+**Audited against the code.** The schema was diffed line-by-line against
+`server.py` and the agent definitions rather than the design docs. One real
+bug caught before any data existed: the `recommendations` status CHECK
+rejected the ledger's `resolved` lifecycle (`update_recommendation` sets it
+with every verdict) — fixed in migration 7 and later proven by test. Missing
+ledger fields (`notes`, `resolved_at`, `baseline_error`,
+`result_baseline_error`) added; one deliberate remodel (monitor velocity
+tracking moved into `video_snapshots` rows); `videos.category` left
+unconstrained on purpose (yt-catalog's taxonomy is canonical-10 but open).
+Security advisors: one real finding fixed (`handle_new_user` was
+client-callable via REST RPC — migration 6); every remaining lint is an
+intentional deny-all design.
+
+**Tested — 11 tests, all passed.**
+- Tests 1–10 (SQL, two simulated users, DB returned to empty): sign-up
+  trigger, `updated_at` trigger, CHECK/unique rejections, the
+  resolved+verdict state, RLS isolation from both users' perspectives
+  (cross-tenant insert fails 42501, append-only update touches 0 rows,
+  token table permission-denied even for its owner, anon sees nothing),
+  `export_my_data()` complete and ciphertext-free, cache purge, and the
+  one-statement account-deletion cascade.
+- Test 11 (real traffic): Google provider enabled with the **web** client
+  (`client_secret_web.json`; the Desktop client's secret was pasted first
+  and failed `invalid_client` — the auth logs pinpointed it at `/callback`
+  in seconds). Real sign-in as ramanac@gmail.com via
+  `supabase/test-signin.html` on localhost:3000: `auth.users` row + Google
+  identity + auto-created profile ("Venkata CVR", avatar from Google
+  metadata) + `export_my_data()` over PostgREST with the real session JWT;
+  all other tables untouched. The first real user is now in the DB.
+
+**Docs and repo.** New this session: `supabase/` (12 migration files,
+SETUP.md, test-signin.html) and `sqlstatus_aug3.md` (migration ledger, code
+audit, full test log, 13 SQL/OAuth gotchas). Git: repo initialized and
+pushed to github.com/qashsolutions/manfriday — `721cf7a` (initial, 37
+files), `a479979` (test suite + sqlstatus doc); the sign-in-verification
+doc updates and this section are pending commit.
+
+**Competitive research (Aug 3, local only).** Deck reviewed against a
+two-track landscape sweep (software tools; education/communities/services)
+plus a direct review of a $117/mo creator Skool community. Conclusion: the
+deck's thesis is validated and the product's six core capabilities map onto
+gaps no shipping tool fills. Full analysis, problem statements, and pricing
+implications live in `deck/findings.md` — deliberately gitignored (strategy
+work product, not for the public repo). Next: web app screen design.
+
+**Still ahead (unchanged from §10):** fill `.claude/yt-profile.md`, re-auth
+the local OAuth token to the real content channel, Google app verification
+to leave Testing mode, production URLs at launch (Site URL →
+manfriday.app), and the web app itself — the schema is ready and waiting
+for it.

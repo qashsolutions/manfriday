@@ -1,0 +1,21 @@
+# secrets — never commit
+.env
+youtube-mcp/client_secret*.json
+youtube-mcp/.oauth-token.json
+
+# OS noise
+.DS_Store
+
+# python
+youtube-mcp/.venv/
+__pycache__/
+*.pyc
+
+# generated output & local state
+reports/
+.claude/yt-monitor-state.json
+.claude/yt-ledger.jsonl
+.claude/settings.local.json
+
+# strategy research — local only, never commit
+deck/findings.md

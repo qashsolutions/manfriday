@@ -21,7 +21,7 @@ log.
 | Security advisor | Clean — 1 real finding fixed (migration 6); remaining lints all intentional (§6) |
 | Test suite | PASSED in full on 2026-08-03 (§7); DB left empty afterwards |
 | Data | 0 rows everywhere — pristine, schema-only |
-| Untested | One thing only: a real Google sign-in (provider not yet enabled in the dashboard) |
+| Real sign-in | ✅ VERIFIED later on Aug 3 — provider enabled (web client), real Google sign-in end to end (§7, test 11) |
 | Git | Repo pushed to github.com/qashsolutions/manfriday (root commit `721cf7a`). Doc updates made after that push (SETUP.md/status_aug2.md verification notes, this file) are uncommitted at time of writing. |
 
 Publishable key (client-side, safe to ship):
@@ -157,8 +157,18 @@ channel).
 | 9 | **Purge-on-delete**: `delete from auth.users where id = A` | ✅ One statement cascaded ALL of A's rows across all 12 per-user tables to 0; B's profile/channel and both shared caches survived |
 | 10 | Cleanup: delete B, clear shared cache test rows | ✅ Every table (incl. `auth.users`) back to 0 rows — project pristine, schema/bucket/cron intact |
 
-Not testable from SQL: a real Google sign-in through the dashboard-configured
-provider (not yet enabled). Everything downstream of sign-in is proven.
+**Test 11 (added later on Aug 3) — real Google sign-in, end to end.** After
+enabling the Google provider (web client) and registering the Supabase
+callback on it: sign-in as ramanac@gmail.com through
+`supabase/test-signin.html` served on localhost:3000. Result: `auth.users`
+row created (provider google, email verified), Google identity recorded in
+`auth.identities` (real google_sub), `handle_new_user` auto-created the
+profile with display_name "Venkata CVR" + avatar from Google metadata, one
+active session, and the page called `export_my_data()` over PostgREST with
+the real session JWT — full dataset returned, all 13 other tables untouched
+(verified by SQL). First attempts failed with `invalid_client: The provided
+client secret is invalid` — the Desktop client's secret had been pasted next
+to the web client's ID; the auth logs pinpointed it (§8, note 13).
 
 ## 8. Specific notes & gotchas (learned the hard way, kept for next time)
 
@@ -209,14 +219,27 @@ provider (not yet enabled). Everything downstream of sign-in is proven.
     the code — and it would have surfaced only in production, on the first
     verdict. Audit schemas against the code that writes to them, not
     against design docs.
+13. **OAuth debugging order (learned in test 11)**: the auth logs
+    (`get_logs`, service `auth`) are the first stop — they showed
+    `invalid_client: The provided client secret is invalid` at `/callback`
+    in seconds, precisely separating "Google config wrong" from "Supabase
+    config wrong". Reading the failure sequence tells you which piece is
+    broken: account chooser appeared → client ID + redirect URI are right;
+    exchange failed at callback → secret. Two corollaries: (a) the ID and
+    secret pasted into the provider must come from the SAME Google client —
+    this project has two (Desktop `client_secret.json` for the local MCP,
+    web `client_secret_web.json` for Supabase/manfriday.app) and their
+    secrets differ; (b) a sign-in test page MUST surface
+    `error`/`error_description` params from the redirect URL — Supabase
+    reports the failure there, and without displaying it a broken exchange
+    looks like a silent no-op.
 
 ## 9. What remains (all outside the DB)
 
-1. Dashboard: enable the Google provider (web client ID/secret from
-   `client_secret_web.json`); add
-   `https://jxlhvxkaetuhtmwjvlym.supabase.co/auth/v1/callback` to the web
-   client's redirect URIs in Google Cloud; set Site URL + dev redirects.
-   Then smoke-test one real sign-in (the only untested path).
+1. ✅ DONE later on Aug 3 — Google provider enabled, callback registered,
+   Site URL localhost:3000, real sign-in verified (§7, test 11). At launch:
+   switch Site URL to `https://manfriday.app` and add the app's own
+   YouTube-connect callback to the web client.
 2. Backend contracts when the web app starts: `TOKEN_ENCRYPTION_KEY`
    (AES-256-GCM) in env; deletion order (revoke at Google → `deleteUser` →
    cascade); cache-key serialization for `api_cache`; port server.py's

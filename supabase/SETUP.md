@@ -167,16 +167,17 @@ scopes requested in context.
 
 ## Remaining setup outside the DB (dashboard / Google Cloud)
 
-1. **Enable the Google provider**: Dashboard → Authentication → Sign In /
-   Up → Google, using the web client's ID + secret (from
-   `client_secret_web.json`).
-2. **Google Cloud console**: add
-   `https://jxlhvxkaetuhtmwjvlym.supabase.co/auth/v1/callback` to the web
-   client's Authorized redirect URIs. Add the app's own callback URL for the
-   YouTube-connect flow when it exists.
-3. **Auth URLs**: Dashboard → Authentication → URL Configuration — set Site
-   URL (later `https://manfriday.app`) and dev redirect (e.g.
-   `http://localhost:3000/**`).
+1. ✅ DONE 2026-08-03 — Google provider enabled (web client ID + secret;
+   the secret must come from `client_secret_web.json`, NOT the Desktop
+   client's `client_secret.json` — they are different clients with
+   different secrets).
+2. ✅ DONE 2026-08-03 — Supabase callback
+   (`https://jxlhvxkaetuhtmwjvlym.supabase.co/auth/v1/callback`) registered
+   on the web client. Still to add later: the app's own callback URL for
+   the YouTube-connect flow when it exists.
+3. ✅ DONE for dev — Site URL is `http://localhost:3000`; switch to
+   `https://manfriday.app` (and prune/keep localhost as a dev redirect) at
+   launch.
 4. Unchanged from `status_aug2.md` Phase 4: Google app verification to leave
    Testing mode (privacy policy + ToS on manfriday.app, domain verification,
    sensitive-scope review; 100 allowlisted test users until then), and a
@@ -203,5 +204,14 @@ scopes requested in context.
   rows · deleting an auth user cascaded every one of their rows across all
   12 per-user tables in one statement while the other user and the shared
   caches survived.
-- Still untested with real traffic: an actual Google sign-in through the
-  dashboard-configured provider (the provider isn't enabled yet — see above).
+- Real Google sign-in VERIFIED 2026-08-03: provider enabled with the web
+  client; sign-in as ramanac@gmail.com via `supabase/test-signin.html` on
+  localhost:3000 created the `auth.users` row (provider google, email
+  verified, google_sub in `auth.identities`), `handle_new_user` auto-created
+  the profile (display_name + avatar from Google metadata), and
+  `export_my_data()` returned the caller's dataset over PostgREST with the
+  real session JWT. All other tables untouched. Debugging note: the first
+  attempts failed with `invalid_client: The provided client secret is
+  invalid` (Desktop client's secret pasted next to the web client's ID) —
+  the auth logs (`get_logs`, service `auth`) pinpointed it at `/callback`
+  in seconds.

@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>manfriday — Supabase Google sign-in test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 3rem auto; }
+    button { font-size: 1rem; padding: .5rem 1rem; margin-right: .5rem; }
+    pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>manfriday sign-in test</h1>
+  <p>Tests the real Google → Supabase Auth path: sign-in creates the
+     <code>auth.users</code> row, the trigger creates the profile, and the
+     page calls <code>export_my_data()</code> through PostgREST with the
+     real JWT. Only basic scopes (openid/email/profile) — no YouTube scopes,
+     per the two-flow design.</p>
+  <button id="signin">Sign in with Google</button>
+  <button id="signout">Sign out</button>
+  <pre id="out">not signed in</pre>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+    const supabase = createClient(
+      'https://jxlhvxkaetuhtmwjvlym.supabase.co',
+      'sb_publishable_mTxxdoBvQbh7fZ1yGeO-gg__DNI_Wki'
+    )
+    const out = document.getElementById('out')
+    const show = (o) => { out.textContent = JSON.stringify(o, null, 2) }
+
+    document.getElementById('signin').onclick = () =>
+      supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      })
+    document.getElementById('signout').onclick = async () => {
+      await supabase.auth.signOut()
+      show('signed out')
+    }
+
+    // Surface auth errors that come back in the redirect URL (query or hash) —
+    // without this, a failed callback exchange looks like a silent no-op.
+    const params = new URLSearchParams(location.search)
+    const hash = new URLSearchParams(location.hash.replace(/^#/, ''))
+    const authError = params.get('error') || hash.get('error')
+    if (authError) {
+      show({
+        auth_error: authError,
+        error_code: params.get('error_code') || hash.get('error_code'),
+        description: (params.get('error_description') || hash.get('error_description') || '').replace(/\+/g, ' '),
+      })
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data: exported, error } = await supabase.rpc('export_my_data')
+      show({
+        signed_in_as: session.user.email,
+        user_id: session.user.id,
+        provider: session.user.app_metadata?.provider,
+        export_my_data: error
+          ? { error: error.message }
+          : { profile: exported.profile, top_level_keys: Object.keys(exported) },
+      })
+    }
+  </script>
+</body>
+</html>
