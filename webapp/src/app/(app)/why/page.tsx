@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loadChannelData, fmtNum, type ChannelData } from "@/lib/channelData";
+import { Explain, RatioBar } from "@/components/Explain";
 
 export default function WhyPage() {
   const [data, setData] = useState<ChannelData | null>(null);
@@ -46,11 +47,8 @@ export default function WhyPage() {
                     </div>
                   </td>
                   <td className="num" style={{ padding: "9px 10px" }}>{fmtNum(v.view_count)}</td>
-                  <td style={{ padding: "9px 10px" }}>
-                    {v.flag === "underperformer" && <span className="pill crit">{v.ratio}× — well below</span>}
-                    {v.flag === "outperformer" && <span className="pill good">{v.ratio}× — a hit</span>}
-                    {v.flag === "typical" && <span className="pill mut">{v.ratio}×</span>}
-                    {v.flag === null && <span className="pill mut">—</span>}
+                  <td style={{ padding: "9px 10px", minWidth: 150 }}>
+                    <RatioBar ratio={v.ratio} />
                   </td>
                   <td style={{ padding: "9px 10px" }}>
                     <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">Open</Link>
@@ -59,6 +57,11 @@ export default function WhyPage() {
               ))}
             </tbody>
           </table>
+          <Explain
+            why="Raw views lie — 5,000 views is a win for one channel and a flop for another."
+            how="Each bar is this video against your own median for its format (the tick is your normal, 1×). Shorts and full videos are never mixed."
+            what="Open the red ones to see where viewers left; study the green ones — they're your patterns to repeat."
+          />
         </div>
       )}
     </>

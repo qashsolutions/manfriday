@@ -9,6 +9,7 @@
   --good: #0E8345; --good-soft: #E7F4EC;
   --warn: #B25E00; --warn-soft: #FBF1E2;
   --crit: #C6222F; --crit-soft: #FBEAEC; --crit-line: #F0C3C8;
+  --chart2: #0E8A6D;
   --shadow: 0 12px 32px rgba(10, 16, 30, .08);
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --sans: "Avenir Next", "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
@@ -22,6 +23,7 @@
     --good: #4CC38A; --good-soft: #142A1F;
     --warn: #E5A155; --warn-soft: #2C2114;
     --crit: #F27D7D; --crit-soft: #2E1A1C; --crit-line: #4A2A2E;
+    --chart2: #4BB8A0;
     --shadow: 0 12px 32px rgba(0, 0, 0, .35);
   }
 }
@@ -33,6 +35,7 @@
   --good: #4CC38A; --good-soft: #142A1F;
   --warn: #E5A155; --warn-soft: #2C2114;
   --crit: #F27D7D; --crit-soft: #2E1A1C; --crit-line: #4A2A2E;
+  --chart2: #4BB8A0;
   --shadow: 0 12px 32px rgba(0, 0, 0, .35);
 }
 

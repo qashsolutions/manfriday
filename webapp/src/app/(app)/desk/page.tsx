@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, type ChannelData } from "@/lib/channelData";
+import { Explain } from "@/components/Explain";
 
 export default function DeskPage() {
   const supabase = supabaseBrowser();
@@ -185,6 +186,40 @@ export default function DeskPage() {
               </table>
             )}
           </div>
+
+          {(baselines.longform || baselines.shorts) && (
+            <div className="card" style={{ marginTop: 14 }}>
+              <h4 style={{ margin: "0 0 10px", fontSize: 13.5 }}>Your two normals</h4>
+              {(["longform", "shorts"] as const).map((fmt) => {
+                const b = baselines[fmt];
+                if (!b) return null;
+                const other = baselines[fmt === "longform" ? "shorts" : "longform"];
+                const maxMed = Math.max(b.median_views, other?.median_views ?? 0, 1);
+                return (
+                  <div key={fmt} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                    <span style={{ width: 86, fontSize: 12, color: "var(--ink2)", fontWeight: 600 }}>
+                      {fmt === "longform" ? "Full videos" : "Shorts"}
+                    </span>
+                    <div style={{ flex: 1, height: 10, borderRadius: 4, background: "var(--line2)", position: "relative" }}>
+                      <div style={{
+                        position: "absolute", left: 0, top: 0, bottom: 0, borderRadius: 4,
+                        width: `${Math.max(4, (b.median_views / maxMed) * 100)}%`,
+                        background: fmt === "longform" ? "var(--acc)" : "var(--chart2)",
+                      }} />
+                    </div>
+                    <span className="num" style={{ fontSize: 12, width: 110, textAlign: "right" }}>
+                      {fmtNum(b.median_views)} <span style={{ color: "var(--ink3)" }}>({b.sample_size} videos)</span>
+                    </span>
+                  </div>
+                );
+              })}
+              <Explain
+                why="YouTube ranks Shorts and full videos separately — one shared average would mislead you on both."
+                how="Median views of your recent uploads, per format. Medians ignore one-off spikes."
+                what="Every video is judged against its own format's bar — that's what the ×-numbers everywhere mean."
+              />
+            </div>
+          )}
 
           <div className="card" style={{ marginTop: 14 }}>
             <span className="k">Coming next from your team</span>

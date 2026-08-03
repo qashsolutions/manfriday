@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { Explain } from "@/components/Explain";
 
 type Rec = {
   id: string;
@@ -58,6 +59,25 @@ export default function LedgerPage() {
           When the team gives you advice, it lands here as &quot;open&quot; — and once you apply it, the
           Scorekeeper checks the numbers and calls it honestly: worked, mixed, or didn&apos;t work.
           Misses included. Advice that never gets checked is just a horoscope.
+          <div style={{ maxWidth: 460, margin: "18px auto 0", textAlign: "left" }}>
+            <div style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink3)", fontWeight: 700, marginBottom: 6 }}>
+              Sample — how a checked tip reads
+            </div>
+            <div style={{ border: "1px solid var(--line)", borderRadius: 9, padding: "10px 12px", background: "var(--card)" }}>
+              <b style={{ fontSize: 13 }}>Retitle the video to say what you get</b>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6, fontSize: 12, color: "var(--ink2)", flexWrap: "wrap" }}>
+                <span className="num">before: 41 views/day</span>
+                <span>→</span>
+                <span className="num">after: 128 views/day</span>
+                <span className="pill good">✓ worked · 3×</span>
+              </div>
+            </div>
+            <Explain
+              why="Anyone can give advice; almost nobody checks whether it worked on your channel."
+              how="Every tip snapshots your numbers before, then compares after you apply it."
+              what="Apply a tip, and its verdict appears here on its own — good or bad."
+            />
+          </div>
         </div>
       ) : (
         <div className="card">
@@ -75,6 +95,20 @@ export default function LedgerPage() {
               </div>
             ))}
           </div>
+          {counts.worked + counts.mixed + counts.failed > 0 && (
+            <div style={{ margin: "0 2px 14px" }}>
+              <div style={{ display: "flex", gap: 2, height: 10, borderRadius: 4, overflow: "hidden" }}>
+                {counts.worked > 0 && <div style={{ flex: counts.worked, background: "var(--good)" }} title={`worked: ${counts.worked}`} />}
+                {counts.mixed > 0 && <div style={{ flex: counts.mixed, background: "var(--warn)" }} title={`mixed: ${counts.mixed}`} />}
+                {counts.failed > 0 && <div style={{ flex: counts.failed, background: "var(--crit)" }} title={`didn't work: ${counts.failed}`} />}
+              </div>
+              <Explain
+                why="A team that hides its misses can't be trusted about its wins."
+                how="Every checked tip, colored by its honest verdict — green worked, amber mixed, red didn't."
+                what="If the red grows, tell us — the team stops repeating what fails on your channel."
+              />
+            </div>
+          )}
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <tbody>
               {recs.map((r) => (
