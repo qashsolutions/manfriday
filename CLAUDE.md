@@ -80,11 +80,15 @@ claude.ai/code/artifact/91ef2bfa-126b-417a-b67d-fe2fe6bacd9d (source:
 session scratchpad `manfriday-flow-mockups.html`; eval scorecard in
 local-only `deck/mockup-eval.md`). Hosting: **Vercel**. Shipped: app shell,
 Desk, Why-it-died (+ live Retention Analyst), Titles & thumbnails (live
-Packaging Analyst), idea mining (Audience Analyst), weekly reports, Ledger,
-settings — see status_aug2.md §13. The analyst layer calls Claude Opus 5
-via `webapp/src/lib/server/claude.ts` and needs `ANTHROPIC_API_KEY`
-(server-only, in Vercel + `.env.local`). Still open: onboarding polish,
-scheduled runs, pricing screens. API hard limits to respect in ALL product
+Packaging Analyst incl. thumbnail vision review), idea mining (Audience
+Analyst), the comparison desk (/scout — the Scout coordinating the whole
+team), topic research (/research), weekly reports (on demand + Monday
+cron), Ledger, settings — see status_aug2.md §13–§15. The analyst layer
+calls Claude Opus 5 via `webapp/src/lib/server/claude.ts` and needs
+`ANTHROPIC_API_KEY` + `YOUTUBE_API_KEY` (both server-only, in Vercel +
+`webapp/.env.local` — the YT key reads public comments; the readonly OAuth
+scope can't). Still open: onboarding polish, pricing screens (pricing
+itself parked by user decision). API hard limits to respect in ALL product
 work: no thumbnail impressions/CTR, no audience overlap, no
 best-time-to-publish, no search-volume trends — status_aug2.md §12 lists
 the verified substitutions.

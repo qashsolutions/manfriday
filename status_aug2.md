@@ -727,3 +727,32 @@ to a per-video sweep over the ~15 latest uploads (commit 1a66f18); verified
 the honest 409 empty state (this channel truly has 0 comments; one video
 has comments disabled and is skipped). Full idea-mining output still needs
 a channel with real comments to exercise.
+
+**Aug 4, later still — the comparison desk + every known open closed
+(commits 1ed479a, 0ba9df5, 6dbbaf6):**
+- **The comparison desk** (core flow, now in CLAUDE.md): /scout compares
+  ONE OF THE CREATOR'S OWN videos (picker; or channel normal) with any
+  outside video on four things — views (each vs its own channel's normal),
+  viewer comments/asks (verbatim receipts), titles, account owner. Bylined
+  sections from Scout/Packaging/Audience/Retention + 3 pickable takeaways.
+  Live-tested on the user's example (JAC66sNSht0 vs their concert video):
+  correctly called the 727× breakout unrepeatable and the gap "mostly
+  channel size, catalogue, and one video catching fire — not a mistake you
+  made".
+- Thumbnail review shipped (packaging accepts a draft image; Claude vision
+  judges it beside up to 3 of the creator's own recent thumbnails); page
+  honestly "Titles & thumbnails" again.
+- Researcher takeaways are typed/pickable/logged. Migration 16
+  (`recommendations.option_type`): every pick records safe/reach/bold;
+  grounding feeds the counts back as revealed preference.
+- Quota: api_cache backs search (24h, shared) + competitor channel-normal.
+- **Bug found: comment endpoints were NEVER readable via OAuth** — the
+  youtube.readonly scope doesn't cover commentThreads (403, reproduced);
+  public comments now read with `YOUTUBE_API_KEY` (new webapp env var —
+  MUST be added in Vercel; documented in webapp/.env.example).
+- Weekly reports now also write themselves Mondays via the daily cron
+  (writeWeeklyReport lib shared with the route; 6-day dedupe).
+- "Spot a wrong claim → tell us" affordance on every analyst read
+  (mailto hello@manfriday.app — create that alias); ideas empty-state
+  points to the comparison desk. Remaining opens: onboarding polish,
+  pricing screens (pricing parked by user decision).
