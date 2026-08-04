@@ -19,6 +19,8 @@ projections.
 11. [Aug 3 update — Supabase layer live](#11-aug-3-update--supabase-layer-live-applied-audited-tested-end-to-end) — applied, audited, tested end to end
 12. [Web app design (Aug 3): mockups, evaluation, decisions](#12-web-app-design-aug-3-mockups-evaluation-decisions) — v1→v3 flow, multi-agent eval, hosting, the 3 post-build decision points
 13. [Aug 3 update — the analyst layer is live](#13-aug-3-update--the-analyst-layer-is-live-llm-analysts-via-claude-api) — 4 Claude-powered analysts, routes, tables touched, `ANTHROPIC_API_KEY`
+14. [Aug 4 update — Scorekeeper live + grounded confidence everywhere](#14-aug-4-update--scorekeeper-live--grounded-confidence-everywhere) — daily cron, arithmetic verdicts, migration 14
+15. [Aug 4 update — guide stance shipped + Scout & Researcher live](#15-aug-4-update--guide-stance-shipped--scout--researcher-live) — team of six complete, migration 15, options everywhere
 
 ## 1. What this project is
 
@@ -663,3 +665,49 @@ caution) with hard caps on thin data. UI: confidence sliders + evidence
 chips on packaging cards, retention fixes (rendered from `reports.data`),
 idea list, and open Ledger tips.
 **User action:** add `CRON_SECRET` (in `.env.local`) to Vercel env vars.
+
+## 15. Aug 4 update — guide stance shipped + Scout & Researcher live
+
+**Guide stance locked** (user decision, recorded in CLAUDE.md "Guide stance"):
+options never orders · views-only comparisons with neutral observable
+factors · no invented numbers · money guidance from the user's own data
+only · no overselling. Live-verified that day: Packaging (B− + 3 options →
+ledger) and Retention (real curve, artifact detection) on manfriday.app.
+
+**Commit 2e40f3f — stance fixes across the team:**
+- Migration 15 (`profile_preferences`, applied via MCP, advisors clean):
+  `channel_profiles` + `language_culture`, `monetization`, `risk_appetite`,
+  `effort_budget`, `constraints_notes`.
+- `grounding.ts` reads the full profile (incl. `products_links`, `formats`)
+  + the new preferences, with stance wiring in each line.
+- Profile page: five new optional fields (risk pills safe/balanced/bold).
+- Retention Analyst: fixes now OFFERED with `effort` tags (small tweak /
+  medium edit / bigger change), rendered as pick cards on `/why/[id]`;
+  picks logged client-side with a views baseline for the Scorekeeper.
+  No more auto-logging.
+- Drop cards: single "steepest loss" label, deltas capped at 100, >100%
+  spike artifacts called "a counting blip", matching the analyst's prose.
+- Weekly report: "Needs you (one decision)" framed with its choices.
+
+**Commit 4aa6848 — the team of six is complete:**
+- **The Scout** — `/scout` + `POST /api/analyst/scout`. Paste any public
+  video → neutral factor table (them vs you: recency, channel size,
+  ran-vs-THEIR-own-normal via uploads-playlist median, length, engagement
+  per 1000, packaging, typed phrases) + "you can act on / out of your
+  hands" + 3 typed takeaways (safe/reach/bold) pickable into the Ledger
+  (`agent='The Scout'`, target_type='channel'). Rejects the user's own
+  videos (points at /why). Report saved (`agent='The Scout'`).
+- **The Researcher** — `/research` + `POST /api/analyst/research`. Topic →
+  search sweep (15 results, stats + subs + views-to-subscribers "travel"
+  signal + typed phrases) or video link → single-video read vs that
+  channel's own normal. Plain-English report with an honest what-this-
+  can't-know line; saved to `reports` (`agent='The Researcher'`), listed
+  on `/reports` (page retitled "Reports").
+- Shared `lib/server/publicYt.ts` (parseVideoId, public video/channel
+  fetch, channel-normal median, typedPhrases — packaging imports it now).
+- Nav: "Learn from any video" + "Research a topic"; all six seats "ready".
+
+**Deploy verified live** on manfriday.app both commits (landing copy poll).
+Session findings: 30-min idle sign-out in app layout is by design
+(`mf-last-active`). Live tests still owed post-deploy: Audience Analyst
+(/ideas), weekly report, retention pick-flow, Scout, Researcher.
