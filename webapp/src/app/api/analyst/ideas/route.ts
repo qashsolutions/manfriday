@@ -82,38 +82,37 @@ export async function POST(req: Request) {
   try {
     const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
 
-    // Up to ~200 top-level comments across the whole channel, most relevant first.
+    // Comments are fetched per-video: YouTube's channel-wide comment listing
+    // has grown unreliable (returns processingFailure), so we sweep the most
+    // recent uploads instead — up to ~200 comments across ~15 videos.
+    const { data: vids } = await svc
+      .from("videos").select("yt_video_id,title")
+      .eq("channel_id", channel.id)
+      .order("published_at", { ascending: false })
+      .limit(15);
     const comments: CommentRow[] = [];
-    const videoIds = new Set<string>();
-    let pageToken: string | undefined;
-    for (let page = 0; page < 2; page++) {
-      const data = await yt(
-        `commentThreads?part=snippet&allThreadsRelatedToChannelId=${encodeURIComponent(channel.yt_channel_id as string)}` +
-          `&maxResults=100&order=relevance&textFormat=plainText${pageToken ? `&pageToken=${pageToken}` : ""}`,
-        access
-      );
-      for (const item of (data.items as Record<string, any>[] | undefined) ?? []) {
-        const s = item.snippet?.topLevelComment?.snippet;
-        if (!s?.textDisplay) continue;
-        if (s.videoId) videoIds.add(s.videoId);
-        comments.push({ text: String(s.textDisplay).slice(0, 400), likes: Number(s.likeCount ?? 0), videoTitle: s.videoId ?? null });
+    for (const v of (vids ?? []) as { yt_video_id: string; title: string | null }[]) {
+      if (comments.length >= 200) break;
+      try {
+        const data = await yt(
+          `commentThreads?part=snippet&videoId=${encodeURIComponent(v.yt_video_id)}` +
+            `&maxResults=100&order=relevance&textFormat=plainText`,
+          access
+        );
+        for (const item of (data.items as Record<string, any>[] | undefined) ?? []) {
+          const s = item.snippet?.topLevelComment?.snippet;
+          if (!s?.textDisplay) continue;
+          comments.push({ text: String(s.textDisplay).slice(0, 400), likes: Number(s.likeCount ?? 0), videoTitle: v.title });
+        }
+      } catch {
+        // comments off or unavailable for this video — skip it, keep sweeping
       }
-      pageToken = data.nextPageToken as string | undefined;
-      if (!pageToken) break;
     }
     if (comments.length === 0) {
       return NextResponse.json(
         { error: "No comments to read yet — the Audience Analyst needs viewers talking first." },
         { status: 409 }
       );
-    }
-
-    // Swap video ids for titles so quotes have context.
-    if (videoIds.size) {
-      const { data: vids } = await svc
-        .from("videos").select("yt_video_id,title").eq("user_id", user.id).in("yt_video_id", [...videoIds]);
-      const titleByYt = new Map((vids ?? []).map((v) => [v.yt_video_id as string, v.title as string | null]));
-      for (const c of comments) c.videoTitle = c.videoTitle ? (titleByYt.get(c.videoTitle) ?? null) : null;
     }
 
     const commentBlock = comments
