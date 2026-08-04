@@ -47,7 +47,7 @@ export default function LandingPage() {
       <main className="site-wrap">
         <section className="hero">
           <div>
-            <span className="eyebrow">For solo content creators</span>
+            <span className="eyebrow">For all content creators</span>
             <h1>Big channels have an analyst team. <span style={{ color: "var(--acc)" }}>Now you do.</span></h1>
             <p className="sub">
               <b style={{ fontSize: "1.07em" }}>Why your last video died. What to make next. Which title wins.</b>
