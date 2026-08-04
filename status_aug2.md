@@ -711,3 +711,19 @@ ledger) and Retention (real curve, artifact detection) on manfriday.app.
 Session findings: 30-min idle sign-out in app layout is by design
 (`mf-last-active`). Live tests still owed post-deploy: Audience Analyst
 (/ideas), weekly report, retention pick-flow, Scout, Researcher.
+
+**Live test round (Aug 4, later — all six seats verified on production):**
+Retention: pick-flow live, logged state persists across reload, drop cards
+show single "steepest" + "counting blip" artifact copy ✓ · Scout: full run
+vs a real competitor video — factor table with their-own-median (1.64×),
+honest out-of-your-hands column, pick logged to Ledger ✓ · Researcher:
+topic sweep produced a two-kinds-of-channel read with views-to-subscribers
+travel multipliers, angles-as-choices, and the closing honest-limits
+paragraph ✓ · Weekly report: "Needs you (one decision)" framing rendered
+verbatim ("…or skip it and tell us why") ✓ · Audience Analyst: found a real
+bug — YouTube's channel-wide `commentThreads?allThreadsRelatedToChannelId`
+now returns 400 processingFailure (reproduced with a direct call); rewrote
+to a per-video sweep over the ~15 latest uploads (commit 1a66f18); verified
+the honest 409 empty state (this channel truly has 0 comments; one video
+has comments disabled and is skipped). Full idea-mining output still needs
+a channel with real comments to exercise.
