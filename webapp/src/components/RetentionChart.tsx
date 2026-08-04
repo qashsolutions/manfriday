@@ -56,21 +56,34 @@ export function RetentionChart({
         ))}
         <path d={path} fill="none" stroke="var(--acc)" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
       </svg>
-      {drops.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginTop: 10 }}>
-          {drops.map((d, i) => (
-            <div key={i} style={{ border: "1px solid var(--line)", borderRadius: 9, padding: "10px 12px" }}>
-              <span style={{ display: "inline-flex", width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "var(--card)", fontSize: 11, fontWeight: 700, alignItems: "center", justifyContent: "center", marginBottom: 6 }}>{i + 1}</span>
-              <b style={{ display: "block", fontSize: 12.5 }}>
-                {durationSeconds ? `Around ${mmss(d.x * durationSeconds)}` : `At ${Math.round(d.x * 100)}% in`}
-              </b>
-              <span style={{ color: "var(--ink2)", fontSize: 12 }}>
-                −{Math.round(d.delta * 100)} pts of viewers in one step — your steepest {i === 0 ? "loss" : "drop"}.
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+      {drops.length > 0 && (() => {
+        // The list arrives in video order — find the genuinely steepest one, and
+        // flag drops that fall off a spike above 100% (a counting blip at small
+        // view numbers, not real viewers leaving).
+        const steepestX = drops.reduce((a, b) => (b.delta > a.delta ? b : a)).x;
+        const isBlip = (d: RetentionDrop) => {
+          const idx = points.findIndex((p) => p.x >= d.x);
+          const prev = idx > 0 ? points[idx - 1] : null;
+          return (prev?.watch ?? 0) > 1 || d.delta > 1;
+        };
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginTop: 10 }}>
+            {drops.map((d, i) => (
+              <div key={i} style={{ border: "1px solid var(--line)", borderRadius: 9, padding: "10px 12px" }}>
+                <span style={{ display: "inline-flex", width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "var(--card)", fontSize: 11, fontWeight: 700, alignItems: "center", justifyContent: "center", marginBottom: 6 }}>{i + 1}</span>
+                <b style={{ display: "block", fontSize: 12.5 }}>
+                  {durationSeconds ? `Around ${mmss(d.x * durationSeconds)}` : `At ${Math.round(d.x * 100)}% in`}
+                </b>
+                <span style={{ color: "var(--ink2)", fontSize: 12 }}>
+                  {isBlip(d)
+                    ? "The line spikes above 100% just before this — a counting blip at small view numbers, not a real exit."
+                    : `−${Math.min(Math.round(d.delta * 100), 100)} pts of viewers in one step${d.x === steepestX ? " — your steepest loss" : ""}.`}
+                </span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }

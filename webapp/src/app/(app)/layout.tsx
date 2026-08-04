@@ -18,8 +18,8 @@ const TEAM = [
   { name: "Retention Analyst", st: "idle", note: "ready" },
   { name: "Packaging Analyst", st: "idle", note: "ready" },
   { name: "Audience Analyst", st: "idle", note: "ready" },
-  { name: "The Scout", st: "idle", note: "ready" },
-  { name: "The Researcher", st: "idle", note: "ready" },
+  { name: "The Scout", st: "off", note: "joining soon" },
+  { name: "The Researcher", st: "off", note: "joining soon" },
   { name: "The Scorekeeper", st: "idle", note: "ready" },
 ];
 

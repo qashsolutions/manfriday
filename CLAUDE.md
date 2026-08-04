@@ -40,6 +40,37 @@ ships: retention-curve × transcript analysis, the recommendation ledger
 one reasoning chain. Web app design bar: premium flagship quality, modern,
 light background. Users meet a "team of six" analysts — never tech jargon.
 
+## Guide stance (Aug 4 — applies to every analyst and all product copy)
+
+manfriday is a **guide, not an oracle**. Locked principles:
+
+- **Options, never one tip.** Every analyst offers 2–3 typed choices (the
+  packaging safe/reach/bold pattern is the template) and the user makes the
+  call. Retention fixes should become pickable option cards too, with
+  effort tags (minimal edit / re-cut / format change), not auto-logged.
+- **Preferences the user declares** (in `channel_profiles`, always off the
+  critical path): target audience, language/cultural context, monetization
+  stage + income mix, risk appetite, effort budget, constraints — never ask
+  for what the API already knows (actual viewer demographics come from
+  Analytics). Ledger picks + Scorekeeper verdicts are revealed preference;
+  they outrank any form field.
+- **Comparing other creators' videos: views only, never revenue.** Explain
+  view gaps with observable, neutral factors — recency, channel size,
+  packaging/headline, format/length, engagement rate, typed-phrase match,
+  views-vs-that-channel's-own-normal — so the user can make a better call.
+  Never speculate about anyone's earnings; never invent numbers.
+- **Monetization = guidance, not projections.** Ground money talk in the
+  user's own Analytics revenue/RPM (if monetized) and income-mix options;
+  no fabricated dollar figures anywhere.
+- **Honest, grounded, neutral, practical.** Don't oversell what the agents
+  can do; say thin data plainly (existing honesty threads + confidence
+  caps). Design around what the APIs DO surface — public: stats, baselines,
+  search suggestions, comments, transcripts, heatmaps; private: retention,
+  traffic sources, demographics, own revenue — and don't build or write
+  copy around what they can't.
+- Terms already carry the YouTube API Services / Google Limited Use
+  disclosures (status_aug2.md §13); keep them current as features grow.
+
 Approved v3 screen mockups: artifact
 claude.ai/code/artifact/91ef2bfa-126b-417a-b67d-fe2fe6bacd9d (source:
 session scratchpad `manfriday-flow-mockups.html`; eval scorecard in

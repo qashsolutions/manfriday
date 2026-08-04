@@ -10,7 +10,8 @@ export const maxDuration = 120;
 
 /** The Retention Analyst: reads the real retention curve (plus the video's own
     words and the channel's normal) and turns the marked drops into "here's why,
-    here's the fix" — saved as a report, fixes logged to the Ledger. */
+    here's the fix" — saved as a report. Fixes are OFFERED with effort tags;
+    the creator picks which to log (guide stance: choices, never orders). */
 
 type Evidence = { kind: "ledger" | "library" | "search" | "audience" | "caution"; label: string };
 type Analysis = {
@@ -19,6 +20,7 @@ type Analysis = {
   fixes: {
     recommendation: string;
     category: "retention" | "packaging" | "content";
+    effort: "small tweak" | "medium edit" | "bigger change";
     expected: string;
     confidence: number;
     evidence: Evidence[];
@@ -52,14 +54,15 @@ const SCHEMA = {
     },
     fixes: {
       type: "array",
-      description: "1-3 fixes worth logging and tracking. Only fixes the creator can actually apply.",
+      description: "1-3 fixes OFFERED to the creator — they pick which to log, so vary the effort level where the data allows (a small tweak alongside a bigger change). Only fixes they can actually apply.",
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["recommendation", "category", "expected", "confidence", "evidence"],
+        required: ["recommendation", "category", "effort", "expected", "confidence", "evidence"],
         properties: {
           recommendation: { type: "string", description: "The tip, one sentence, imperative." },
           category: { type: "string", enum: ["retention", "packaging", "content"] },
+          effort: { type: "string", enum: ["small tweak", "medium edit", "bigger change"], description: "How much work this asks of the creator — honest, respecting their stated time budget if given." },
           expected: { type: "string", description: "What should visibly change if this works, in plain words." },
           confidence: { type: "integer", description: "0-100, derived per the confidence rules from citable evidence only." },
           evidence: {
@@ -95,8 +98,8 @@ function toMarkdown(a: Analysis, videoTitle: string): string {
   if (a.packaging_note) lines.push(`## About the packaging`, a.packaging_note);
   if (a.fixes.length) {
     lines.push(
-      `## Logged to your Ledger`,
-      a.fixes.map((f) => `- ${f.recommendation} — *expect:* ${f.expected}`).join("\n")
+      `## Fixes to pick from — log the ones you'll do`,
+      a.fixes.map((f) => `- ${f.recommendation} (${f.effort}) — *expect:* ${f.expected}`).join("\n")
     );
   }
   lines.push(`*Video: "${videoTitle}"*`);
@@ -183,7 +186,7 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
 `.trim();
 
     const analysis = await analystJson<Analysis>({
-      system: `You are the Retention Analyst. Your one job: explain where and why this video lost viewers, and hand the creator fixes they can apply to the next upload. Use the drop timestamps given — never invent timestamps or quotes. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
+      system: `You are the Retention Analyst. Your one job: explain where and why this video lost viewers, and OFFER the creator fixes they can apply to the next upload — they choose which to log, so tag each fix's effort honestly and vary effort levels where the data allows. Use the drop timestamps given — never invent timestamps or quotes. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
@@ -204,24 +207,14 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
       .single();
     if (rErr) throw new Error(rErr.message);
 
-    if (analysis.fixes.length) {
-      await svc.from("recommendations").insert(
-        analysis.fixes.slice(0, 3).map((f) => ({
-          user_id: user.id,
-          agent: "Retention Analyst",
-          category: f.category,
-          recommendation: f.recommendation,
-          target_type: "video",
-          target_yt_id: ytVideoId,
-          baseline: snap ? { view_count: snap.view_count, views_per_day: snap.views_per_day, captured_at: snap.captured_at } : {},
-          notes: f.expected,
-          confidence: Math.max(0, Math.min(100, Math.round(f.confidence))),
-          evidence: f.evidence ?? [],
-        }))
-      );
-    }
+    // Guide stance: fixes are offered, not auto-logged — the client shows them
+    // as pickable cards and writes the creator's picks to the Ledger, with this
+    // baseline attached so the Scorekeeper has a before-number.
+    const baselineForPicks = snap
+      ? { view_count: snap.view_count, views_per_day: snap.views_per_day, captured_at: snap.captured_at }
+      : {};
 
-    return NextResponse.json({ report, analysis });
+    return NextResponse.json({ report, analysis, baseline: baselineForPicks });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "The retention read couldn't finish." },

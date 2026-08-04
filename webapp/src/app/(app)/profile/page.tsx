@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 const TONES = ["Calm & precise", "No hype", "High-energy", "Humorous", "Process-first", "Story-driven"];
+const RISKS = [
+  { value: "safe", label: "Play it safe — proven moves first" },
+  { value: "balanced", label: "Balanced — a mix" },
+  { value: "bold", label: "Bold — I'll try untested swings" },
+];
 
 type ProfileRow = {
   id: string;
@@ -14,6 +19,11 @@ type ProfileRow = {
   products_links: { label?: string; url: string }[] | null;
   tone: string | null;
   competitors: string[] | null;
+  language_culture: string | null;
+  monetization: string | null;
+  risk_appetite: string | null;
+  effort_budget: string | null;
+  constraints_notes: string | null;
 };
 
 export default function ProfilePage() {
@@ -26,6 +36,11 @@ export default function ProfilePage() {
   const [links, setLinks] = useState("");
   const [tones, setTones] = useState<string[]>([]);
   const [competitors, setCompetitors] = useState("");
+  const [languageCulture, setLanguageCulture] = useState("");
+  const [monetization, setMonetization] = useState("");
+  const [risk, setRisk] = useState("");
+  const [effort, setEffort] = useState("");
+  const [constraints, setConstraints] = useState("");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -37,7 +52,7 @@ export default function ProfilePage() {
       if (!user) return;
       const { data } = await supabase
         .from("channel_profiles")
-        .select("id,niche,audience,goals,products_links,tone,competitors")
+        .select("id,niche,audience,goals,products_links,tone,competitors,language_culture,monetization,risk_appetite,effort_budget,constraints_notes")
         .limit(1)
         .maybeSingle();
       const p = data as ProfileRow | null;
@@ -49,6 +64,11 @@ export default function ProfilePage() {
         setLinks((p.products_links ?? []).map((l) => l.url).join("\n"));
         setTones((p.tone ?? "").split(" · ").filter(Boolean));
         setCompetitors((p.competitors ?? []).join(", "));
+        setLanguageCulture(p.language_culture ?? "");
+        setMonetization(p.monetization ?? "");
+        setRisk(p.risk_appetite ?? "");
+        setEffort(p.effort_budget ?? "");
+        setConstraints(p.constraints_notes ?? "");
       }
       setLoading(false);
     })();
@@ -74,6 +94,11 @@ export default function ProfilePage() {
       products_links: links.split("\n").map((s) => s.trim()).filter(Boolean).map((url) => ({ url })),
       tone: tones.join(" · ") || null,
       competitors: competitors.split(",").map((s) => s.trim()).filter(Boolean),
+      language_culture: languageCulture.trim() || null,
+      monetization: monetization.trim() || null,
+      risk_appetite: risk || null,
+      effort_budget: effort.trim() || null,
+      constraints_notes: constraints.trim() || null,
     };
     const q = rowId
       ? supabase.from("channel_profiles").update(payload).eq("id", rowId)
@@ -91,8 +116,9 @@ export default function ProfilePage() {
     <>
       <div className="pagehead"><h1>Tune your team</h1></div>
       <p style={{ color: "var(--ink2)", maxWidth: "62ch", marginTop: -6 }}>
-        Ninety seconds, four questions. Every analyst reads this before advising you — it&apos;s how
-        recommendations match your voice and your goals instead of a generic channel&apos;s.
+        A couple of minutes, everything optional. Every analyst reads this before advising you —
+        it&apos;s how recommendations match your voice, your goals, and your limits instead of a
+        generic channel&apos;s. We never ask what your numbers already tell us.
       </p>
       {err && <div className="err">{err}</div>}
       {saved && <div className="ok-note">Saved — your team will use this from the next analysis on.</div>}
@@ -106,6 +132,11 @@ export default function ProfilePage() {
           <span>Anything else about your viewers (optional)</span>
           <input className="input" value={audience} onChange={(e) => setAudience(e.target.value)}
             placeholder="e.g. mostly weekend makers, small budgets, US/EU" />
+        </label>
+        <label className="field">
+          <span>Language &amp; cultural context (optional)</span>
+          <input className="input" value={languageCulture} onChange={(e) => setLanguageCulture(e.target.value)}
+            placeholder="e.g. Tamil; Carnatic classical music, diaspora audience" />
         </label>
         <label className="field">
           <span>Your goals — one per line</span>
@@ -136,6 +167,40 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+        <label className="field">
+          <span>How you earn from this — or plan to (optional)</span>
+          <input className="input" value={monetization} onChange={(e) => setMonetization(e.target.value)}
+            placeholder="e.g. not monetized yet; the real goal is class sign-ups and event bookings" />
+        </label>
+        <div className="field">
+          <span>What kind of advice should lead?</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+            {RISKS.map((r) => (
+              <button
+                type="button" key={r.value} onClick={() => setRisk(risk === r.value ? "" : r.value)}
+                className="pill" style={{
+                  cursor: "pointer", border: "1px solid",
+                  borderColor: risk === r.value ? "var(--acc-line)" : "var(--line)",
+                  background: risk === r.value ? "var(--acc-soft)" : "var(--card)",
+                  color: risk === r.value ? "var(--acc)" : "var(--ink2)",
+                  padding: "6px 12px", fontSize: 12.5,
+                }}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="field">
+          <span>Time you can realistically spend per video (optional)</span>
+          <input className="input" value={effort} onChange={(e) => setEffort(e.target.value)}
+            placeholder="e.g. a few evenings a week — quick edits yes, full re-shoots no" />
+        </label>
+        <label className="field">
+          <span>Anything the team must never suggest (optional)</span>
+          <input className="input" value={constraints} onChange={(e) => setConstraints(e.target.value)}
+            placeholder="e.g. no face on camera; no clickbait; family videos stay as they are" />
+        </label>
         <label className="field">
           <span>Channels you measure yourself against — comma-separated (optional)</span>
           <input className="input" value={competitors} onChange={(e) => setCompetitors(e.target.value)}

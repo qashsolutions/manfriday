@@ -19,9 +19,9 @@ const SCHEMA = {
     body_md: {
       type: "string",
       description:
-        "Markdown with EXACTLY three sections: '## Your numbers', '## What your team did', '## Needs you (one thing)'. " +
+        "Markdown with EXACTLY three sections: '## Your numbers', '## What your team did', '## Needs you (one decision)'. " +
         "Bullets with '- '. Every number must come from the given data; where week-over-week isn't possible yet, say tracking starts now. " +
-        "'Needs you' holds ONE decision or action — never a list.",
+        "'Needs you' holds ONE decision, framed with its choices (e.g. apply a named tip or skip it) — never a list of chores, never a bare order.",
     },
   },
 } as const;
@@ -132,7 +132,7 @@ ${ideaLines || "- none mined yet"}
 
   try {
     const weekly = await analystJson<Weekly>({
-      system: `You write the team's weekly report to the creator. Three sections, exactly: "## Your numbers" (their real figures, honestly framed), "## What your team did" (grounded in the ledger and idea list given — never invent activity), "## Needs you (one thing)" (the single highest-leverage decision or action, chosen from the data; one thing only). Two-minute read, warm but straight.`,
+      system: `You write the team's weekly report to the creator. Three sections, exactly: "## Your numbers" (their real figures, honestly framed), "## What your team did" (grounded in the ledger and idea list given — never invent activity), "## Needs you (one decision)" (the single highest-leverage decision this week, laid out as a choice with its options — e.g. "apply this tip, or skip it and tell the team why" — one decision only, the creator makes the call). Two-minute read, warm but straight. You are a guide, not a boss.`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });

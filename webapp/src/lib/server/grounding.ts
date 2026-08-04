@@ -10,19 +10,34 @@ export type Grounding = { audienceBlock: string; trackBlock: string };
 export async function analystGrounding(svc: SupabaseClient, userId: string): Promise<Grounding> {
   const [{ data: profs }, { data: verdictRecs }] = await Promise.all([
     svc.from("channel_profiles")
-      .select("niche,audience,goals,tone,competitors")
+      .select("niche,audience,goals,tone,competitors,formats,products_links,language_culture,monetization,risk_appetite,effort_budget,constraints_notes")
       .eq("user_id", userId).limit(1),
     svc.from("recommendations")
       .select("category,verdict")
       .eq("user_id", userId).not("verdict", "is", null),
   ]);
 
-  const p = profs?.[0] as { niche: string | null; audience: string | null; goals: string[] | null; tone: string | null; competitors: string[] | null } | undefined;
+  type ProfileRow = {
+    niche: string | null; audience: string | null; goals: string[] | null;
+    tone: string | null; competitors: string[] | null; formats: string | null;
+    products_links: { label?: string; url: string }[] | null;
+    language_culture: string | null; monetization: string | null;
+    risk_appetite: string | null; effort_budget: string | null;
+    constraints_notes: string | null;
+  };
+  const p = profs?.[0] as ProfileRow | undefined;
   const audienceLines: string[] = [];
   if (p?.niche) audienceLines.push(`Niche & who it's for: ${p.niche}`);
   if (p?.audience) audienceLines.push(`More about their viewers: ${p.audience}`);
+  if (p?.language_culture) audienceLines.push(`Language & cultural context: ${p.language_culture}`);
   if (p?.goals?.length) audienceLines.push(`Their goals: ${p.goals.join("; ")}`);
+  if (p?.monetization) audienceLines.push(`How they earn (or plan to): ${p.monetization} — money advice must fit this, never invented figures`);
   if (p?.tone) audienceLines.push(`Their tone: ${p.tone}`);
+  if (p?.formats) audienceLines.push(`Formats they make: ${p.formats}`);
+  if (p?.risk_appetite) audienceLines.push(`Advice they want emphasized: ${p.risk_appetite} (still give all option types; lead with this one)`);
+  if (p?.effort_budget) audienceLines.push(`Time they can spend: ${p.effort_budget} — prefer fixes that fit it`);
+  if (p?.constraints_notes) audienceLines.push(`Hard constraints (never suggest breaking these): ${p.constraints_notes}`);
+  if (p?.products_links?.length) audienceLines.push(`Their products/links: ${p.products_links.map((l) => l.label ? `${l.label} (${l.url})` : l.url).join(", ")}`);
   if (p?.competitors?.length) audienceLines.push(`They measure themselves against: ${p.competitors.join(", ")}`);
   const audienceBlock = audienceLines.length
     ? `THE CREATOR'S OWN DEFINITION OF WHO THEY'RE FOR (tailor everything to this)\n${audienceLines.join("\n")}`

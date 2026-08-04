@@ -19,7 +19,7 @@ type Retention =
 type AnalystData = {
   verdict: string;
   drop_reads: { at: number; label: string; likely_cause: string; fix: string }[];
-  fixes: { recommendation: string; category: string; expected: string; confidence: number; evidence: EvidenceItem[] }[];
+  fixes: { recommendation: string; category: string; effort?: string; expected: string; confidence: number; evidence: EvidenceItem[] }[];
   packaging_note: string | null;
 };
 type AnalystReport = { id: string; title: string; body_md: string; created_at: string; data: AnalystData | null };
@@ -35,6 +35,7 @@ export default function WhyDetailPage() {
   const [asking, setAsking] = useState(false);
   const [askErr, setAskErr] = useState<string | null>(null);
   const [transcript, setTranscript] = useState("");
+  const [logged, setLogged] = useState<Set<string>>(new Set());
 
   useEffect(() => { loadChannelData().then(setData); }, []);
 
@@ -83,11 +84,39 @@ export default function WhyDetailPage() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "The analyst couldn't finish the read.");
       setReport(j.report);
+      setLogged(new Set());
     } catch (e) {
       setAskErr(e instanceof Error ? e.message : "The analyst couldn't finish the read.");
     } finally {
       setAsking(false);
     }
+  }
+
+  /** "I'll do this" → the pick lands in the Ledger with a before-number attached
+      so the Scorekeeper can call the result later. */
+  async function logFix(
+    video: VideoPerf,
+    f: { recommendation: string; category: string; expected: string; confidence: number; evidence: EvidenceItem[] }
+  ) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase.from("recommendations").insert({
+      user_id: user.id,
+      agent: "Retention Analyst",
+      category: f.category || "retention",
+      recommendation: f.recommendation,
+      target_type: "video",
+      target_yt_id: video.yt_video_id,
+      baseline: {
+        view_count: video.view_count,
+        views_per_day: video.views_per_day,
+        captured_at: new Date().toISOString(),
+      },
+      notes: f.expected,
+      confidence: Math.max(0, Math.min(100, Math.round(f.confidence))),
+      evidence: f.evidence ?? [],
+    });
+    if (!error) setLogged((s) => new Set(s).add(f.recommendation));
   }
 
   if (!data) return <div className="quiet">Loading…</div>;
@@ -198,14 +227,26 @@ export default function WhyDetailPage() {
                 )}
                 {report.data.fixes.length > 0 && (
                   <div>
-                    <span className="k">Logged to your Ledger — the Scorekeeper checks these</span>
+                    <span className="k">Fixes to pick from — you decide what lands in your Ledger</span>
                     <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
                       {report.data.fixes.map((f, i) => (
                         <div key={i} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 13, display: "grid", gap: 7, maxWidth: 560 }}>
-                          <b style={{ fontSize: 13 }}>{f.recommendation}</b>
+                          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                            <b style={{ fontSize: 13 }}>{f.recommendation}</b>
+                            {f.effort && <span className="pill" style={{ fontSize: 10.5 }}>{f.effort}</span>}
+                          </div>
                           <div className="sub">expect: {f.expected}</div>
                           <ConfidenceBar value={f.confidence} />
                           <EvidenceChips items={f.evidence} />
+                          <div>
+                            {logged.has(f.recommendation) ? (
+                              <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                            ) : (
+                              <button className="btn btn-ghost btn-sm" onClick={() => v && logFix(v, f)}>
+                                I&apos;ll do this — log it
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -217,8 +258,8 @@ export default function WhyDetailPage() {
             )}
             <Explain
               why="A curve shows where viewers left; the analyst's job is the why and the fix."
-              how="The drops above, your title and description, and your channel's normal — read together. Fixes are logged to your Ledger and checked later."
-              what="Apply a fix on your next upload — the Scorekeeper calls the result honestly."
+              how="The drops above, your title and description, and your channel's normal — read together. You pick which fixes land in your Ledger."
+              what="Log a fix you'll actually do, apply it on your next upload — the Scorekeeper calls the result honestly."
             />
             <div style={{ marginTop: 12 }}>
               <button className="btn btn-ghost btn-sm" onClick={() => v && askAnalyst(v.yt_video_id)} disabled={asking || ret.state !== "ready"}>
@@ -231,7 +272,8 @@ export default function WhyDetailPage() {
           <>
             <p style={{ color: "var(--ink2)", fontSize: 13, margin: "8px 0 0", maxWidth: "64ch" }}>
               The analyst matches each marked drop to what was happening in the video at that moment
-              and hands you fixes with expected outcomes — logged to your Ledger and checked later.
+              and offers fixes with expected outcomes — you pick which land in your Ledger, and the
+              Scorekeeper checks them later.
             </p>
             <details style={{ marginTop: 12 }}>
               <summary style={{ fontSize: 12.5, color: "var(--acc)", cursor: "pointer" }}>
