@@ -53,6 +53,14 @@ export default function ScoutPage() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "The Scout couldn't finish the comparison.");
       setResult({ analysis: j.analysis, video: j.video });
+      // Takeaways already in the Ledger — so "log it" doesn't double up.
+      const takeaways = (j.analysis.options as ScoutOption[]).map((o) => o.takeaway);
+      const { data: existing } = await supabase
+        .from("recommendations").select("recommendation")
+        .eq("agent", "The Scout").in("recommendation", takeaways);
+      if (existing?.length) {
+        setLogged(new Set((existing as { recommendation: string }[]).map((x) => x.recommendation)));
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "The Scout couldn't finish the comparison.");
     } finally {

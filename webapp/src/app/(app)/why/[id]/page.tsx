@@ -68,6 +68,12 @@ export default function WhyDetailPage() {
         setReport(reps?.[0] ?? null);
         setReportLoaded(true);
       });
+    // Fixes already in the Ledger for this video — so "log it" doesn't double up.
+    supabase.from("recommendations").select("recommendation")
+      .eq("agent", "Retention Analyst").eq("target_yt_id", v.yt_video_id)
+      .then(({ data: recs }: { data: { recommendation: string }[] | null }) => {
+        if (recs?.length) setLogged(new Set(recs.map((r) => r.recommendation)));
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, params.id]);
 
@@ -84,7 +90,6 @@ export default function WhyDetailPage() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "The analyst couldn't finish the read.");
       setReport(j.report);
-      setLogged(new Set());
     } catch (e) {
       setAskErr(e instanceof Error ? e.message : "The analyst couldn't finish the read.");
     } finally {

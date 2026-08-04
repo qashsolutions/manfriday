@@ -54,6 +54,10 @@ export default function ResearchPage() {
         <button className="btn btn-acc" onClick={research} disabled={working || !query.trim()}>
           {working ? "Reading what's out there…" : "Send the Researcher"}
         </button>
+        <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink3)", maxWidth: "60ch" }}>
+          Honest limits: the Researcher reads public titles, descriptions and numbers — it doesn&apos;t
+          watch the footage, and it can&apos;t see any other channel&apos;s private analytics or earnings.
+        </p>
         <Explain
           why="Before you spend a week making something, spend a minute learning what's already out there."
           how="A live sweep of what YouTube shows everyone for your topic — who's making it, what runs beyond its own channel's size, what people type. Public data only, and the report says plainly what it can't know."

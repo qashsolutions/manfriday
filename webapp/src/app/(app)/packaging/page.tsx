@@ -66,6 +66,17 @@ export default function PackagingPage() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "The grading couldn't finish.");
       setResult({ draft, analysis: j.analysis });
+      // Rewrites already in the Ledger — so "log it" doesn't double up.
+      const asRecs = (j.analysis.options as GradeOption[]).map((o) => `Use the title: "${o.title}"`);
+      const { data: existing } = await supabase
+        .from("recommendations").select("recommendation")
+        .eq("agent", "Packaging Analyst").in("recommendation", asRecs);
+      if (existing?.length) {
+        const found = new Set((existing as { recommendation: string }[]).map((x) => x.recommendation));
+        setLogged(new Set((j.analysis.options as GradeOption[])
+          .filter((o) => found.has(`Use the title: "${o.title}"`))
+          .map((o) => o.title)));
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "The grading couldn't finish.");
     } finally {
@@ -94,7 +105,7 @@ export default function PackagingPage() {
 
   return (
     <>
-      <div className="pagehead"><h1>Titles &amp; thumbnails</h1></div>
+      <div className="pagehead"><h1>Titles</h1></div>
       {!ready ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Grading needs your baseline first</b>
