@@ -141,7 +141,7 @@ button { font-family: inherit; }
 .delta.up { color: var(--good); } .delta.dn { color: var(--crit); } .delta.fl { color: var(--ink3); }
 
 /* auth pages */
-.authpage { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
+.authpage { min-height: calc(100vh - 260px); display: flex; align-items: center; justify-content: center; padding: 48px 16px; }
 .authcard { width: 430px; max-width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 34px 36px; }
 .authcard h1 { margin: 14px 0 6px; font-size: 21px; letter-spacing: -.015em; }
 .authcard p { color: var(--ink2); margin: 0 0 20px; font-size: 13px; }

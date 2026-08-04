@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { SiteHeader, SiteFooter } from "@/components/Site";
 
 type Step = "start" | "code" | "mfa";
 
@@ -29,6 +30,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
+  /** New users go straight to connecting a channel; returning users to their Desk. */
+  async function goIn() {
+    const { data } = await supabase.from("channels").select("id").eq("is_owned", true).limit(1);
+    router.replace(data && data.length > 0 ? "/desk" : "/settings#connections");
+  }
+
   // If already signed in: either MFA is pending or we can go to the Desk.
   useEffect(() => {
     (async () => {
@@ -38,7 +45,7 @@ export default function LoginPage() {
       if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
         setStep("mfa");
       } else {
-        router.replace("/desk");
+        goIn();
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +91,7 @@ export default function LoginPage() {
       setNote(null);
       setStep("mfa");
     } else {
-      router.replace("/desk");
+      await goIn();
     }
   }
 
@@ -105,7 +112,7 @@ export default function LoginPage() {
         code: mfaCode.trim(),
       });
       if (vErr) throw vErr;
-      router.replace("/desk");
+      await goIn();
     } catch (err) {
       setError(err instanceof Error ? err.message : "That code didn't work — try again.");
     } finally {
@@ -114,6 +121,8 @@ export default function LoginPage() {
   }
 
   return (
+    <>
+    <SiteHeader />
     <div className="authpage">
       <div className="authcard">
         <div className="tick" />
@@ -199,5 +208,7 @@ export default function LoginPage() {
         )}
       </div>
     </div>
+    <SiteFooter />
+    </>
   );
 }
