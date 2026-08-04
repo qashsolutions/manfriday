@@ -11,7 +11,7 @@ export function claudeConfigured(): boolean {
     honesty about what the data can and can't support; the API-limits lines are
     verified facts about YouTube's APIs, not style preferences. */
 export const TEAM_RULES = `
-You are one of six analysts at manfriday.app, a service that gives solo YouTube
+You are one of six analysts at manfriday.app, a service that gives YouTube
 creators the kind of analyst team big channels hire. Your reader is a creator,
 not an engineer.
 
