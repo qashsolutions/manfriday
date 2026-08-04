@@ -30,8 +30,8 @@ export function SiteHeader() {
             <Link href="/settings" className="btn btn-acc btn-sm">My account</Link>
           ) : (
             <>
-              <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
-              <Link href="/login" className="btn btn-acc btn-sm">Get started</Link>
+              <Link href="/settings" className="btn btn-ghost btn-sm">Sign in</Link>
+              <Link href="/settings" className="btn btn-acc btn-sm">Get started</Link>
             </>
           )}
         </div>
@@ -56,7 +56,7 @@ export function SiteFooter() {
             <b>Product</b>
             <Link href="/#team">The team</Link>
             <Link href="/#how">How it works</Link>
-            <Link href="/login">Sign in</Link>
+            <Link href="/settings">Sign in</Link>
           </div>
           <div className="col">
             <b>Legal</b>

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { SiteHeader, SiteFooter } from "@/components/Site";
+import { AuthCard } from "@/components/AuthCard";
 
 const NAV = [
   { href: "/desk", label: "The Desk" },
@@ -27,26 +29,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = supabaseBrowser();
-  const [ready, setReady] = useState(false);
+  const [state, setState] = useState<"checking" | "signedout" | "ready">("checking");
   const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
-    (async () => {
+    // Signed out (or MFA pending)? Show the sign-in card right here — no
+    // separate login page. Settings is home base after it completes.
+    const evaluate = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.replace("/login"); return; }
+      if (!session) { setState("signedout"); return; }
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
-        router.replace("/login");
+        setState("signedout"); // AuthCard detects the pending MFA step itself
         return;
       }
       setEmail(session.user.email ?? "");
-      setReady(true);
-    })();
-    const { data: sub } = supabase.auth.onAuthStateChange(
-      (_event: string, session: unknown) => {
-        if (!session) router.replace("/login");
-      }
-    );
+      setState("ready");
+    };
+    evaluate();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => { evaluate(); });
 
     // 30 minutes of inactivity signs the user out (timestamp shared across tabs).
     const KEY = "mf-last-active";
@@ -59,6 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       } catch { return false; }
     };
     const signOutIdle = async () => {
+      try { localStorage.removeItem(KEY); } catch {}
       await supabase.auth.signOut();
       router.replace("/login?timeout=1");
     };
@@ -91,11 +93,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem("mf-theme", next); } catch {}
   }
 
-  if (!ready) {
+  if (state === "checking") {
     return (
       <div className="authpage">
-        <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading your desk…</div>
+        <div className="quiet">Loading…</div>
       </div>
+    );
+  }
+
+  if (state === "signedout") {
+    return (
+      <>
+        <SiteHeader />
+        <div className="authpage"><AuthCard /></div>
+        <SiteFooter />
+      </>
     );
   }
 

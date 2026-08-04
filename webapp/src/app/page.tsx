@@ -56,7 +56,7 @@ export default function LandingPage() {
               always choices, never orders.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <Link href="/login" className="btn btn-acc btn-lg">Start your one-week trial</Link>
+              <Link href="/settings" className="btn btn-acc btn-lg">Start your one-week trial</Link>
               <Link href="#team" className="btn btn-ghost btn-lg">Meet the team</Link>
             </div>
             <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--ink3)" }}>
@@ -193,7 +193,7 @@ export default function LandingPage() {
 
         <div className="quoteband">
           <h2>Every winner has an analyst.<br />The business of one doesn&apos;t. Yet.</h2>
-          <Link href="/login" className="btn btn-acc btn-lg">Start your one-week trial</Link>
+          <Link href="/settings" className="btn btn-acc btn-lg">Start your one-week trial</Link>
         </div>
       </main>
       <SiteFooter />
