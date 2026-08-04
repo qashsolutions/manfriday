@@ -30,14 +30,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
-  /** New users go straight to connecting a channel; returning users to their Desk. */
-  async function goIn() {
-    const { data } = await supabase.from("channels").select("id").eq("is_owned", true).limit(1);
-    router.replace(data && data.length > 0 ? "/desk" : "/settings#connections");
+  /** Settings is home base: MFA, connections, trial, theme — everything starts there. */
+  function goIn() {
+    router.replace("/settings");
   }
 
-  // If already signed in: either MFA is pending or we can go to the Desk.
+  // If already signed in: either MFA is pending or straight to Settings.
   useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("timeout") === "1") {
+        setNote("You were signed out after 30 minutes of inactivity. Sign in again to continue.");
+      }
+    } catch {}
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -91,7 +95,7 @@ export default function LoginPage() {
       setNote(null);
       setStep("mfa");
     } else {
-      await goIn();
+      goIn();
     }
   }
 
@@ -112,7 +116,7 @@ export default function LoginPage() {
         code: mfaCode.trim(),
       });
       if (vErr) throw vErr;
-      await goIn();
+      goIn();
     } catch (err) {
       setError(err instanceof Error ? err.message : "That code didn't work — try again.");
     } finally {

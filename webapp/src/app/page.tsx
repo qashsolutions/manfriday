@@ -12,8 +12,8 @@ import {
   IconScorekeeper, IconScout, IconResearcher,
 } from "@/components/TeamIcons";
 
-/** Public landing page. Signed-in visitors skip straight to their Desk —
-    the marketing is for people who don't have a team yet. */
+/** Public landing page. Signed-in visitors skip straight to Settings —
+    their home base — the marketing is for people who don't have a team yet. */
 
 const STATS: [string, string][] = [
   ["52%", "of creators report burnout — money strain is the top driver"],
@@ -36,7 +36,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     supabaseBrowser().auth.getSession().then(({ data }) => {
-      if (data.session) router.replace("/desk");
+      if (data.session) router.replace("/settings");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

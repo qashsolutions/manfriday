@@ -27,7 +27,7 @@ export function SiteHeader() {
         </nav>
         <div className="cta">
           {signedIn ? (
-            <Link href="/desk" className="btn btn-acc btn-sm">Open my Desk</Link>
+            <Link href="/settings" className="btn btn-acc btn-sm">My account</Link>
           ) : (
             <>
               <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
