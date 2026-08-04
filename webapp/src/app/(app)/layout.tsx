@@ -10,16 +10,18 @@ const NAV = [
   { href: "/why", label: "Why videos win or die" },
   { href: "/packaging", label: "Titles & thumbnails" },
   { href: "/ideas", label: "Idea list" },
+  { href: "/scout", label: "Learn from any video" },
+  { href: "/research", label: "Research a topic" },
   { href: "/ledger", label: "The Ledger" },
-  { href: "/reports", label: "Weekly reports" },
+  { href: "/reports", label: "Reports" },
 ];
 
 const TEAM = [
   { name: "Retention Analyst", st: "idle", note: "ready" },
   { name: "Packaging Analyst", st: "idle", note: "ready" },
   { name: "Audience Analyst", st: "idle", note: "ready" },
-  { name: "The Scout", st: "off", note: "joining soon" },
-  { name: "The Researcher", st: "off", note: "joining soon" },
+  { name: "The Scout", st: "idle", note: "ready" },
+  { name: "The Researcher", st: "idle", note: "ready" },
   { name: "The Scorekeeper", st: "idle", note: "ready" },
 ];
 

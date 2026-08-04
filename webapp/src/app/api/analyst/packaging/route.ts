@@ -3,6 +3,7 @@ import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
+import { typedPhrases } from "@/lib/server/publicYt";
 
 export const maxDuration = 120;
 
@@ -86,20 +87,6 @@ type BaselineDetail = {
   ratio_to_median: number | null;
   flag: string;
 };
-
-async function typedPhrases(seed: string): Promise<string[]> {
-  try {
-    const res = await fetch(
-      `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(seed)}`,
-      { headers: { "User-Agent": "Mozilla/5.0" } }
-    );
-    if (!res.ok) return [];
-    const j = (await res.json()) as [string, string[]];
-    return Array.isArray(j?.[1]) ? j[1].slice(0, 8) : [];
-  } catch {
-    return [];
-  }
-}
 
 export async function POST(req: Request) {
   const svc = serviceClient();

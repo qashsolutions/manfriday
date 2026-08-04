@@ -53,7 +53,7 @@ export default function ReportsPage() {
   return (
     <>
       <div className="pagehead">
-        <h1>Weekly reports</h1>
+        <h1>Reports</h1>
         {reports.length > 0 && (
           <button className="btn btn-ghost btn-sm" style={{ marginLeft: "auto" }} onClick={writeReport} disabled={writing}>
             {writing ? "Writing…" : "Write this week's report"}
