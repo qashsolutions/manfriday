@@ -60,7 +60,7 @@ export default function LandingPage() {
               <Link href="#team" className="btn btn-ghost btn-lg">Meet the team</Link>
             </div>
             <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--ink3)" }}>
-              One-week trial · read-only access · first results in about two minutes
+              One-week trial, every feature included · read-only access — we can look, never touch
             </p>
           </div>
           <HeroPreview />
