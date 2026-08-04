@@ -136,6 +136,33 @@ export async function searchPublicVideos(access: string, query: string, max = 15
     .filter(Boolean) as string[]);
 }
 
+export type PublicComment = { text: string; likes: number };
+
+/** Top public comments on one video, most relevant first. Returns [] when
+    comments are off or unavailable — never throws. */
+export async function fetchVideoComments(
+  access: string,
+  videoId: string,
+  max = 50
+): Promise<PublicComment[]> {
+  try {
+    const data = await yt(
+      `commentThreads?part=snippet&videoId=${encodeURIComponent(videoId)}` +
+        `&maxResults=${Math.min(max, 100)}&order=relevance&textFormat=plainText`,
+      access
+    );
+    const out: PublicComment[] = [];
+    for (const item of (data.items as Record<string, any>[] | undefined) ?? []) {
+      const s = item.snippet?.topLevelComment?.snippet;
+      if (!s?.textDisplay) continue;
+      out.push({ text: String(s.textDisplay).slice(0, 400), likes: Number(s.likeCount ?? 0) });
+    }
+    return out.slice(0, max);
+  } catch {
+    return [];
+  }
+}
+
 /** What people actually type into YouTube — real suggestion phrases, never volumes. */
 export async function typedPhrases(seed: string): Promise<string[]> {
   try {

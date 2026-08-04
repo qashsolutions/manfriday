@@ -4,22 +4,34 @@ import { serviceClient } from "@/lib/server/service";
 import { accessTokenFromRow } from "@/lib/server/youtube";
 import {
   parseVideoId, fetchPublicVideos, fetchPublicChannels, fetchChannelNormal,
-  typedPhrases, daysAgo, fmtDuration, engagementPer1000,
+  fetchVideoComments, typedPhrases, daysAgo, fmtDuration, engagementPer1000,
+  type ChannelNormal,
 } from "@/lib/server/publicYt";
+import { cachedJson } from "@/lib/server/cache";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 
 export const maxDuration = 120;
 
-/** The Scout: compare any public video with the creator's own channel and
-    explain the view gap with observable, neutral factors — recency, channel
-    size, packaging, format, engagement, how it ran vs ITS OWN channel's
-    normal. Views only, never revenue. The creator picks what to take from it. */
+/** The Scout's comparison desk — the product's core compare flow: the creator
+    picks ONE OF THEIR OWN videos (or their channel's normal) and a similar
+    outside video, and the team reads them side by side on four things:
+    views, viewer comments/asks, title, and account owner. All public data,
+    never earnings. The whole team contributes, bylined; the creator picks
+    the takeaways. */
 
 type Evidence = { kind: "ledger" | "library" | "search" | "audience" | "caution"; label: string };
 type ScoutAnalysis = {
   read: string;
   factors: { factor: string; theirs: string; yours: string; note: string }[];
+  title_read: { their_title: string[]; your_title: string[]; note: string };
+  viewers_say: {
+    summary: string;
+    receipts: { quote: string; likes: number }[];
+    asks: string[];
+    your_side: string;
+  };
+  retention_note: string;
   you_can_act_on: string[];
   out_of_your_hands: string[];
   options: {
@@ -35,15 +47,15 @@ type ScoutAnalysis = {
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["read", "factors", "you_can_act_on", "out_of_your_hands", "options"],
+  required: ["read", "factors", "title_read", "viewers_say", "retention_note", "you_can_act_on", "out_of_your_hands", "options"],
   properties: {
     read: {
       type: "string",
-      description: "Two or three sentences: the honest overall read of why this video's views differ from the creator's — neutral, no envy, no hype.",
+      description: "Two or three sentences: the honest overall read of why the two videos' views differ — neutral, no envy, no hype. Say plainly when the gap is mostly channel size or age.",
     },
     factors: {
       type: "array",
-      description: "5-8 rows comparing observable factors. Values must be COPIED from the given data — use an em dash where a side is unknown. Factor names in plain words (e.g. 'How new it is', 'Channel size', 'Ran vs their own normal').",
+      description: "5-8 rows comparing observable factors: views (each vs its own channel's normal where given), how new each is, length, engagement, channel size/age/catalogue. Values COPIED from the given data — em dash where a side is unknown. Plain-word factor names.",
       items: {
         type: "object",
         additionalProperties: false,
@@ -56,14 +68,50 @@ const SCHEMA = {
         },
       },
     },
+    title_read: {
+      type: "object",
+      additionalProperties: false,
+      required: ["their_title", "your_title", "note"],
+      description: "The Packaging Analyst's side-by-side title read.",
+      properties: {
+        their_title: { type: "array", items: { type: "string" }, description: "1-3 observations about what their title does (structure, searched words, promise)." },
+        your_title: { type: "array", items: { type: "string" }, description: "1-3 observations about the creator's title — empty when no own video was chosen." },
+        note: { type: "string", description: "One sentence: the single most useful difference, grounded in the typed phrases where given." },
+      },
+    },
+    viewers_say: {
+      type: "object",
+      additionalProperties: false,
+      required: ["summary", "receipts", "asks", "your_side"],
+      description: "The Audience Analyst's read of the OUTSIDE video's public comments.",
+      properties: {
+        summary: { type: "string", description: "One or two sentences on what their commenters respond to. If no comments were given, say so." },
+        receipts: {
+          type: "array",
+          description: "Up to 3 of the most telling comments, quoted VERBATIM from the given comments with their real like counts.",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["quote", "likes"],
+            properties: { quote: { type: "string" }, likes: { type: "integer" } },
+          },
+        },
+        asks: { type: "array", items: { type: "string" }, description: "0-3 things their viewers literally ask for — only from the given comments, never invented." },
+        your_side: { type: "string", description: "One honest sentence on the creator's own video's comments (what they say, or that there are none yet)." },
+      },
+    },
+    retention_note: {
+      type: "string",
+      description: "The Retention Analyst's honest one-liner: outside videos' retention curves are private, so say what CAN'T be known here and what public signals (length, engagement) can and can't hint at. Never invent watch-time claims.",
+    },
     you_can_act_on: {
       type: "array",
-      description: "1-3 factors from the table the creator can actually influence, in plain words.",
+      description: "1-3 factors the creator can actually influence, in plain words.",
       items: { type: "string" },
     },
     out_of_your_hands: {
       type: "array",
-      description: "0-3 factors the creator cannot change (channel size, age, recency of their old upload) — said honestly so they don't blame themselves.",
+      description: "0-3 factors the creator cannot change (channel size, age, recency) — said honestly so they don't blame themselves.",
       items: { type: "string" },
     },
     options: {
@@ -97,7 +145,7 @@ const SCHEMA = {
   },
 } as const;
 
-function toMarkdown(a: ScoutAnalysis, theirTitle: string): string {
+function toMarkdown(a: ScoutAnalysis, theirTitle: string, mineTitle: string | null): string {
   const lines: string[] = [`## The read`, a.read];
   if (a.factors.length) {
     lines.push(
@@ -105,9 +153,12 @@ function toMarkdown(a: ScoutAnalysis, theirTitle: string): string {
       a.factors.map((f) => `- **${f.factor}** — them: ${f.theirs} · you: ${f.yours}. ${f.note}`).join("\n")
     );
   }
+  lines.push(`## The titles`, [...a.title_read.their_title.map((s) => `- theirs: ${s}`), ...a.title_read.your_title.map((s) => `- yours: ${s}`), a.title_read.note].join("\n"));
+  lines.push(`## What their viewers say`, [a.viewers_say.summary, ...a.viewers_say.receipts.map((r) => `> "${r.quote}" (${r.likes} likes)`), a.viewers_say.your_side].join("\n\n"));
+  lines.push(`## On watch time`, a.retention_note);
   if (a.you_can_act_on.length) lines.push(`## You can act on`, a.you_can_act_on.map((s) => `- ${s}`).join("\n"));
   if (a.out_of_your_hands.length) lines.push(`## Out of your hands`, a.out_of_your_hands.map((s) => `- ${s}`).join("\n"));
-  lines.push(`*Compared video: "${theirTitle}"*`);
+  lines.push(`*Compared: "${theirTitle}"${mineTitle ? ` vs your "${mineTitle}"` : " vs your channel's normal"}*`);
   return lines.join("\n\n");
 }
 
@@ -120,6 +171,7 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const videoId = parseVideoId(String(body.url ?? ""));
+  const mineYtId: string | null = typeof body.mine === "string" && body.mine ? body.mine : null;
   if (!videoId) return NextResponse.json({ error: "Paste a YouTube video link (or its 11-character id)." }, { status: 400 });
 
   const [{ data: tokenRow }, { data: chans }] = await Promise.all([
@@ -134,16 +186,22 @@ export async function POST(req: Request) {
 
     const [video] = await fetchPublicVideos(access, [videoId]);
     if (!video) return NextResponse.json({ error: "YouTube couldn't find that video — check the link." }, { status: 404 });
+    if (video.channelId === myChannel.yt_channel_id) {
+      return NextResponse.json({ error: "That's one of your own videos — pick it in the 'compare with' box instead, and paste an outside video here." }, { status: 400 });
+    }
 
+    // Their side: channel, their-own-normal (shared cache, 24h), comments.
     const theirChannel = (await fetchPublicChannels(access, [video.channelId])).get(video.channelId) ?? null;
-    const theirNormal = theirChannel?.uploadsPlaylistId
-      ? await fetchChannelNormal(access, theirChannel.uploadsPlaylistId, video.id)
+    const theirNormal: ChannelNormal | null = theirChannel?.uploadsPlaylistId
+      ? await cachedJson(svc, `chnormal:v1:${theirChannel.uploadsPlaylistId}`, 24 * 3600,
+          () => fetchChannelNormal(access, theirChannel.uploadsPlaylistId as string))
       : null;
     const theirRatio = theirNormal?.medianViews && video.viewCount !== null
       ? Math.round((video.viewCount / theirNormal.medianViews) * 100) / 100
       : null;
+    const theirComments = await fetchVideoComments(access, videoId, 40);
 
-    // The creator's side, from what we already track.
+    // The creator's side: chosen video (or channel normal), plus its comments.
     const { data: blRows } = await svc
       .from("channel_baselines").select("format,median_views,sample_size,computed_at")
       .eq("channel_id", myChannel.id).order("computed_at", { ascending: false }).limit(10);
@@ -153,23 +211,39 @@ export async function POST(req: Request) {
       ? myBaselines.map((b) => `${b.format === "shorts" ? "Shorts" : "Full videos"}: ${b.median_views} views median (last ${b.sample_size})`).join(" · ")
       : "not established yet";
 
+    let mine: { title: string | null; published_at: string | null; duration_seconds: number | null; is_short: boolean | null } | null = null;
+    let mineSnap: { view_count: number | null; views_per_day: number | null } | null = null;
+    let mineComments: { text: string; likes: number }[] = [];
+    if (mineYtId) {
+      const { data: mv } = await svc
+        .from("videos").select("id,title,published_at,duration_seconds,is_short")
+        .eq("user_id", user.id).eq("yt_video_id", mineYtId).maybeSingle();
+      if (!mv) return NextResponse.json({ error: "That video of yours isn't in the analysis yet — run the first analysis on the Desk." }, { status: 400 });
+      mine = mv;
+      const { data: snaps } = await svc
+        .from("video_snapshots").select("view_count,views_per_day")
+        .eq("video_id", mv.id).order("captured_at", { ascending: false }).limit(1);
+      mineSnap = snaps?.[0] ?? null;
+      mineComments = await fetchVideoComments(access, mineYtId, 30);
+    }
+    const myFmt = mine?.is_short ? "shorts" : "longform";
+    const myBaseline = myBaselines.find((b) => b.format === myFmt);
+    const myRatio = mine && myBaseline?.median_views && mineSnap?.view_count != null
+      ? Math.round((mineSnap.view_count / myBaseline.median_views) * 100) / 100
+      : null;
+
     const words = video.title.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter((w) => w.length > 2);
     const phrases = await typedPhrases(words.slice(0, 4).join(" "));
-
     const grounding = await analystGrounding(svc, user.id);
-    const isOwnVideo = video.channelId === myChannel.yt_channel_id;
-    if (isOwnVideo) {
-      return NextResponse.json({ error: "That's one of your own videos — the Scout compares outside videos. Try 'Why videos win or die' for your own." }, { status: 400 });
-    }
 
     const userMsg = `
 ${grounding.audienceBlock}
 
 ${grounding.trackBlock}
 
-THE VIDEO THE CREATOR WANTS TO LEARN FROM (all public data)
+THE OUTSIDE VIDEO (all public data)
 Title: ${video.title}
-Channel: ${video.channelTitle}${theirChannel?.subscriberCount !== null && theirChannel ? ` — ${theirChannel.subscriberCount} subscribers` : " — subscriber count hidden"}${theirChannel?.videoCount ? `, ${theirChannel.videoCount} videos` : ""}${theirChannel?.publishedAt ? `, channel since ${theirChannel.publishedAt.slice(0, 4)}` : ""}
+Channel: ${video.channelTitle}${theirChannel && theirChannel.subscriberCount !== null ? ` — ${theirChannel.subscriberCount} subscribers` : " — subscriber count hidden"}${theirChannel?.videoCount ? `, ${theirChannel.videoCount} videos` : ""}${theirChannel?.publishedAt ? `, channel since ${theirChannel.publishedAt.slice(0, 4)}` : ""}
 Published: ${video.publishedAt ?? "unknown"}${daysAgo(video.publishedAt) !== null ? ` (${daysAgo(video.publishedAt)} days ago)` : ""}
 Length: ${fmtDuration(video.durationSeconds)}
 Views: ${video.viewCount ?? "unknown"} · likes: ${video.likeCount ?? "hidden"} · comments: ${video.commentCount ?? "hidden"}
@@ -177,21 +251,29 @@ Engagement: ${engagementPer1000(video) ?? "—"} likes+comments per 1000 views
 Ran vs THEIR OWN channel's normal: ${theirRatio !== null && theirNormal?.medianViews ? `${theirRatio}× (their median is ${theirNormal.medianViews} views over last ${theirNormal.sampleSize})` : "their normal couldn't be established"}
 Description (first lines): ${video.description.slice(0, 500) || "(none)"}
 
-THEIR CHANNEL'S RECENT UPLOADS (for context on what's normal for them)
-${theirNormal?.recent.map((r) => `- "${r.title}" — ${r.viewCount ?? "?"} views`).join("\n") ?? "(unavailable)"}
+THEIR VIDEO'S TOP PUBLIC COMMENTS (verbatim, with like counts${theirComments.length ? "" : " — none were available"})
+${theirComments.map((c) => `- (${c.likes} likes) ${c.text.replace(/\s+/g, " ")}`).join("\n") || "(no comments available)"}
 
-THE CREATOR'S OWN SIDE
+THE CREATOR'S SIDE
 Channel: ${myChannel.title ?? "their channel"} — ${myChannel.subscriber_count ?? "?"} subscribers
-Their normal: ${myNormalLine}
+Their channel's normal: ${myNormalLine}
+${mine ? `THE CREATOR'S CHOSEN VIDEO TO COMPARE
+Title: ${mine.title ?? "(untitled)"}
+Published: ${mine.published_at ?? "unknown"}${daysAgo(mine.published_at) !== null ? ` (${daysAgo(mine.published_at)} days ago)` : ""}
+Length: ${fmtDuration(mine.duration_seconds)}${mine.is_short ? " (Short)" : ""}
+Views: ${mineSnap?.view_count ?? "unknown"}${mineSnap?.views_per_day ? ` (~${mineSnap.views_per_day} a day)` : ""}
+Ran vs their own normal: ${myRatio !== null ? `${myRatio}×` : "not established"}
+Their video's comments${mineComments.length ? " (verbatim)" : ""}:
+${mineComments.map((c) => `- (${c.likes} likes) ${c.text.replace(/\s+/g, " ")}`).join("\n") || "(none yet)"}` : "No own video chosen — compare against the channel's normal instead."}
 
-WHAT PEOPLE TYPE INTO YOUTUBE (live suggestions seeded from the compared video's title words)
+WHAT PEOPLE TYPE INTO YOUTUBE (live suggestions seeded from the outside video's title words)
 ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions came back)"}
 
 Remember: never speculate about anyone's earnings; explain the view gap with the observable factors above only. Where the gap is mostly channel size or recency, say so plainly — that is a useful, honest answer.
 `.trim();
 
     const analysis = await analystJson<ScoutAnalysis>({
-      system: `You are the Scout. The creator brought a public video and wants to understand, neutrally, why it has the views it has compared with their own channel — and what, if anything, is worth taking from it. Copy every number from the given data. Factors you can't assess stay out of the table. You are a guide: the creator makes the call.\n\n${OPTIONS_RULES}`,
+      system: `You are the Scout, coordinating the team's side-by-side read: the creator's video (or channel normal) against an outside video on a similar topic. The team covers four things — views, viewer comments/asks, titles, and account owner. Copy every number and quote from the given data. You are guides: the creator makes the call.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
@@ -201,8 +283,8 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
       .insert({
         user_id: user.id,
         agent: "The Scout",
-        title: `What "${video.title.slice(0, 70)}" can teach you`,
-        body_md: toMarkdown(analysis, video.title),
+        title: `"${video.title.slice(0, 60)}" vs ${mine?.title ? `"${String(mine.title).slice(0, 40)}"` : "your normal"}`,
+        body_md: toMarkdown(analysis, video.title, mine?.title ?? null),
         data: analysis,
         channel_id: myChannel.id,
       })
@@ -215,8 +297,15 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
       analysis,
       video: {
         id: video.id, title: video.title, channelTitle: video.channelTitle,
-        viewCount: video.viewCount, publishedAt: video.publishedAt,
+        viewCount: video.viewCount, likeCount: video.likeCount, commentCount: video.commentCount,
+        publishedAt: video.publishedAt, durationSeconds: video.durationSeconds,
+        subscriberCount: theirChannel?.subscriberCount ?? null,
+        theirRatio,
       },
+      mine: mine ? {
+        title: mine.title, viewCount: mineSnap?.view_count ?? null,
+        publishedAt: mine.published_at, durationSeconds: mine.duration_seconds, myRatio,
+      } : null,
     });
   } catch (e) {
     return NextResponse.json(

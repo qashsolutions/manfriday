@@ -3,10 +3,25 @@
 import { useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { Explain } from "@/components/Explain";
+import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
+import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 
 type Report = { id: string; title: string; body_md: string; created_at: string };
+type Takeaway = {
+  type: "safe" | "reach" | "bold";
+  takeaway: string;
+  category: string;
+  why: string;
+  confidence: number;
+  evidence: EvidenceItem[];
+};
+
+const OPTION_BADGE: Record<Takeaway["type"], { label: string; cls: string }> = {
+  safe: { label: "The safe bet", cls: "good" },
+  reach: { label: "The smart reach", cls: "acc" },
+  bold: { label: "The bold swing", cls: "warn" },
+};
 
 export default function ResearchPage() {
   const supabase = supabaseBrowser();
@@ -14,10 +29,13 @@ export default function ResearchPage() {
   const [working, setWorking] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [report, setReport] = useState<Report | null>(null);
+  const [takeaways, setTakeaways] = useState<Takeaway[]>([]);
+  const [logged, setLogged] = useState<Set<string>>(new Set());
 
   async function research() {
     setErr(null);
     setWorking(true);
+    setLogged(new Set());
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/research", {
@@ -28,11 +46,39 @@ export default function ResearchPage() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "The research couldn't finish.");
       setReport(j.report);
+      const t = (j.takeaways ?? []) as Takeaway[];
+      setTakeaways(t);
+      if (t.length) {
+        const { data: existing } = await supabase
+          .from("recommendations").select("recommendation")
+          .eq("agent", "The Researcher").in("recommendation", t.map((x) => x.takeaway));
+        if (existing?.length) {
+          setLogged(new Set((existing as { recommendation: string }[]).map((x) => x.recommendation)));
+        }
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "The research couldn't finish.");
     } finally {
       setWorking(false);
     }
+  }
+
+  /** "I'll take this angle" → the pick lands in the Ledger for the Scorekeeper. */
+  async function logPick(t: Takeaway) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !report) return;
+    const { error } = await supabase.from("recommendations").insert({
+      user_id: user.id,
+      agent: "The Researcher",
+      category: t.category || "content",
+      recommendation: t.takeaway,
+      target_type: "channel",
+      notes: `${t.why} — from "${report.title}"`,
+      confidence: Math.max(0, Math.min(100, Math.round(t.confidence))),
+      evidence: t.evidence ?? [],
+      option_type: t.type,
+    });
+    if (!error) setLogged((s) => new Set(s).add(t.takeaway));
   }
 
   return (
@@ -61,7 +107,7 @@ export default function ResearchPage() {
         <Explain
           why="Before you spend a week making something, spend a minute learning what's already out there."
           how="A live sweep of what YouTube shows everyone for your topic — who's making it, what runs beyond its own channel's size, what people type. Public data only, and the report says plainly what it can't know."
-          what="Read the angles, pick one that fits you — the report is saved with your weekly reports."
+          what="Pick an angle that fits you and log it — the Scorekeeper checks the result after you act on it."
         />
       </div>
 
@@ -78,7 +124,39 @@ export default function ResearchPage() {
           </div>
           <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
             <Md md={report.body_md} />
+            <WrongClaim context={report.title} />
           </div>
+
+          {takeaways.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <span className="k">Angles you could take — you pick</span>
+              <div className="grid g3" style={{ marginTop: 10, alignItems: "stretch" }}>
+                {takeaways.map((t) => {
+                  const badge = OPTION_BADGE[t.type] ?? OPTION_BADGE.safe;
+                  return (
+                    <div key={t.takeaway} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+                      <span className={`pill ${badge.cls}`} style={{ alignSelf: "flex-start", textTransform: "uppercase", letterSpacing: ".06em", fontSize: 10.5 }}>
+                        {badge.label}
+                      </span>
+                      <b style={{ fontSize: 13.5 }}>{t.takeaway}</b>
+                      <div style={{ color: "var(--ink2)", fontSize: 12.5 }}>{t.why}</div>
+                      <ConfidenceBar value={t.confidence} />
+                      <EvidenceChips items={t.evidence} />
+                      <div style={{ marginTop: "auto" }}>
+                        {logged.has(t.takeaway) ? (
+                          <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                        ) : (
+                          <button className="btn btn-ghost btn-sm" onClick={() => logPick(t)}>
+                            I&apos;ll take this — log it
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, type VideoPerf, type ChannelData } from "@/lib/channelData";
 import { RetentionChart, type RetentionPoint, type RetentionDrop } from "@/components/RetentionChart";
-import { Explain } from "@/components/Explain";
+import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 
@@ -266,6 +266,7 @@ export default function WhyDetailPage() {
               how="The drops above, your title and description, and your channel's normal — read together. You pick which fixes land in your Ledger."
               what="Log a fix you'll actually do, apply it on your next upload — the Scorekeeper calls the result honestly."
             />
+            <WrongClaim context={`Retention read on "${v.title ?? v.yt_video_id}"`} />
             <div style={{ marginTop: 12 }}>
               <button className="btn btn-ghost btn-sm" onClick={() => v && askAnalyst(v.yt_video_id)} disabled={asking || ret.state !== "ready"}>
                 {asking ? "Re-reading…" : "Ask again"}

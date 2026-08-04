@@ -8,9 +8,9 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 const NAV = [
   { href: "/desk", label: "The Desk" },
   { href: "/why", label: "Why videos win or die" },
-  { href: "/packaging", label: "Titles" },
+  { href: "/packaging", label: "Titles & thumbnails" },
   { href: "/ideas", label: "Idea list" },
-  { href: "/scout", label: "Learn from any video" },
+  { href: "/scout", label: "Compare with any video" },
   { href: "/research", label: "Research a topic" },
   { href: "/ledger", label: "The Ledger" },
   { href: "/reports", label: "Reports" },

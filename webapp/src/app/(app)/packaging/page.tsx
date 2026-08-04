@@ -23,6 +23,7 @@ type Grade = {
   options: GradeOption[];
   search_note: string | null;
   thin_data_note: string | null;
+  thumb_read: { one_line: string; works: string[]; risks: string[] } | null;
 };
 
 const OPTION_BADGE: Record<GradeOption["type"], { label: string; cls: string }> = {
@@ -42,6 +43,8 @@ export default function PackagingPage() {
   const supabase = supabaseBrowser();
   const [ready, setReady] = useState<boolean | null>(null);
   const [draft, setDraft] = useState("");
+  const [thumb, setThumb] = useState<string | null>(null);
+  const [thumbErr, setThumbErr] = useState<string | null>(null);
   const [grading, setGrading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<{ draft: string; analysis: Grade } | null>(null);
@@ -61,7 +64,7 @@ export default function PackagingPage() {
       const r = await fetch("/api/analyst/packaging", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
-        body: JSON.stringify({ title: draft }),
+        body: JSON.stringify({ title: draft, thumbnail: thumb ?? undefined }),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "The grading couldn't finish.");
@@ -85,27 +88,37 @@ export default function PackagingPage() {
   }
 
   /** "I'll use this one" → written to the Ledger so the Scorekeeper can check it later. */
-  async function logPick(title: string, why: string, confidence?: number, evidence?: EvidenceItem[]) {
+  async function logPick(o: GradeOption) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { error } = await supabase.from("recommendations").insert({
       user_id: user.id,
       agent: "Packaging Analyst",
       category: "packaging",
-      recommendation: `Use the title: "${title}"`,
+      recommendation: `Use the title: "${o.title}"`,
       target_type: "channel",
-      notes: why,
-      confidence: confidence ?? null,
-      evidence: evidence ?? [],
+      notes: o.why,
+      confidence: o.confidence ?? null,
+      evidence: o.evidence ?? [],
+      option_type: o.type,
     });
-    if (!error) setLogged((s) => new Set(s).add(title));
+    if (!error) setLogged((s) => new Set(s).add(o.title));
+  }
+
+  function onThumbFile(f: File | null) {
+    setThumbErr(null);
+    if (!f) { setThumb(null); return; }
+    if (f.size > 3_000_000) { setThumbErr("Keep the image under 3MB."); return; }
+    const reader = new FileReader();
+    reader.onload = () => setThumb(String(reader.result));
+    reader.readAsDataURL(f);
   }
 
   if (ready === null) return <div className="quiet">Loading…</div>;
 
   return (
     <>
-      <div className="pagehead"><h1>Titles</h1></div>
+      <div className="pagehead"><h1>Titles &amp; thumbnails</h1></div>
       {!ready ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Grading needs your baseline first</b>
@@ -129,6 +142,18 @@ export default function PackagingPage() {
                 onKeyDown={(e) => { if (e.key === "Enter" && draft.trim() && !grading) gradeIt(); }}
               />
             </label>
+            <label className="field">
+              <span>Draft thumbnail (optional) — reviewed alongside the title</span>
+              <input
+                className="input" type="file" accept="image/png,image/jpeg,image/webp"
+                onChange={(e) => onThumbFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+            {thumb && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={thumb} alt="Draft thumbnail preview" style={{ maxWidth: 240, borderRadius: 8, border: "1px solid var(--line)" }} />
+            )}
+            {thumbErr && <div className="err">{thumbErr}</div>}
             {err && <div className="err">{err}</div>}
             <button className="btn btn-acc" onClick={gradeIt} disabled={grading || !draft.trim()}>
               {grading ? "Grading against your winners…" : "Grade it against my winners"}
@@ -190,6 +215,25 @@ export default function PackagingPage() {
                 </p>
               )}
 
+              {result.analysis.thumb_read && (
+                <div style={{ marginTop: 14 }}>
+                  <span className="k">The thumbnail</span>
+                  <p style={{ margin: "6px 0 0", fontSize: 13.5 }}>{result.analysis.thumb_read.one_line}</p>
+                  <div className="grid g2" style={{ marginTop: 8 }}>
+                    {result.analysis.thumb_read.works.length > 0 && (
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
+                        {result.analysis.thumb_read.works.map((s, i) => <li key={i}>{s}</li>)}
+                      </ul>
+                    )}
+                    {result.analysis.thumb_read.risks.length > 0 && (
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
+                        {result.analysis.thumb_read.risks.map((s, i) => <li key={i}>{s}</li>)}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div style={{ marginTop: 16 }}>
                 <span className="k">Three ways to go — you pick</span>
                 <div className="grid g3" style={{ marginTop: 10, alignItems: "stretch" }}>
@@ -211,7 +255,7 @@ export default function PackagingPage() {
                           {logged.has(a.title) ? (
                             <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
                           ) : (
-                            <button className="btn btn-ghost btn-sm" onClick={() => logPick(a.title, a.why, a.confidence, a.evidence)}>
+                            <button className="btn btn-ghost btn-sm" onClick={() => logPick(a)}>
                               I&apos;ll use this — log it
                             </button>
                           )}

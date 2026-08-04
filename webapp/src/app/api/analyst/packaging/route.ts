@@ -28,12 +28,13 @@ type Grade = {
   options: GradeOption[];
   search_note: string | null;
   thin_data_note: string | null;
+  thumb_read: { one_line: string; works: string[]; risks: string[] } | null;
 };
 
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["grade", "one_line", "strengths", "risks", "options", "search_note", "thin_data_note"],
+  required: ["grade", "one_line", "strengths", "risks", "options", "search_note", "thin_data_note", "thumb_read"],
   properties: {
     grade: { type: "string", enum: ["A", "A-", "B+", "B", "B-", "C+", "C", "D"] },
     one_line: { type: "string", description: "The grade's reason in one sentence — never a bare score." },
@@ -78,6 +79,22 @@ const SCHEMA = {
       anyOf: [{ type: "string" }, { type: "null" }],
       description: "If the channel's own sample is too small to grade against, one honest sentence. Else null.",
     },
+    thumb_read: {
+      anyOf: [
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["one_line", "works", "risks"],
+          properties: {
+            one_line: { type: "string", description: "The honest one-line read of the draft thumbnail." },
+            works: { type: "array", items: { type: "string" }, description: "0-3 things the draft thumbnail does right — legibility at small size, one clear subject, contrast, promise matching the title." },
+            risks: { type: "array", items: { type: "string" }, description: "0-3 concrete ways it loses the click — tiny text, clutter, no focal point, mismatch with the title's promise." },
+          },
+        },
+        { type: "null" },
+      ],
+      description: "Only when a draft thumbnail image was provided; else null. Judge it as it will appear: tiny, next to dozens of others.",
+    },
   },
 } as const;
 
@@ -98,6 +115,15 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const draft: string = String(body.title ?? "").trim().slice(0, 200);
   if (!draft) return NextResponse.json({ error: "Type a draft title first." }, { status: 400 });
+
+  // Optional draft thumbnail: a data URL from the browser, ≤ ~4MB encoded.
+  let thumb: { mediaType: string; data: string } | null = null;
+  if (typeof body.thumbnail === "string" && body.thumbnail.startsWith("data:image/")) {
+    const m = body.thumbnail.match(/^data:(image\/(?:png|jpeg|webp|gif));base64,(.+)$/);
+    if (!m) return NextResponse.json({ error: "That image format didn't come through — use a PNG, JPG or WebP." }, { status: 400 });
+    if (m[2].length > 4_500_000) return NextResponse.json({ error: "That image is too large — keep the draft under ~3MB." }, { status: 400 });
+    thumb = { mediaType: m[1], data: m[2] };
+  }
 
   const { data: chans } = await svc
     .from("channels").select("id,title,handle").eq("user_id", user.id).eq("is_owned", true).limit(1);
@@ -164,9 +190,30 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
 `.trim();
 
   try {
+    // With a draft thumbnail: attach it, plus up to 3 of their own recent
+    // thumbnails for style context (public i.ytimg.com URLs).
+    type Block = { type: "text"; text: string } | { type: "image"; source: { type: "base64"; media_type: string; data: string } | { type: "url"; url: string } };
+    let userContent: string | Block[] = userMsg;
+    if (thumb) {
+      const blocks: Block[] = [
+        { type: "text", text: userMsg },
+        { type: "text", text: "THE DRAFT THUMBNAIL for this title (judge it tiny, next to dozens of others):" },
+        { type: "image", source: { type: "base64", media_type: thumb.mediaType, data: thumb.data } },
+      ];
+      const { data: recentThumbs } = await svc
+        .from("videos").select("title,thumbnail_url")
+        .eq("channel_id", channel.id).not("thumbnail_url", "is", null)
+        .order("published_at", { ascending: false }).limit(3);
+      for (const t of (recentThumbs ?? []) as { title: string | null; thumbnail_url: string }[]) {
+        blocks.push({ type: "text", text: `One of the creator's own recent thumbnails ("${t.title ?? "untitled"}") — style context:` });
+        blocks.push({ type: "image", source: { type: "url", url: t.thumbnail_url } });
+      }
+      userContent = blocks;
+    }
+
     const analysis = await analystJson<Grade>({
-      system: `You are the Packaging Analyst. Grade the draft title honestly against this creator's own winners and misses — patterns in THEIR titles, not generic YouTube advice. Rewrites must sound like this creator, promise something concrete, and avoid clickbait they'd regret. Grade craft, not luck.\n\n${OPTIONS_RULES}`,
-      user: userMsg,
+      system: `You are the Packaging Analyst. Grade the draft title honestly against this creator's own winners and misses — patterns in THEIR titles, not generic YouTube advice. Rewrites must sound like this creator, promise something concrete, and avoid clickbait they'd regret. Grade craft, not luck.${thumb ? " A draft thumbnail image is attached: fill thumb_read with an honest read of it (title and thumbnail are one promise — judge them together)." : " No thumbnail was provided: thumb_read must be null."}\n\n${OPTIONS_RULES}`,
+      user: userContent as never,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
     return NextResponse.json({ analysis, phrases });

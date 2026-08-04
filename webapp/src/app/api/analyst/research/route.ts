@@ -6,30 +6,73 @@ import {
   parseVideoId, fetchPublicVideos, fetchPublicChannels, fetchChannelNormal,
   searchPublicVideos, typedPhrases, daysAgo, fmtDuration, engagementPer1000,
 } from "@/lib/server/publicYt";
-import { analystJson, claudeConfigured } from "@/lib/server/claude";
+import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
+import { cachedJson } from "@/lib/server/cache";
 
 export const maxDuration = 120;
 
 /** The Researcher: point it at a topic (or one video) and it comes back with
     the read, in plain English — built ONLY from public data it actually
-    fetched. Reports land alongside the weekly ones. */
+    fetched. Reports land alongside the weekly ones; the report's takeaways
+    are typed options the creator can log to the Ledger. */
 
-type Research = { title: string; body_md: string };
+type Evidence = { kind: "ledger" | "library" | "search" | "audience" | "caution"; label: string };
+type Research = {
+  title: string;
+  body_md: string;
+  takeaways: {
+    type: "safe" | "reach" | "bold";
+    takeaway: string;
+    category: "packaging" | "content";
+    why: string;
+    confidence: number;
+    evidence: Evidence[];
+  }[];
+};
 
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["title", "body_md"],
+  required: ["title", "body_md", "takeaways"],
   properties: {
     title: { type: "string", description: "Short report title in plain words, e.g. 'The read on: garage workshop videos'." },
     body_md: {
       type: "string",
       description:
-        "Markdown. For a TOPIC: '## The lay of the land', '## What's working (and for whom)', '## Angles you could take (2-3, as choices)', '## What people type'. " +
-        "For a SINGLE VIDEO: '## What this video is', '## How it's doing', '## What's worth taking (as choices, not orders)'. " +
+        "Markdown. For a TOPIC: '## The lay of the land', '## What's working (and for whom)', '## What people type'. " +
+        "For a SINGLE VIDEO: '## What this video is', '## How it's doing'. " +
         "Every number copied from the given data; a video from a big channel is not 'working' just because its views are big — compare against that channel's own size or normal where given. " +
-        "End with one honest line about what this public data can NOT tell (no earnings, no click-through, no watch time of other channels).",
+        "End with one honest line about what this public data can NOT tell (no earnings, no click-through, no watch time of other channels). " +
+        "Do NOT put the takeaways in the body — they go in the takeaways field.",
+    },
+    takeaways: {
+      type: "array",
+      description: "Exactly 3 typed angles the creator could take: safe / reach / bold, in that order — concrete, applicable to THEIR channel, loggable.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["type", "takeaway", "category", "why", "confidence", "evidence"],
+        properties: {
+          type: { type: "string", enum: ["safe", "reach", "bold"] },
+          takeaway: { type: "string", description: "One sentence, imperative." },
+          category: { type: "string", enum: ["packaging", "content"] },
+          why: { type: "string" },
+          confidence: { type: "integer", description: "0-100, derived per the confidence rules from citable evidence only." },
+          evidence: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["kind", "label"],
+              properties: {
+                kind: { type: "string", enum: ["ledger", "library", "search", "audience", "caution"] },
+                label: { type: "string" },
+              },
+            },
+          },
+        },
+      },
     },
   },
 } as const;
@@ -63,7 +106,10 @@ export async function POST(req: Request) {
       const [video] = await fetchPublicVideos(access, [videoId]);
       if (!video) return NextResponse.json({ error: "YouTube couldn't find that video — check the link." }, { status: 404 });
       const ch = (await fetchPublicChannels(access, [video.channelId])).get(video.channelId) ?? null;
-      const normal = ch?.uploadsPlaylistId ? await fetchChannelNormal(access, ch.uploadsPlaylistId, video.id) : null;
+      const normal = ch?.uploadsPlaylistId
+        ? await cachedJson(svc, `chnormal:v1:${ch.uploadsPlaylistId}`, 24 * 3600,
+            () => fetchChannelNormal(access, ch.uploadsPlaylistId as string))
+        : null;
       const ratio = normal?.medianViews && video.viewCount !== null
         ? Math.round((video.viewCount / normal.medianViews) * 100) / 100
         : null;
@@ -81,8 +127,10 @@ Ran vs their own channel's normal: ${ratio !== null && normal?.medianViews ? `${
 Description: ${video.description.slice(0, 1200) || "(none)"}
 `.trim();
     } else {
-      // Topic sweep.
-      const ids = await searchPublicVideos(access, query, 15);
+      // Topic sweep. Search costs 100 quota units — cache results for a day,
+      // shared across users, so repeat topics are free.
+      const ids = await cachedJson(svc, `search:v1:${query.toLowerCase()}`, 24 * 3600,
+        () => searchPublicVideos(access, query, 15));
       if (!ids.length) return NextResponse.json({ error: "YouTube returned nothing for that — try different words." }, { status: 404 });
       const videos = await fetchPublicVideos(access, ids);
       const channels = await fetchPublicChannels(access, videos.map((v) => v.channelId));
@@ -119,7 +167,7 @@ ${material}
 `.trim();
 
     const research = await analystJson<Research>({
-      system: `You are the Researcher. The creator pointed you at something; come back with the read in plain English — grounded ONLY in the material given, sized to THIS creator's situation, with angles framed as choices they could take, never orders. A five-minute read at most.`,
+      system: `You are the Researcher. The creator pointed you at something; come back with the read in plain English — grounded ONLY in the material given, sized to THIS creator's situation. The takeaways field carries exactly three typed angles (safe/reach/bold) they may log — choices, never orders. A five-minute read at most.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
@@ -131,13 +179,14 @@ ${material}
         agent: "The Researcher",
         title: research.title.slice(0, 120),
         body_md: research.body_md,
+        data: { takeaways: research.takeaways },
         channel_id: myChannel.id,
       })
       .select("id,title,body_md,created_at")
       .single();
     if (rErr) throw new Error(rErr.message);
 
-    return NextResponse.json({ report });
+    return NextResponse.json({ report, takeaways: research.takeaways });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "The research couldn't finish." },

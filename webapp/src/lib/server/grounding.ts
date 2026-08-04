@@ -13,8 +13,8 @@ export async function analystGrounding(svc: SupabaseClient, userId: string): Pro
       .select("niche,audience,goals,tone,competitors,formats,products_links,language_culture,monetization,risk_appetite,effort_budget,constraints_notes")
       .eq("user_id", userId).limit(1),
     svc.from("recommendations")
-      .select("category,verdict")
-      .eq("user_id", userId).not("verdict", "is", null),
+      .select("category,verdict,option_type")
+      .eq("user_id", userId),
   ]);
 
   type ProfileRow = {
@@ -44,7 +44,12 @@ export async function analystGrounding(svc: SupabaseClient, userId: string): Pro
     : `THE CREATOR HASN'T FILLED IN THEIR AUDIENCE PROFILE YET — do not guess who they're for; audience-fit evidence is unavailable, say so where relevant.`;
 
   const byCat = new Map<string, { worked: number; mixed: number; failed: number }>();
-  for (const r of (verdictRecs ?? []) as { category: string; verdict: string }[]) {
+  const picks = { safe: 0, reach: 0, bold: 0 };
+  for (const r of (verdictRecs ?? []) as { category: string; verdict: string | null; option_type: string | null }[]) {
+    if (r.option_type === "safe") picks.safe++;
+    else if (r.option_type === "reach") picks.reach++;
+    else if (r.option_type === "bold") picks.bold++;
+    if (!r.verdict) continue;
     const c = byCat.get(r.category) ?? { worked: 0, mixed: 0, failed: 0 };
     if (r.verdict === "worked") c.worked++;
     else if (r.verdict === "mixed") c.mixed++;
@@ -54,9 +59,13 @@ export async function analystGrounding(svc: SupabaseClient, userId: string): Pro
   const trackLines = [...byCat.entries()]
     .filter(([, c]) => c.worked + c.mixed + c.failed > 0)
     .map(([cat, c]) => `- ${cat}: worked ${c.worked} · mixed ${c.mixed} · didn't work ${c.failed}`);
-  const trackBlock = trackLines.length
+  let trackBlock = trackLines.length
     ? `THE TEAM'S VERIFIED TRACK RECORD ON THIS CHANNEL (checked by the Scorekeeper — cite these when relevant)\n${trackLines.join("\n")}`
     : `NO CHECKED TIPS ON THIS CHANNEL YET — "worked on your channel before" evidence is unavailable; confidence must reflect that.`;
+  const totalPicks = picks.safe + picks.reach + picks.bold;
+  if (totalPicks > 0) {
+    trackBlock += `\nWHAT THEY PICK when offered typed options: safe ${picks.safe} · reach ${picks.reach} · bold ${picks.bold} — revealed preference; still offer all three types, but write the one they lean toward with extra care.`;
+  }
 
   return { audienceBlock, trackBlock };
 }

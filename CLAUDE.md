@@ -54,11 +54,15 @@ manfriday is a **guide, not an oracle**. Locked principles:
   for what the API already knows (actual viewer demographics come from
   Analytics). Ledger picks + Scorekeeper verdicts are revealed preference;
   they outrank any form field.
-- **Comparing other creators' videos: views only, never revenue.** Explain
-  view gaps with observable, neutral factors — recency, channel size,
-  packaging/headline, format/length, engagement rate, typed-phrase match,
-  views-vs-that-channel's-own-normal — so the user can make a better call.
-  Never speculate about anyone's earnings; never invent numbers.
+- **Comparing other creators' videos: views only, never revenue.** The core
+  flow (user-defined): the user picks ONE OF THEIR OWN videos and a similar
+  outside video, and the team reads them side by side on four things —
+  **# of views** (each vs its own channel's normal), **comments/asks from
+  viewers** (verbatim receipts from both videos' public comments), **title**
+  (packaging comparison + typed phrases), and **account owner** (channel
+  size/age/catalogue — the honest out-of-your-hands factors). Explain view
+  gaps with observable, neutral factors only, so the user can make a better
+  call. Never speculate about anyone's earnings; never invent numbers.
 - **Monetization = guidance, not projections.** Ground money talk in the
   user's own Analytics revenue/RPM (if monetized) and income-mix options;
   no fabricated dollar figures anywhere.

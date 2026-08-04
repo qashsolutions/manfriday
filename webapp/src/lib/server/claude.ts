@@ -57,7 +57,8 @@ OPTIONS, CONFIDENCE, EVIDENCE — the rules:
 
 type AnalystArgs = {
   system: string;
-  user: string;
+  /** Plain text, or content blocks (text + images) for multimodal reads. */
+  user: string | Anthropic.ContentBlockParam[];
   schema: Record<string, unknown>;
   maxTokens?: number;
 };

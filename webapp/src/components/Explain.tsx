@@ -16,6 +16,22 @@ export function Explain({ why, how, what }: { why?: string; how?: string; what?:
   );
 }
 
+/** Honesty affordance: every analyst read carries a way to flag a bad claim. */
+export function WrongClaim({ context }: { context: string }) {
+  return (
+    <p style={{ margin: "10px 0 0", fontSize: 11.5, color: "var(--ink3)" }}>
+      Spot a claim that&apos;s wrong?{" "}
+      <a
+        href={`mailto:hello@manfriday.app?subject=${encodeURIComponent(`Wrong claim: ${context}`)}`}
+        style={{ color: "var(--acc)" }}
+      >
+        Tell us
+      </a>{" "}
+      — honest reads are the product.
+    </p>
+  );
+}
+
 /** Video thumbnail with a quiet fallback block. */
 export function Thumb({ url, alt }: { url: string | null; alt: string }) {
   const base: React.CSSProperties = {

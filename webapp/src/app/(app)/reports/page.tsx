@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { Explain } from "@/components/Explain";
+import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
 
 type Report = { id: string; created_at: string; agent: string; title: string; body_md: string };
@@ -106,7 +106,12 @@ export default function ReportsPage() {
                   {openId === r.id ? "close" : "read"}
                 </span>
               </div>
-              {openId === r.id && <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}><Md md={r.body_md} /></div>}
+              {openId === r.id && (
+                <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
+                  <Md md={r.body_md} />
+                  <WrongClaim context={r.title} />
+                </div>
+              )}
             </div>
           ))}
         </div>

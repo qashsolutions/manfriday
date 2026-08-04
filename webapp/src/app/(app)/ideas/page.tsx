@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain } from "@/components/Explain";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
@@ -63,7 +64,17 @@ export default function IdeasPage() {
           </button>
         )}
       </div>
-      {err && <div className="err">{err}</div>}
+      {err && (
+        <div className="err">
+          {err}
+          {err.includes("No comments") && (
+            <>
+              {" "}Meanwhile, <Link href="/scout" style={{ color: "inherit", textDecoration: "underline" }}>Compare with any video</Link>{" "}
+              reads the comments on any public video — asks and all.
+            </>
+          )}
+        </div>
+      )}
       {note && <div className="ok-note">{note}</div>}
       {ideas.length === 0 ? (
         <div className="empty" style={{ padding: 40 }}>
