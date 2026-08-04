@@ -12,7 +12,7 @@
   --chart2: #0E8A6D;
   --shadow: 0 12px 32px rgba(10, 16, 30, .08);
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --sans: var(--font-hanken), "Avenir Next", "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --sans: var(--font-inter), Roboto, "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {

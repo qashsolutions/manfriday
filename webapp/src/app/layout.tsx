@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const hanken = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-hanken", display: "swap" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
   title: "manfriday — your channel's analyst team",
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
-      <body className={hanken.variable}>{children}</body>
+      <body className={inter.variable}>{children}</body>
     </html>
   );
 }
