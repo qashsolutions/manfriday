@@ -62,7 +62,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const signOutIdle = async () => {
       try { localStorage.removeItem(KEY); } catch {}
       await supabase.auth.signOut();
-      router.replace("/login?timeout=1");
+      router.replace("/settings?timeout=1");
     };
     if (expired()) { signOutIdle(); return; }
     bump();

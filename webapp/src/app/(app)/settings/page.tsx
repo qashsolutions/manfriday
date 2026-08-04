@@ -181,7 +181,7 @@ export default function SettingsPage() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "Couldn't delete the account.");
       await supabase.auth.signOut();
-      router.replace("/login");
+      router.replace("/settings");
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Couldn't delete the account.");
       setBusy(null);
@@ -190,7 +190,7 @@ export default function SettingsPage() {
 
   async function signOut() {
     await supabase.auth.signOut();
-    router.replace("/login");
+    router.replace("/settings");
   }
 
   return (
