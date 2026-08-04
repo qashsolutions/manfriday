@@ -50,9 +50,10 @@ export default function LandingPage() {
             <span className="eyebrow">For solo content creators</span>
             <h1>Big channels have an analyst team. <span style={{ color: "var(--acc)" }}>Now you do.</span></h1>
             <p className="sub">
-              Six analysts on your real numbers — why videos win or die, what to publish next,
-              what your audience is asking for. Tuned to who you want to reach, and always
-              two or three options to pick from — never orders.
+              <b style={{ fontSize: "1.07em" }}>Why your last video died. What to make next. Which title wins.</b>
+              <br />
+              Six analysts answer from your own numbers, tuned to the audience you want —
+              always choices, never orders.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <Link href="/login" className="btn btn-acc btn-lg">Start your one-week trial</Link>
