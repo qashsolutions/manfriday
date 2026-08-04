@@ -139,18 +139,25 @@ export async function searchPublicVideos(access: string, query: string, max = 15
 export type PublicComment = { text: string; likes: number };
 
 /** Top public comments on one video, most relevant first. Returns [] when
-    comments are off or unavailable — never throws. */
+    comments are off or unavailable — never throws.
+    NOTE: YouTube's comment endpoints are NOT covered by the youtube.readonly
+    OAuth scope (they'd need force-ssl, which we deliberately don't request),
+    so public comments are read with the API key — they're public data. */
 export async function fetchVideoComments(
-  access: string,
+  _access: string,
   videoId: string,
   max = 50
 ): Promise<PublicComment[]> {
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) return [];
   try {
-    const data = await yt(
-      `commentThreads?part=snippet&videoId=${encodeURIComponent(videoId)}` +
-        `&maxResults=${Math.min(max, 100)}&order=relevance&textFormat=plainText`,
-      access
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet` +
+        `&videoId=${encodeURIComponent(videoId)}` +
+        `&maxResults=${Math.min(max, 100)}&order=relevance&textFormat=plainText&key=${key}`
     );
+    if (!res.ok) return [];
+    const data = (await res.json()) as Record<string, any>;
     const out: PublicComment[] = [];
     for (const item of (data.items as Record<string, any>[] | undefined) ?? []) {
       const s = item.snippet?.topLevelComment?.snippet;

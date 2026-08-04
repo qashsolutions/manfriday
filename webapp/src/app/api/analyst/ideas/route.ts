@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
-import { accessTokenFromRow, yt } from "@/lib/server/youtube";
+import { accessTokenFromRow } from "@/lib/server/youtube";
+import { fetchVideoComments } from "@/lib/server/publicYt";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 
@@ -93,19 +94,9 @@ export async function POST(req: Request) {
     const comments: CommentRow[] = [];
     for (const v of (vids ?? []) as { yt_video_id: string; title: string | null }[]) {
       if (comments.length >= 200) break;
-      try {
-        const data = await yt(
-          `commentThreads?part=snippet&videoId=${encodeURIComponent(v.yt_video_id)}` +
-            `&maxResults=100&order=relevance&textFormat=plainText`,
-          access
-        );
-        for (const item of (data.items as Record<string, any>[] | undefined) ?? []) {
-          const s = item.snippet?.topLevelComment?.snippet;
-          if (!s?.textDisplay) continue;
-          comments.push({ text: String(s.textDisplay).slice(0, 400), likes: Number(s.likeCount ?? 0), videoTitle: v.title });
-        }
-      } catch {
-        // comments off or unavailable for this video — skip it, keep sweeping
+      const found = await fetchVideoComments(access, v.yt_video_id, 100);
+      for (const c of found) {
+        comments.push({ text: c.text, likes: c.likes, videoTitle: v.title });
       }
     }
     if (comments.length === 0) {
