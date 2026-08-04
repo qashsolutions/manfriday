@@ -67,7 +67,7 @@ export default function DeskPage() {
     .slice(0, 5);
   const recent = videos.slice(0, 5);
 
-  if (loading) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Opening the Desk…</div>;
+  if (loading) return <div className="quiet">Opening the Desk…</div>;
 
   return (
     <>
@@ -175,16 +175,16 @@ export default function DeskPage() {
                 Nothing unusual right now — your recent videos are tracking close to your normal.
               </p>
             ) : (
-              <table className="t" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 8 }}>
+              <table className="t rowed" style={{ marginTop: 8 }}>
                 <tbody>
                   {(flagsActive ? attention : recent).map((v) => (
-                    <tr key={v.id} style={{ borderTop: "1px solid var(--line2)" }}>
+                    <tr key={v.id}>
                       <td style={{ padding: "9px 10px 9px 0" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                        <div className="vcell">
                           <Thumb url={v.thumbnail_url} alt="" />
                           <div>
                             <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
-                            <div style={{ color: "var(--ink3)", fontSize: 11.5 }}>
+                            <div className="sub">
                               {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
                               {v.is_short ? " · Short" : ""}
                             </div>

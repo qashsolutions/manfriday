@@ -10,7 +10,7 @@ export default function WhyPage() {
 
   useEffect(() => { loadChannelData().then(setData); }, []);
 
-  if (!data) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
+  if (!data) return <div className="quiet">Loading…</div>;
 
   const hasData = data.channel && data.videos.some((v) => v.ratio !== null);
 
@@ -36,34 +36,30 @@ export default function WhyPage() {
           </div>
         )}
         <div className="card">
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <table className="t">
             <thead>
-              <tr>
-                {["Video", "Views", "vs normal", ""].map((h) => (
-                  <th key={h} style={{ textAlign: "left", fontSize: 10.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--ink3)", fontWeight: 700, padding: "8px 10px", borderBottom: "1px solid var(--line)" }}>{h}</th>
-                ))}
-              </tr>
+              <tr>{["Video", "Views", "vs normal", ""].map((h) => <th key={h}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {data.videos.map((v) => (
-                <tr key={v.id} style={{ borderBottom: "1px solid var(--line2)" }}>
-                  <td style={{ padding: "9px 10px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                <tr key={v.id}>
+                  <td>
+                    <div className="vcell">
                       <Thumb url={v.thumbnail_url} alt="" />
                       <div>
                         <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
-                        <div style={{ color: "var(--ink3)", fontSize: 11.5 }}>
+                        <div className="sub">
                           {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
                           {v.is_short ? " · Short" : ""}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="num" style={{ padding: "9px 10px" }}>{fmtNum(v.view_count)}</td>
-                  <td style={{ padding: "9px 10px", minWidth: 150 }}>
+                  <td className="num">{fmtNum(v.view_count)}</td>
+                  <td style={{ minWidth: 150 }}>
                     <RatioBar ratio={v.ratio} muted={!data.flagsActive} />
                   </td>
-                  <td style={{ padding: "9px 10px" }}>
+                  <td>
                     <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">Open</Link>
                   </td>
                 </tr>

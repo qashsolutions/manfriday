@@ -196,3 +196,87 @@ button { font-family: inherit; }
 .empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ---- public site (landing, terms, privacy) ---- */
+.site-wrap { max-width: 1060px; margin: 0 auto; padding: 0 22px; }
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line2);
+}
+.site-header .in { display: flex; align-items: center; gap: 18px; height: 58px; }
+.site-header nav { display: flex; gap: 18px; margin-left: 8px; }
+.site-header nav a { font-size: 13px; color: var(--ink2); text-decoration: none; }
+.site-header nav a:hover { color: var(--ink); }
+.site-header .cta { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+@media (max-width: 640px) { .site-header nav { display: none; } }
+
+.eyebrow { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); font-weight: 700; margin: 14px 0 10px; }
+.eyebrow::before { content: ""; display: block; width: 26px; height: 5px; background: var(--acc); border-radius: 2px; margin-bottom: 10px; }
+
+.hero { padding: 72px 0 30px; }
+.hero h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.04; letter-spacing: -.02em; margin: 0 0 18px; text-wrap: balance; }
+.hero p.sub { font-size: 16.5px; color: var(--ink2); max-width: 56ch; margin: 0 0 26px; }
+.hero .defn { font-size: 13px; color: var(--ink3); font-style: italic; margin: 0 0 8px; }
+
+.statband { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 26px; padding: 34px 0 8px; }
+.statband .s b { display: block; font-size: 34px; letter-spacing: -.02em; line-height: 1.1; }
+.statband .s b::before { content: ""; display: block; width: 22px; height: 4px; background: var(--acc); border-radius: 2px; margin-bottom: 10px; }
+.statband .s span { display: block; font-size: 12.5px; color: var(--ink2); margin-top: 4px; max-width: 26ch; }
+.statband .s i { display: inline-block; font-style: normal; font-size: 10.5px; color: var(--ink3); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; margin-top: 8px; }
+
+.site-section { padding: 56px 0 8px; }
+.site-section h2 { font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -.015em; line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
+.site-section p.lead { color: var(--ink2); font-size: 14.5px; max-width: 60ch; margin: 0 0 22px; }
+
+.teamgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.teamgrid .m { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.teamgrid .m b { font-size: 14.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.teamgrid .m p { color: var(--ink2); font-size: 13px; margin: 6px 0 0; }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; counter-reset: step; }
+.steps .st-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.steps .st-card::before { counter-increment: step; content: "0" counter(step); font-family: var(--mono); font-size: 12px; color: var(--acc); font-weight: 700; display: block; margin-bottom: 8px; }
+.steps .st-card b { font-size: 14.5px; }
+.steps .st-card p { color: var(--ink2); font-size: 13px; margin: 6px 0 0; }
+
+.quoteband { margin: 64px 0; padding: 44px 26px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; text-align: center; }
+.quoteband h2 { font-size: clamp(22px, 3.4vw, 32px); letter-spacing: -.015em; margin: 0 0 18px; text-wrap: balance; }
+
+.site-footer { border-top: 1px solid var(--line2); margin-top: 40px; padding: 34px 0 44px; }
+.site-footer .cols { display: flex; gap: 44px; flex-wrap: wrap; justify-content: space-between; }
+.site-footer .col b { display: block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink3); margin-bottom: 10px; }
+.site-footer .col a { display: block; font-size: 13px; color: var(--ink2); text-decoration: none; margin-bottom: 7px; }
+.site-footer .col a:hover { color: var(--ink); }
+.site-footer .fine { margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--line2); font-size: 11.5px; color: var(--ink3); line-height: 1.7; }
+.site-footer .fine a { color: var(--ink2); }
+
+.prose { max-width: 72ch; padding: 40px 0 70px; }
+.prose h1 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -.015em; margin: 10px 0 6px; }
+.prose .updated { color: var(--ink3); font-size: 12.5px; margin-bottom: 26px; }
+.prose h2 { font-size: 18px; margin: 30px 0 8px; }
+.prose p, .prose li { font-size: 14px; color: var(--ink2); line-height: 1.7; }
+.prose ul { padding-left: 20px; }
+.prose a { color: var(--acc); }
+
+/* ---- shared utilities the pages kept re-declaring inline ---- */
+.quiet { color: var(--ink3); font-size: 13px; }        /* loading lines, soft notes */
+.sub { color: var(--ink3); font-size: 11.5px; }        /* meta line under a title */
+.vcell { display: flex; align-items: center; gap: 11px; }  /* thumb + title cell */
+
+/* data tables (was referenced as .t but never defined) */
+.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th {
+  text-align: left; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink3); font-weight: 700; padding: 8px 10px; border-bottom: 1px solid var(--line);
+}
+.t td { padding: 9px 10px; }
+.t tbody tr + tr, .t.rowed tbody tr { border-top: 1px solid var(--line2); }
+
+/* thin-data / early-days notice (was used on 3 pages but never defined) */
+.aside-note {
+  border: 1px dashed var(--line); background: var(--card); border-radius: 10px;
+  padding: 10px 14px; font-size: 12.5px; color: var(--ink2); line-height: 1.55;
+}
+.aside-note b { display: block; font-size: 12.5px; color: var(--ink); margin-bottom: 2px; }

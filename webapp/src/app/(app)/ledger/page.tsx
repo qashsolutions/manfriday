@@ -35,7 +35,7 @@ export default function LedgerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (recs === null) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
+  if (recs === null) return <div className="quiet">Loading…</div>;
 
   const applied = recs.filter((r) => r.status === "applied" || r.status === "resolved").length;
   const counts = { worked: 0, mixed: 0, failed: 0 };

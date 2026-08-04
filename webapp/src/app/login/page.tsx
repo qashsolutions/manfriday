@@ -38,7 +38,7 @@ export default function LoginPage() {
       if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
         setStep("mfa");
       } else {
-        router.replace("/settings");
+        router.replace("/desk");
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +84,7 @@ export default function LoginPage() {
       setNote(null);
       setStep("mfa");
     } else {
-      router.replace("/settings");
+      router.replace("/desk");
     }
   }
 
@@ -105,7 +105,7 @@ export default function LoginPage() {
         code: mfaCode.trim(),
       });
       if (vErr) throw vErr;
-      router.replace("/settings");
+      router.replace("/desk");
     } catch (err) {
       setError(err instanceof Error ? err.message : "That code didn't work — try again.");
     } finally {

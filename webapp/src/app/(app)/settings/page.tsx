@@ -377,6 +377,30 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      <div className="setsect card">
+        <h2>About</h2>
+        <div className="setrow">
+          <div className="grow">
+            <b>The fine print, in plain English</b>
+            <p>
+              <a href="/terms" target="_blank" style={{ color: "var(--acc)" }}>Terms of service</a>
+              {" · "}
+              <a href="/privacy" target="_blank" style={{ color: "var(--acc)" }}>Privacy policy</a>
+              {" · "}
+              <a href="mailto:hello@manfriday.app" style={{ color: "var(--acc)" }}>hello@manfriday.app</a>
+            </p>
+            <p style={{ marginTop: 6 }}>
+              manfriday uses YouTube API Services — the{" "}
+              <a href="https://www.youtube.com/t/terms" target="_blank" rel="noreferrer" style={{ color: "var(--acc)" }}>YouTube Terms of Service</a>{" "}
+              and{" "}
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: "var(--acc)" }}>Google Privacy Policy</a>{" "}
+              also apply to your connected channel. Revoke access any time in your{" "}
+              <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer" style={{ color: "var(--acc)" }}>Google security settings</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {confirmDelete && (
         <div className="modalback" role="dialog" aria-modal="true">
           <div className="modal">

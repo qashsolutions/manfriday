@@ -85,7 +85,7 @@ export default function ProfilePage() {
     setTimeout(() => router.push("/desk"), 900);
   }
 
-  if (loading) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
+  if (loading) return <div className="quiet">Loading…</div>;
 
   return (
     <>

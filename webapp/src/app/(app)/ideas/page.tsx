@@ -50,7 +50,7 @@ export default function IdeasPage() {
     }
   }
 
-  if (ideas === null) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
+  if (ideas === null) return <div className="quiet">Loading…</div>;
 
   return (
     <>

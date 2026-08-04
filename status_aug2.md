@@ -627,3 +627,14 @@ Must be set in Vercel (and `.env.local`) — routes return 501 with a
 friendly message until it is. Transcripts are user-pasted for now
 (captions API needs the `youtube.force-ssl` scope we deliberately don't
 request); comment mining uses the existing readonly scope.
+
+**Public site added (Aug 3, later):** real landing page at `/` (deck's
+story: "Creators run real businesses. Most run them blind." → stat band →
+team of six → how-it-works → honesty/ledger → closing quote), sticky
+header + footer, `/terms` + `/privacy` (plain-English, includes the
+YouTube API Services / Google Limited Use disclosures and revocation
+links), legal links + About card in Settings. Click-path change:
+signed-in visits to `/` and successful logins now land on **/desk** (was
+/settings). Style consolidation: public-site classes + shared `.t` table,
+`.aside-note` (was referenced but never defined — now fixed), `.quiet`,
+`.sub`, `.vcell` utilities all central in `globals.css`.

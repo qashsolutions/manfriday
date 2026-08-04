@@ -73,7 +73,7 @@ export default function PackagingPage() {
     if (!error) setLogged((s) => new Set(s).add(title));
   }
 
-  if (ready === null) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
+  if (ready === null) return <div className="quiet">Loading…</div>;
 
   return (
     <>

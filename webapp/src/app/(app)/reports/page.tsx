@@ -48,7 +48,7 @@ export default function ReportsPage() {
     }
   }
 
-  if (reports === null) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
+  if (reports === null) return <div className="quiet">Loading…</div>;
 
   return (
     <>

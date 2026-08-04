@@ -83,7 +83,7 @@ export default function WhyDetailPage() {
     }
   }
 
-  if (!data) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
+  if (!data) return <div className="quiet">Loading…</div>;
 
   const v: VideoPerf | undefined = data.videos.find((x) => x.id === params.id || x.yt_video_id === params.id);
   if (!v) {
