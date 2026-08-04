@@ -22,7 +22,8 @@ export default function TermsPage() {
           <h2>What manfriday is</h2>
           <ul>
             <li>An analytics service that reads your own YouTube channel&apos;s data (read-only, with your permission) and produces analyses, recommendations, and reports.</li>
-            <li>manfriday is currently in <b>early access</b> and free. Features may change, break, or be withdrawn while we build; we&apos;ll communicate before anything you rely on disappears.</li>
+            <li>New accounts start with a <b>one-week trial</b>. After the trial, continued use requires a paid plan — you&apos;ll always see the price and confirm before anything is charged.</li>
+            <li>manfriday is in <b>early access</b>: features may change, break, or be withdrawn while we build; we&apos;ll communicate before anything you rely on disappears.</li>
             <li>manfriday is not affiliated with or endorsed by YouTube or Google. Using it also means agreeing to the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noreferrer">YouTube Terms of Service</a>.</li>
           </ul>
 
@@ -54,7 +55,7 @@ export default function TermsPage() {
           <h2>Liability</h2>
           <ul>
             <li>manfriday is provided &quot;as is&quot; during early access, without warranties of any kind.</li>
-            <li>To the maximum extent permitted by law, we are not liable for indirect or consequential damages — including lost revenue, lost subscribers, or changes in your channel&apos;s performance. Our total liability is capped at the amount you paid us in the past 12 months (currently zero during free early access).</li>
+            <li>To the maximum extent permitted by law, we are not liable for indirect or consequential damages — including lost revenue, lost subscribers, or changes in your channel&apos;s performance. Our total liability is capped at the amount you paid us in the past 12 months.</li>
           </ul>
 
           <h2>Ending things</h2>

@@ -259,11 +259,6 @@ button { font-family: inherit; }
 .teamgrid .m b { font-size: 14.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .teamgrid .m p { color: var(--ink); font-size: 13.5px; margin: 6px 0 0; line-height: 1.55; }
 
-.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; counter-reset: step; }
-.steps .st-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
-.steps .st-card::before { counter-increment: step; content: "0" counter(step); font-family: var(--mono); font-size: 12px; color: var(--acc); font-weight: 700; display: block; margin-bottom: 8px; }
-.steps .st-card b { font-size: 14.5px; }
-.steps .st-card p { color: var(--ink2); font-size: 13px; margin: 6px 0 0; }
 
 .quoteband { margin: 64px 0; padding: 44px 26px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; text-align: center; }
 .quoteband h2 { font-size: clamp(22px, 3.4vw, 32px); letter-spacing: -.015em; margin: 0 0 18px; text-wrap: balance; }
@@ -312,10 +307,6 @@ button { font-family: inherit; }
 .ldemo .shift { font-size: 12px; color: var(--ink2); white-space: nowrap; }
 .ldemo .vbar { display: flex; gap: 2px; height: 9px; border-radius: 4px; overflow: hidden; margin-top: 14px; }
 
-/* platform chips (hero) */
-.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
-.chip { font-size: 11.5px; font-weight: 600; border: 1px solid var(--line); border-radius: 99px; padding: 4px 12px; background: var(--card); color: var(--ink2); }
-.chip.live { border-color: var(--acc-line); background: var(--acc-soft); color: var(--acc); }
 
 /* hero product preview — three floating cards from the real UI */
 .hero-visual { position: relative; min-height: 380px; z-index: 0; }
@@ -334,3 +325,24 @@ button { font-family: inherit; }
 
 /* first-person team cards */
 .teamgrid .m q { display: block; quotes: "\201C" "\201D"; color: var(--ink); font-size: 13.5px; line-height: 1.55; margin-top: 6px; }
+
+/* how-it-works: visual 3-step flow */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 22px; counter-reset: fstep; }
+.flow .f { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; position: relative; }
+.flow .f .viz {
+  position: relative; background: var(--bg); border: 1px solid var(--line2); border-radius: 10px;
+  height: 128px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; overflow: hidden;
+}
+.flow .f .viz::before {
+  counter-increment: fstep; content: "0" counter(fstep);
+  position: absolute; top: 8px; left: 10px; font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--acc); background: var(--acc-soft); border-radius: 6px; padding: 2px 7px;
+}
+.flow .f b { font-size: 14.5px; }
+.flow .f p { color: var(--ink); font-size: 13px; margin: 4px 0 0; line-height: 1.5; }
+@media (min-width: 900px) {
+  .flow .f:not(:last-child)::after {
+    content: "→"; position: absolute; right: -15px; top: 58px; z-index: 1;
+    color: var(--ink3); font-size: 16px; background: var(--bg); border-radius: 50%; line-height: 1; padding: 2px;
+  }
+}

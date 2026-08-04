@@ -331,10 +331,10 @@ export default function SettingsPage() {
         <h2>Billing</h2>
         <div className="setrow">
           <div className="grow">
-            <b>Free during early access</b>
-            <p>No card on file, nothing to cancel. When pricing launches, you&apos;ll choose a plan here — nothing is charged without you seeing it first.</p>
+            <b>One-week trial</b>
+            <p>Your first week is on us — no card on file. When your trial ends you&apos;ll choose a plan here; nothing is ever charged without you seeing it first.</p>
           </div>
-          <div className="end"><span className="pill acc">early access</span></div>
+          <div className="end"><span className="pill acc">trial</span></div>
         </div>
       </div>
 

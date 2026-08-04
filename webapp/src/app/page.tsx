@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/Site";
 import { HeroPreview } from "@/components/HeroPreview";
+import { VizConnect, VizBaseline, VizOptions } from "@/components/HowVisuals";
 import {
   IconRetention, IconPackaging, IconAudience,
   IconScorekeeper, IconScout, IconResearcher,
@@ -54,17 +55,11 @@ export default function LandingPage() {
               two or three options to pick from — never orders.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <Link href="/login" className="btn btn-acc btn-lg">Meet your team — free in early access</Link>
-              <Link href="#team" className="btn btn-ghost btn-lg">See what they do</Link>
-            </div>
-            <div className="chips">
-              <span className="chip live">YouTube — live now</span>
-              <span className="chip">Instagram — next</span>
-              <span className="chip">TikTok — next</span>
-              <span className="chip">Facebook — next</span>
+              <Link href="/login" className="btn btn-acc btn-lg">Start your one-week trial</Link>
+              <Link href="#team" className="btn btn-ghost btn-lg">Meet the team</Link>
             </div>
             <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--ink3)" }}>
-              Read-only access · first results in about two minutes · disconnect in one click
+              One-week trial · read-only access · first results in about two minutes
             </p>
           </div>
           <HeroPreview />
@@ -104,18 +99,21 @@ export default function LandingPage() {
         <section className="site-section" id="how">
           <span className="eyebrow">How it works</span>
           <h2>Two clicks to your first real answer.</h2>
-          <div className="steps" style={{ marginTop: 20 }}>
-            <div className="st-card">
-              <b>Connect your channel</b>
-              <p>One click, read-only — we can look, we can&apos;t touch. YouTube today; Instagram, TikTok and Facebook are on the way. Delete your account and everything goes with it.</p>
+          <div className="flow">
+            <div className="f">
+              <div className="viz"><VizConnect /></div>
+              <b>Connect</b>
+              <p>One click. Read-only — we can look, never touch.</p>
             </div>
-            <div className="st-card">
-              <b>Get your first read</b>
-              <p>In about two minutes the team works out your normal — what a post of yours usually does — and flags your real wins and misses against it. Tell them your goals and the audience you want, and the advice tunes itself to you.</p>
+            <div className="f">
+              <div className="viz"><VizBaseline /></div>
+              <b>See your normal</b>
+              <p>Wins and misses flagged against your own bar, in ~2 minutes.</p>
             </div>
-            <div className="st-card">
-              <b>Ask the analysts</b>
-              <p>Open any video for the retention read. Grade tomorrow&apos;s title — you&apos;ll get three rewrites, not one. Have your comments mined for ideas. Every tip lands in your Ledger.</p>
+            <div className="f">
+              <div className="viz"><VizOptions /></div>
+              <b>Pick, publish, verify</b>
+              <p>2–3 options each time. You choose — the result gets checked.</p>
             </div>
           </div>
         </section>
@@ -167,7 +165,7 @@ export default function LandingPage() {
 
         <div className="quoteband">
           <h2>Every winner has an analyst.<br />The business of one doesn&apos;t. Yet.</h2>
-          <Link href="/login" className="btn btn-acc btn-lg">Get your team</Link>
+          <Link href="/login" className="btn btn-acc btn-lg">Start your one-week trial</Link>
         </div>
       </main>
       <SiteFooter />
