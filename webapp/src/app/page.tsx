@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/Site";
+import { HeroPreview } from "@/components/HeroPreview";
 import {
   IconRetention, IconPackaging, IconAudience,
   IconScorekeeper, IconScout, IconResearcher,
@@ -13,20 +14,20 @@ import {
 /** Public landing page. Signed-in visitors skip straight to their Desk —
     the marketing is for people who don't have a team yet. */
 
-const STATS: [string, string, string][] = [
-  ["52%", "of creators report burnout — money strain is the top driver", "Billion Dollar Boy · 2025"],
-  ["41%", "say time is their #1 challenge — ahead of marketing", "Gusto · Simply Business · 2025"],
-  ["<$15K", "what most creators earn a year, at any follower count", "Influencer Marketing Hub · 2025"],
-  ["#1", "business threat named: algorithm volatility — not rivals", "eMarketer · 2025"],
+const STATS: [string, string][] = [
+  ["52%", "of creators report burnout — money strain is the top driver"],
+  ["41%", "say time is their #1 challenge — ahead of marketing"],
+  ["<$15K", "what most creators earn a year, at any follower count"],
+  ["#1", "business threat: the algorithm changing — not rivals"],
 ];
 
-const TEAM: { icon: React.ReactNode; name: string; role: string }[] = [
-  { icon: <IconRetention />, name: "Retention Analyst", role: "Finds the exact moments viewers stop watching — and hands you the why and the fix for the next upload." },
-  { icon: <IconPackaging />, name: "Packaging Analyst", role: "Grades your title before you publish — against your own winners, not generic advice." },
-  { icon: <IconAudience />, name: "Audience Analyst", role: "Reads your comments and turns what viewers literally ask for into your idea list, receipts attached." },
-  { icon: <IconScorekeeper />, name: "Scorekeeper", role: "Writes every tip down, then checks your numbers and calls the result honestly — misses included." },
-  { icon: <IconScout />, name: "Scout", role: "Watches channels like yours and flags the moves worth learning from." },
-  { icon: <IconResearcher />, name: "Researcher", role: "Digs into any topic or video you point at and reports back in plain English." },
+const TEAM: { icon: React.ReactNode; name: string; says: string }[] = [
+  { icon: <IconRetention />, name: "Retention Analyst", says: "I find the exact second viewers bail — and tell you what to change so they don't next time." },
+  { icon: <IconPackaging />, name: "Packaging Analyst", says: "Before you publish, I grade your title against your own winners — and hand you three rewrites to choose from." },
+  { icon: <IconAudience />, name: "Audience Analyst", says: "I read your comments and bring you what your audience is already asking for — receipts attached." },
+  { icon: <IconScorekeeper />, name: "Scorekeeper", says: "I write every tip down and check it against your numbers. When one doesn't work, I say so." },
+  { icon: <IconScout />, name: "Scout", says: "I watch creators like you and flag the moves worth learning from." },
+  { icon: <IconResearcher />, name: "Researcher", says: "Point me at any topic or video — I'll come back with the read, in plain English." },
 ];
 
 export default function LandingPage() {
@@ -44,30 +45,39 @@ export default function LandingPage() {
       <SiteHeader />
       <main className="site-wrap">
         <section className="hero">
-          <span className="eyebrow">For solo YouTube creators</span>
-          <h1>Big channels have an<br />analyst team. Now you do.</h1>
-          <p className="sub">
-            Six analysts on your channel&apos;s real numbers — why videos win or die,
-            what to title next, and what your viewers already asked you to make.
-          </p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/login" className="btn btn-acc btn-lg">Meet your team — free in early access</Link>
-            <Link href="#team" className="btn btn-ghost btn-lg">See what they do</Link>
+          <div>
+            <span className="eyebrow">For solo content creators</span>
+            <h1>Big channels have an analyst team. <span style={{ color: "var(--acc)" }}>Now you do.</span></h1>
+            <p className="sub">
+              Six analysts on your real numbers — why videos win or die, what to publish next,
+              what your audience is asking for. Tuned to who you want to reach, and always
+              two or three options to pick from — never orders.
+            </p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+              <Link href="/login" className="btn btn-acc btn-lg">Meet your team — free in early access</Link>
+              <Link href="#team" className="btn btn-ghost btn-lg">See what they do</Link>
+            </div>
+            <div className="chips">
+              <span className="chip live">YouTube — live now</span>
+              <span className="chip">Instagram — next</span>
+              <span className="chip">TikTok — next</span>
+              <span className="chip">Facebook — next</span>
+            </div>
+            <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--ink3)" }}>
+              Read-only access · first results in about two minutes · disconnect in one click
+            </p>
           </div>
-          <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--ink3)" }}>
-            Read-only access · first results in about two minutes · disconnect in one click
-          </p>
+          <HeroPreview />
         </section>
 
-        <section className="site-section" style={{ paddingTop: 34 }}>
+        <section className="site-section" style={{ paddingTop: 30 }}>
           <span className="eyebrow">Why we exist</span>
           <h2>Creators run real businesses. Most run them blind.</h2>
           <div className="statband">
-            {STATS.map(([n, d, src]) => (
+            {STATS.map(([n, d]) => (
               <div className="s" key={n}>
                 <b>{n}</b>
                 <span>{d}</span>
-                <i>{src}</i>
               </div>
             ))}
           </div>
@@ -75,17 +85,17 @@ export default function LandingPage() {
 
         <section className="site-section" id="team">
           <span className="eyebrow">The team</span>
-          <h2>Six analysts. One channel: yours.</h2>
+          <h2>Six analysts. One job each. All on your side.</h2>
           <p className="lead">
-            Each one does a job the biggest channels hire for — and explains every call in
-            plain English. No dashboards to decode, no jargon.
+            Every call comes in plain English, tuned to the audience you&apos;re trying to win —
+            with choices, not commands.
           </p>
           <div className="teamgrid">
             {TEAM.map((m) => (
               <div className="m" key={m.name}>
                 <div className="ic">{m.icon}</div>
                 <b>{m.name}</b>
-                <p>{m.role}</p>
+                <q>{m.says}</q>
               </div>
             ))}
           </div>
@@ -97,15 +107,15 @@ export default function LandingPage() {
           <div className="steps" style={{ marginTop: 20 }}>
             <div className="st-card">
               <b>Connect your channel</b>
-              <p>One click, read-only — we can look, we can&apos;t touch. Your data stays yours; delete your account and everything goes with it.</p>
+              <p>One click, read-only — we can look, we can&apos;t touch. YouTube today; Instagram, TikTok and Facebook are on the way. Delete your account and everything goes with it.</p>
             </div>
             <div className="st-card">
               <b>Get your first read</b>
-              <p>In about two minutes the team works out your normal — what a video of yours usually does — and flags your real wins and misses against it.</p>
+              <p>In about two minutes the team works out your normal — what a post of yours usually does — and flags your real wins and misses against it. Tell them your goals and the audience you want, and the advice tunes itself to you.</p>
             </div>
             <div className="st-card">
               <b>Ask the analysts</b>
-              <p>Open any video for the retention read. Grade tomorrow&apos;s title. Have your comments mined for ideas. Every tip lands in your Ledger.</p>
+              <p>Open any video for the retention read. Grade tomorrow&apos;s title — you&apos;ll get three rewrites, not one. Have your comments mined for ideas. Every tip lands in your Ledger.</p>
             </div>
           </div>
         </section>

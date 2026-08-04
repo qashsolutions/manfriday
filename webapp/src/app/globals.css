@@ -215,7 +215,22 @@ button { font-family: inherit; }
 .eyebrow { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); font-weight: 700; margin: 14px 0 10px; }
 .eyebrow::before { content: ""; display: block; width: 26px; height: 5px; background: var(--acc); border-radius: 2px; margin-bottom: 10px; }
 
-.hero { padding: 72px 0 30px; }
+.hero {
+  position: relative; z-index: 0;
+  display: grid; grid-template-columns: 1.05fr .95fr; gap: 44px; align-items: center;
+  padding: 58px 0 26px;
+}
+.hero::before {
+  content: ""; position: absolute; z-index: -1; top: -90px; right: -120px;
+  width: 620px; height: 520px; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--acc) 16%, transparent), transparent 72%);
+}
+.hero::after {
+  content: ""; position: absolute; z-index: -1; bottom: -120px; left: -140px;
+  width: 480px; height: 420px; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--chart2) 12%, transparent), transparent 72%);
+}
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; padding-top: 44px; } }
 .hero h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.04; letter-spacing: -.02em; margin: 0 0 18px; text-wrap: balance; }
 .hero p.sub { font-size: 17.5px; color: var(--ink); max-width: 52ch; margin: 0 0 26px; line-height: 1.55; }
 .hero .defn { font-size: 13px; color: var(--ink3); font-style: italic; margin: 0 0 8px; }
@@ -296,3 +311,26 @@ button { font-family: inherit; }
 .ldemo .row b { font-size: 13px; flex: 1; min-width: 160px; }
 .ldemo .shift { font-size: 12px; color: var(--ink2); white-space: nowrap; }
 .ldemo .vbar { display: flex; gap: 2px; height: 9px; border-radius: 4px; overflow: hidden; margin-top: 14px; }
+
+/* platform chips (hero) */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+.chip { font-size: 11.5px; font-weight: 600; border: 1px solid var(--line); border-radius: 99px; padding: 4px 12px; background: var(--card); color: var(--ink2); }
+.chip.live { border-color: var(--acc-line); background: var(--acc-soft); color: var(--acc); }
+
+/* hero product preview — three floating cards from the real UI */
+.hero-visual { position: relative; min-height: 380px; z-index: 0; }
+@media (max-width: 900px) { .hero-visual { max-width: 460px; min-height: 350px; } }
+.pv {
+  position: absolute; background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px;
+}
+.pv .k { margin-bottom: 8px; }
+.pv1 { top: 34px; left: 0; right: 54px; }
+.pv2 { top: 0; right: 0; width: 190px; rotate: 2deg; animation: floaty 4.5s ease-in-out infinite alternate; }
+.pv3 { bottom: 10px; left: 22px; width: 250px; rotate: -1.6deg; animation: floaty 6s ease-in-out .8s infinite alternate; }
+.pv .cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; }
+@keyframes floaty { from { translate: 0 0; } to { translate: 0 -9px; } }
+@media (prefers-reduced-motion: reduce) { .pv2, .pv3 { animation: none; } }
+
+/* first-person team cards */
+.teamgrid .m q { display: block; quotes: "\201C" "\201D"; color: var(--ink); font-size: 13.5px; line-height: 1.55; margin-top: 6px; }

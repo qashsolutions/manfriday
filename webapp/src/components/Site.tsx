@@ -48,8 +48,8 @@ export function SiteFooter() {
           <div className="col" style={{ maxWidth: 300 }}>
             <span className="logo" style={{ fontWeight: 800, fontSize: 15 }}><i />manfriday</span>
             <p style={{ color: "var(--ink3)", fontSize: 12.5, marginTop: 10, lineHeight: 1.6 }}>
-              An AI analyst team for the business of one. Built on your channel&apos;s own numbers —
-              read-only, honest about misses.
+              An AI analyst team for solo content creators — built on your real numbers, honest
+              about misses. YouTube today; Instagram, TikTok and Facebook next.
             </p>
           </div>
           <div className="col">
