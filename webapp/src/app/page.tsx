@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/Site";
+import {
+  IconRetention, IconPackaging, IconAudience,
+  IconScorekeeper, IconScout, IconResearcher,
+} from "@/components/TeamIcons";
 
 /** Public landing page. Signed-in visitors skip straight to their Desk —
     the marketing is for people who don't have a team yet. */
@@ -16,13 +20,13 @@ const STATS: [string, string, string][] = [
   ["#1", "business threat named: algorithm volatility — not rivals", "eMarketer · 2025"],
 ];
 
-const TEAM: { name: string; role: string; soon?: boolean }[] = [
-  { name: "Retention Analyst", role: "Reads where viewers stop watching on every video — and hands you the why and the fix for the next one." },
-  { name: "Packaging Analyst", role: "Grades your title before you publish — against your own winners, not generic advice." },
-  { name: "Audience Analyst", role: "Reads your comments and turns what viewers literally ask for into your idea list, receipts attached." },
-  { name: "Scorekeeper", role: "Writes every tip down, then checks your numbers and calls the result honestly — misses included." },
-  { name: "Scout", role: "Watches channels like yours for moves worth learning from.", soon: true },
-  { name: "Researcher", role: "Digs into any topic or video you point at and reports back.", soon: true },
+const TEAM: { icon: React.ReactNode; name: string; role: string }[] = [
+  { icon: <IconRetention />, name: "Retention Analyst", role: "Finds the exact moments viewers stop watching — and hands you the why and the fix for the next upload." },
+  { icon: <IconPackaging />, name: "Packaging Analyst", role: "Grades your title before you publish — against your own winners, not generic advice." },
+  { icon: <IconAudience />, name: "Audience Analyst", role: "Reads your comments and turns what viewers literally ask for into your idea list, receipts attached." },
+  { icon: <IconScorekeeper />, name: "Scorekeeper", role: "Writes every tip down, then checks your numbers and calls the result honestly — misses included." },
+  { icon: <IconScout />, name: "Scout", role: "Watches channels like yours and flags the moves worth learning from." },
+  { icon: <IconResearcher />, name: "Researcher", role: "Digs into any topic or video you point at and reports back in plain English." },
 ];
 
 export default function LandingPage() {
@@ -40,44 +44,47 @@ export default function LandingPage() {
       <SiteHeader />
       <main className="site-wrap">
         <section className="hero">
-          <span className="eyebrow">An AI analyst team for the business of one</span>
-          <h1>Creators run real businesses.<br />Most run them blind.</h1>
-          <p className="defn">man friday (n.) — the trusted right hand who handles everything.</p>
+          <span className="eyebrow">For solo YouTube creators</span>
+          <h1>Big channels have an<br />analyst team. Now you do.</h1>
           <p className="sub">
-            The biggest channels employ analysts to read their numbers and call the next move.
-            manfriday gives you that team: six analysts working from your channel&apos;s own data —
-            why videos win or die, what to title next, what your viewers already asked you to make.
+            Six analysts on your channel&apos;s real numbers — why videos win or die,
+            what to title next, and what your viewers already asked you to make.
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <Link href="/login" className="btn btn-acc btn-lg">Meet your team — free in early access</Link>
-            <Link href="#how" className="btn btn-ghost btn-lg">See how it works</Link>
+            <Link href="#team" className="btn btn-ghost btn-lg">See what they do</Link>
           </div>
           <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--ink3)" }}>
-            Read-only access to your channel · first results in about two minutes · disconnect in one click
+            Read-only access · first results in about two minutes · disconnect in one click
           </p>
         </section>
 
-        <section className="statband" aria-label="Why this exists">
-          {STATS.map(([n, d, src]) => (
-            <div className="s" key={n}>
-              <b>{n}</b>
-              <span>{d}</span>
-              <i>{src}</i>
-            </div>
-          ))}
+        <section className="site-section" style={{ paddingTop: 34 }}>
+          <span className="eyebrow">Why we exist</span>
+          <h2>Creators run real businesses. Most run them blind.</h2>
+          <div className="statband">
+            {STATS.map(([n, d, src]) => (
+              <div className="s" key={n}>
+                <b>{n}</b>
+                <span>{d}</span>
+                <i>{src}</i>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="site-section" id="team">
           <span className="eyebrow">The team</span>
           <h2>Six analysts. One channel: yours.</h2>
           <p className="lead">
-            No dashboards to decode, no jargon. Each analyst does one job a big channel would hire
-            for — and explains every call in plain English.
+            Each one does a job the biggest channels hire for — and explains every call in
+            plain English. No dashboards to decode, no jargon.
           </p>
           <div className="teamgrid">
             {TEAM.map((m) => (
               <div className="m" key={m.name}>
-                <b>{m.name}{m.soon && <span className="pill mut">coming online next</span>}</b>
+                <div className="ic">{m.icon}</div>
+                <b>{m.name}</b>
                 <p>{m.role}</p>
               </div>
             ))}
@@ -106,19 +113,46 @@ export default function LandingPage() {
         <section className="site-section" id="honest">
           <span className="eyebrow">Why trust it</span>
           <h2>Advice that never gets checked is just a horoscope.</h2>
-          <p className="lead">
-            Every tip the team gives is written to a ledger with your numbers at that moment.
-            Apply it, and the Scorekeeper compares before and after — then calls it honestly:
-          </p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-            <span className="pill good">✓ worked</span>
-            <span className="pill warn">~ mixed</span>
-            <span className="pill crit">✕ didn&apos;t work</span>
+          <div className="grid g2" style={{ marginTop: 18, alignItems: "start" }}>
+            <div>
+              <p className="lead">
+                Every tip is written to a ledger with your numbers at that moment. Apply it, and
+                the Scorekeeper compares before and after — then calls it honestly.
+              </p>
+              <p className="lead" style={{ marginBottom: 0 }}>
+                Misses included. A team that hides its misses can&apos;t be trusted about its wins —
+                and when your numbers are too small to judge, it says so instead of guessing.
+              </p>
+            </div>
+            <div className="card ldemo">
+              <span className="k">The Ledger — how a checked tip reads</span>
+              <div style={{ marginTop: 8 }}>
+                <div className="row">
+                  <b>Say what they get in the title</b>
+                  <span className="shift num">41/day → 128/day</span>
+                  <span className="pill good">✓ worked · 3×</span>
+                </div>
+                <div className="row">
+                  <b>Open on the result, not the intro</b>
+                  <span className="shift num">held 12% more viewers</span>
+                  <span className="pill good">✓ worked</span>
+                </div>
+                <div className="row">
+                  <b>Add an end-screen poll</b>
+                  <span className="shift num">no change</span>
+                  <span className="pill crit">✕ didn&apos;t work</span>
+                </div>
+              </div>
+              <div className="vbar">
+                <span style={{ flex: 6, background: "var(--good)" }} />
+                <span style={{ flex: 2, background: "var(--warn)" }} />
+                <span style={{ flex: 2, background: "var(--crit)" }} />
+              </div>
+              <p style={{ margin: "8px 0 0", fontSize: 11.5, color: "var(--ink3)" }}>
+                Every verdict on the record — green worked, amber mixed, red didn&apos;t.
+              </p>
+            </div>
           </div>
-          <p className="lead" style={{ marginBottom: 0 }}>
-            Misses included. A team that hides its misses can&apos;t be trusted about its wins —
-            and when your numbers are too small to judge, it says so instead of guessing.
-          </p>
         </section>
 
         <div className="quoteband">
