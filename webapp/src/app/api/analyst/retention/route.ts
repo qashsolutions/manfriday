@@ -3,7 +3,8 @@ import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
 import { accessTokenFromRow, yt } from "@/lib/server/youtube";
 import { fetchRetention, atLabel } from "@/lib/server/retentionData";
-import { analystJson, claudeConfigured } from "@/lib/server/claude";
+import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystGrounding } from "@/lib/server/grounding";
 
 export const maxDuration = 120;
 
@@ -11,10 +12,17 @@ export const maxDuration = 120;
     words and the channel's normal) and turns the marked drops into "here's why,
     here's the fix" — saved as a report, fixes logged to the Ledger. */
 
+type Evidence = { kind: "ledger" | "library" | "search" | "audience" | "caution"; label: string };
 type Analysis = {
   verdict: string;
   drop_reads: { at: number; label: string; likely_cause: string; fix: string }[];
-  fixes: { recommendation: string; category: "retention" | "packaging" | "content"; expected: string }[];
+  fixes: {
+    recommendation: string;
+    category: "retention" | "packaging" | "content";
+    expected: string;
+    confidence: number;
+    evidence: Evidence[];
+  }[];
   packaging_note: string | null;
 };
 
@@ -48,11 +56,24 @@ const SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["recommendation", "category", "expected"],
+        required: ["recommendation", "category", "expected", "confidence", "evidence"],
         properties: {
           recommendation: { type: "string", description: "The tip, one sentence, imperative." },
           category: { type: "string", enum: ["retention", "packaging", "content"] },
           expected: { type: "string", description: "What should visibly change if this works, in plain words." },
+          confidence: { type: "integer", description: "0-100, derived per the confidence rules from citable evidence only." },
+          evidence: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["kind", "label"],
+              properties: {
+                kind: { type: "string", enum: ["ledger", "library", "search", "audience", "caution"] },
+                label: { type: "string" },
+              },
+            },
+          },
         },
       },
     },
@@ -135,7 +156,12 @@ export async function POST(req: Request) {
       .map((d, i) => `Drop ${i + 1} at ${atLabel(d.x, dur)} (position ${d.x.toFixed(2)}): lost ${Math.round(d.delta * 100)} of every 100 remaining viewers in one step`)
       .join("\n");
 
+    const grounding = await analystGrounding(svc, user.id);
     const userMsg = `
+${grounding.audienceBlock}
+
+${grounding.trackBlock}
+
 VIDEO
 Title: ${video.title ?? "(untitled)"}
 Format: ${video.is_short ? "Short" : "Full video"}${dur ? ` · length ${atLabel(1, dur)}` : ""}
@@ -157,7 +183,7 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
 `.trim();
 
     const analysis = await analystJson<Analysis>({
-      system: `You are the Retention Analyst. Your one job: explain where and why this video lost viewers, and hand the creator fixes they can apply to the next upload. Use the drop timestamps given — never invent timestamps or quotes. Keep every field short enough to read on a phone.`,
+      system: `You are the Retention Analyst. Your one job: explain where and why this video lost viewers, and hand the creator fixes they can apply to the next upload. Use the drop timestamps given — never invent timestamps or quotes. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
@@ -170,6 +196,7 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
         agent: "Retention Analyst",
         title: `Why "${(video.title ?? ytVideoId).slice(0, 80)}" held or lost viewers`,
         body_md: bodyMd,
+        data: analysis,
         channel_id: video.channel_id,
         video_id: video.id,
       })
@@ -188,6 +215,8 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
           target_yt_id: ytVideoId,
           baseline: snap ? { view_count: snap.view_count, views_per_day: snap.views_per_day, captured_at: snap.captured_at } : {},
           notes: f.expected,
+          confidence: Math.max(0, Math.min(100, Math.round(f.confidence))),
+          evidence: f.evidence ?? [],
         }))
       );
     }

@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain } from "@/components/Explain";
+import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 
-type Idea = { id: string; created_at: string; recommendation: string; notes: string | null; status: string };
+type Idea = { id: string; created_at: string; recommendation: string; notes: string | null; status: string; confidence: number | null; evidence: EvidenceItem[] | null };
 
 export default function IdeasPage() {
   const supabase = supabaseBrowser();
@@ -16,7 +17,7 @@ export default function IdeasPage() {
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("recommendations")
-      .select("id,created_at,recommendation,notes,status")
+      .select("id,created_at,recommendation,notes,status,confidence,evidence")
       .eq("target_type", "idea")
       .order("created_at", { ascending: false })
       .limit(50);
@@ -103,6 +104,12 @@ export default function IdeasPage() {
               <div style={{ flex: 1 }}>
                 <b style={{ fontSize: 13.5 }}>{idea.recommendation}</b>
                 {idea.notes && <div style={{ color: "var(--ink2)", fontSize: 12.5 }}>{idea.notes}</div>}
+                {(idea.confidence !== null || idea.evidence?.length) && (
+                  <div style={{ display: "grid", gap: 6, marginTop: 8, maxWidth: 420 }}>
+                    {idea.confidence !== null && <ConfidenceBar value={idea.confidence} />}
+                    {idea.evidence && <EvidenceChips items={idea.evidence} />}
+                  </div>
+                )}
               </div>
               <span className={`pill ${idea.status === "open" ? "acc" : "mut"}`}>{idea.status}</span>
             </div>

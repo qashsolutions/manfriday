@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
-import { analystJson, claudeConfigured } from "@/lib/server/claude";
+import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystGrounding } from "@/lib/server/grounding";
 
 export const maxDuration = 120;
 
@@ -9,12 +10,21 @@ export const maxDuration = 120;
     winners and losers (from their baselines) plus what people really type
     into YouTube (autocomplete phrases — phrases only, never volumes). */
 
+type Evidence = { kind: "ledger" | "library" | "search" | "audience" | "caution"; label: string };
+type GradeOption = {
+  type: "safe" | "reach" | "bold";
+  title: string;
+  why: string;
+  confidence: number;
+  evidence: Evidence[];
+  audience_fit: string | null;
+};
 type Grade = {
   grade: "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "D";
   one_line: string;
   strengths: string[];
   risks: string[];
-  alternates: { title: string; why: string }[];
+  options: GradeOption[];
   search_note: string | null;
   thin_data_note: string | null;
 };
@@ -22,20 +32,41 @@ type Grade = {
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["grade", "one_line", "strengths", "risks", "alternates", "search_note", "thin_data_note"],
+  required: ["grade", "one_line", "strengths", "risks", "options", "search_note", "thin_data_note"],
   properties: {
     grade: { type: "string", enum: ["A", "A-", "B+", "B", "B-", "C+", "C", "D"] },
     one_line: { type: "string", description: "The grade's reason in one sentence — never a bare score." },
     strengths: { type: "array", items: { type: "string" }, description: "0-3 things this draft does right." },
     risks: { type: "array", items: { type: "string" }, description: "0-3 ways this draft loses viewers before the click." },
-    alternates: {
+    options: {
       type: "array",
-      description: "Exactly 3 rewrites, strongest first, each grounded in the creator's winners or the real typed phrases.",
+      description: "Exactly 3 rewrites: one safe (their proven winners), one reach (typed phrases + their audience), one bold (untested but promising) — in that order.",
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "why"],
-        properties: { title: { type: "string" }, why: { type: "string" } },
+        required: ["type", "title", "why", "confidence", "evidence", "audience_fit"],
+        properties: {
+          type: { type: "string", enum: ["safe", "reach", "bold"] },
+          title: { type: "string" },
+          why: { type: "string", description: "One sentence, plain English." },
+          confidence: { type: "integer", description: "0-100, derived per the confidence rules from citable evidence only." },
+          evidence: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["kind", "label"],
+              properties: {
+                kind: { type: "string", enum: ["ledger", "library", "search", "audience", "caution"] },
+                label: { type: "string" },
+              },
+            },
+          },
+          audience_fit: {
+            anyOf: [{ type: "string" }, { type: "null" }],
+            description: "One short clause on why this fits THEIR stated audience; null when no profile exists.",
+          },
+        },
       },
     },
     search_note: {
@@ -108,6 +139,7 @@ export async function POST(req: Request) {
   const phrases = [...new Set(phraseLists.flat())].slice(0, 12);
 
   const thin = [...latestByFormat.values()].every((b) => b.median_views < 100 || b.sample_size < 5);
+  const grounding = await analystGrounding(svc, user.id);
 
   const titleLines = (label: string, vids: BaselineDetail[]) =>
     vids.length
@@ -129,6 +161,10 @@ export async function POST(req: Request) {
   }
 
   const userMsg = `
+${grounding.audienceBlock}
+
+${grounding.trackBlock}
+
 THE DRAFT TITLE TO GRADE
 "${draft}"
 
@@ -142,7 +178,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
 
   try {
     const analysis = await analystJson<Grade>({
-      system: `You are the Packaging Analyst. Grade the draft title honestly against this creator's own winners and misses — patterns in THEIR titles, not generic YouTube advice. Alternates must sound like this creator, promise something concrete, and avoid clickbait they'd regret. Grade craft, not luck: a title like their winners' pattern grades well even if you can't prove the outcome.`,
+      system: `You are the Packaging Analyst. Grade the draft title honestly against this creator's own winners and misses — patterns in THEIR titles, not generic YouTube advice. Rewrites must sound like this creator, promise something concrete, and avoid clickbait they'd regret. Grade craft, not luck.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });

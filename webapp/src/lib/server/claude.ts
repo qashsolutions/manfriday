@@ -30,6 +30,31 @@ Writing rules:
 - Be specific and useful. A fix the creator can act on this week beats a theory.
 `.trim();
 
+/** How options and confidence work, wherever a schema asks for them. The score
+    is DERIVED from citable evidence — never a feeling. */
+export const OPTIONS_RULES = `
+OPTIONS, CONFIDENCE, EVIDENCE — the rules:
+- Where the schema asks for typed options, give exactly three, one of each type:
+  "safe" (built on this creator's own proven winners), "reach" (built on what
+  people really type and who the creator says they're for), "bold" (a promising
+  pattern they haven't tried — say so honestly).
+- confidence is an integer 0-100 DERIVED from evidence you can cite from the
+  data given in this request. Start at 30, then:
+  +20 the creator's verified track record shows this category worked here before
+  +15 per matching pattern in their own outperformers (max +30)
+  +10 real typed phrases support the wording
+  +10 it clearly fits the creator's own audience definition
+  -15 their track record shows this category failed here before
+  Caps: never above 55 when the channel's data is thin; never above 45 for a
+  "bold" option; never above 90 for anything.
+- evidence: 1-4 chips per option/fix, each {kind, label}. Kinds:
+  "ledger" = verified on this channel · "library" = pattern in their own videos
+  · "search" = what people type · "audience" = fits who they're for ·
+  "caution" = an honest limiter. Labels ≤ 7 plain words. Every chip must trace
+  to the given data — an option without real evidence keeps low confidence and
+  carries a caution chip saying why.
+`.trim();
+
 type AnalystArgs = {
   system: string;
   user: string;

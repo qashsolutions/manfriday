@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain } from "@/components/Explain";
+import { BeforeAfter, ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 
 type Rec = {
   id: string;
@@ -10,30 +11,56 @@ type Rec = {
   agent: string;
   category: string;
   recommendation: string;
+  notes: string | null;
   status: "open" | "applied" | "skipped" | "resolved";
   verdict: "worked" | "failed" | "mixed" | "unclear" | null;
+  baseline: { views_per_day?: number | null; view_count?: number | null } | null;
+  result_snapshot: { metric?: string; before?: number; after?: number; ratio?: number; reason?: string; video_title?: string } | null;
+  updates: { type: string; at?: string }[] | null;
+  confidence: number | null;
+  evidence: EvidenceItem[] | null;
 };
 
 const VERDICT_PILL: Record<string, { cls: string; label: string }> = {
   worked: { cls: "good", label: "✓ worked" },
   failed: { cls: "crit", label: "✕ didn't work" },
   mixed: { cls: "warn", label: "~ mixed" },
-  unclear: { cls: "mut", label: "? unclear" },
+  unclear: { cls: "mut", label: "? too thin to judge" },
 };
+
+const JUDGE_AFTER_DAYS = 7;
+
+function appliedDay(rec: Rec): number {
+  const at = (rec.updates ?? []).find((u) => u.type === "applied")?.at;
+  if (!at) return 1;
+  return Math.max(1, Math.floor((Date.now() - Date.parse(at)) / 86_400_000) + 1);
+}
 
 export default function LedgerPage() {
   const supabase = supabaseBrowser();
   const [recs, setRecs] = useState<Rec[] | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    supabase
+  const load = useCallback(async () => {
+    const { data } = await supabase
       .from("recommendations")
-      .select("id,created_at,agent,category,recommendation,status,verdict")
+      .select("id,created_at,agent,category,recommendation,notes,status,verdict,baseline,result_snapshot,updates,confidence,evidence")
       .order("created_at", { ascending: false })
-      .limit(100)
-      .then(({ data }: { data: Rec[] | null }) => setRecs(data ?? []));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      .limit(100);
+    setRecs((data as Rec[] | null) ?? []);
+  }, [supabase]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function setStatus(rec: Rec, status: "applied" | "skipped") {
+    setBusyId(rec.id);
+    const updates = status === "applied"
+      ? [...(rec.updates ?? []), { type: "applied", at: new Date().toISOString() }]
+      : (rec.updates ?? []);
+    const { error } = await supabase.from("recommendations").update({ status, updates }).eq("id", rec.id);
+    setBusyId(null);
+    if (!error) await load();
+  }
 
   if (recs === null) return <div className="quiet">Loading…</div>;
 
@@ -60,22 +87,10 @@ export default function LedgerPage() {
           Scorekeeper checks the numbers and calls it honestly: worked, mixed, or didn&apos;t work.
           Misses included. Advice that never gets checked is just a horoscope.
           <div style={{ maxWidth: 460, margin: "18px auto 0", textAlign: "left" }}>
-            <div style={{ fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink3)", fontWeight: 700, marginBottom: 6 }}>
-              Sample — how a checked tip reads
-            </div>
-            <div style={{ border: "1px solid var(--line)", borderRadius: 9, padding: "10px 12px", background: "var(--card)" }}>
-              <b style={{ fontSize: 13 }}>Retitle the video to say what you get</b>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6, fontSize: 12, color: "var(--ink2)", flexWrap: "wrap" }}>
-                <span className="num">before: 41 views/day</span>
-                <span>→</span>
-                <span className="num">after: 128 views/day</span>
-                <span className="pill good">✓ worked · 3×</span>
-              </div>
-            </div>
             <Explain
               why="Anyone can give advice; almost nobody checks whether it worked on your channel."
-              how="Every tip snapshots your numbers before, then compares after you apply it."
-              what="Apply a tip, and its verdict appears here on its own — good or bad."
+              how="Every tip snapshots your numbers before. Mark it applied, and the daily run compares after — verdicts land on their own about a week later."
+              what="Ask an analyst for a read or a grade — the tips they log start the ledger."
             />
           </div>
         </div>
@@ -109,29 +124,68 @@ export default function LedgerPage() {
               />
             </div>
           )}
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <tbody>
-              {recs.map((r) => (
-                <tr key={r.id} style={{ borderTop: "1px solid var(--line2)" }}>
-                  <td className="num" style={{ padding: "9px 10px 9px 0", color: "var(--ink3)", fontSize: 12, whiteSpace: "nowrap" }}>
+
+          {recs.map((r) => (
+            <div key={r.id} style={{ borderTop: "1px solid var(--line2)", padding: "12px 2px" }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: 240 }}>
+                  <b style={{ fontSize: 13.5 }}>{r.recommendation}</b>
+                  <div className="sub" style={{ marginTop: 2 }}>
                     {new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                  </td>
-                  <td style={{ padding: "9px 10px" }}>
-                    <b style={{ fontSize: 13 }}>{r.recommendation}</b>
-                    <div style={{ color: "var(--ink3)", fontSize: 11.5 }}>{r.agent} · {r.category}</div>
-                  </td>
-                  <td style={{ padding: "9px 10px" }}>
-                    <span className={`pill ${r.status === "open" ? "acc" : "mut"}`}>{r.status}</span>
-                  </td>
-                  <td style={{ padding: "9px 0" }}>
-                    {r.verdict
-                      ? <span className={`pill ${VERDICT_PILL[r.verdict].cls}`}>{VERDICT_PILL[r.verdict].label}</span>
-                      : <span className="pill mut">—</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {" · "}{r.agent} · {r.category}
+                  </div>
+                  {r.notes && <div style={{ color: "var(--ink2)", fontSize: 12.5, marginTop: 4 }}>{r.notes}</div>}
+                  {r.status === "open" && (r.evidence?.length || r.confidence !== null) && (
+                    <div style={{ display: "grid", gap: 6, marginTop: 8, maxWidth: 460 }}>
+                      {r.confidence !== null && <ConfidenceBar value={r.confidence} />}
+                      {r.evidence && <EvidenceChips items={r.evidence} />}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  {r.status === "open" && (
+                    <>
+                      <button className="btn btn-acc btn-sm" disabled={busyId === r.id} onClick={() => setStatus(r, "applied")}>
+                        I applied this
+                      </button>
+                      <button className="btn btn-ghost btn-sm" disabled={busyId === r.id} onClick={() => setStatus(r, "skipped")}>
+                        Skip
+                      </button>
+                    </>
+                  )}
+                  {r.status === "applied" && (
+                    <span className="pill acc" title={`The Scorekeeper judges after ${JUDGE_AFTER_DAYS} days of fresh numbers`}>
+                      ⏳ checking — day {Math.min(appliedDay(r), JUDGE_AFTER_DAYS)} of {JUDGE_AFTER_DAYS}
+                    </span>
+                  )}
+                  {r.status === "skipped" && <span className="pill mut">skipped</span>}
+                  {r.status === "resolved" && r.verdict && (
+                    <span className={`pill ${VERDICT_PILL[r.verdict].cls}`}>
+                      {VERDICT_PILL[r.verdict].label}
+                      {r.result_snapshot?.ratio ? ` · ${r.result_snapshot.ratio}×` : ""}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {r.status === "resolved" && r.result_snapshot?.before !== undefined && r.result_snapshot?.after !== undefined && (
+                <div style={{ marginTop: 10, maxWidth: 460 }}>
+                  <BeforeAfter
+                    before={r.result_snapshot.before!}
+                    after={r.result_snapshot.after!}
+                    unit={r.result_snapshot.metric === "views_per_day" ? "views/day" : "views"}
+                  />
+                  {r.result_snapshot.video_title && (
+                    <div className="sub" style={{ marginTop: 4 }}>measured on &quot;{r.result_snapshot.video_title}&quot;</div>
+                  )}
+                </div>
+              )}
+              {r.status === "resolved" && r.verdict === "unclear" && r.result_snapshot?.reason && (
+                <div className="sub" style={{ marginTop: 6 }}>{r.result_snapshot.reason}</div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </>

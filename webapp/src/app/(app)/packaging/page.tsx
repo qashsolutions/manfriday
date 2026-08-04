@@ -5,15 +5,30 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData } from "@/lib/channelData";
 import { Explain } from "@/components/Explain";
+import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 
+type GradeOption = {
+  type: "safe" | "reach" | "bold";
+  title: string;
+  why: string;
+  confidence: number;
+  evidence: EvidenceItem[];
+  audience_fit: string | null;
+};
 type Grade = {
   grade: string;
   one_line: string;
   strengths: string[];
   risks: string[];
-  alternates: { title: string; why: string }[];
+  options: GradeOption[];
   search_note: string | null;
   thin_data_note: string | null;
+};
+
+const OPTION_BADGE: Record<GradeOption["type"], { label: string; cls: string }> = {
+  safe: { label: "The safe bet", cls: "good" },
+  reach: { label: "The smart reach", cls: "acc" },
+  bold: { label: "The bold swing", cls: "warn" },
 };
 
 function gradeColors(g: string): { bg: string; fg: string } {
@@ -59,7 +74,7 @@ export default function PackagingPage() {
   }
 
   /** "I'll use this one" → written to the Ledger so the Scorekeeper can check it later. */
-  async function logPick(title: string, why: string) {
+  async function logPick(title: string, why: string, confidence?: number, evidence?: EvidenceItem[]) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { error } = await supabase.from("recommendations").insert({
@@ -69,6 +84,8 @@ export default function PackagingPage() {
       recommendation: `Use the title: "${title}"`,
       target_type: "channel",
       notes: why,
+      confidence: confidence ?? null,
+      evidence: evidence ?? [],
     });
     if (!error) setLogged((s) => new Set(s).add(title));
   }
@@ -163,22 +180,35 @@ export default function PackagingPage() {
               )}
 
               <div style={{ marginTop: 16 }}>
-                <span className="k">Three rewrites, strongest first</span>
-                {result.analysis.alternates.map((a) => (
-                  <div key={a.title} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 2px", borderBottom: "1px solid var(--line2)", flexWrap: "wrap" }}>
-                    <div style={{ flex: 1, minWidth: 240 }}>
-                      <b style={{ fontSize: 13.5 }}>{a.title}</b>
-                      <div style={{ color: "var(--ink2)", fontSize: 12.5 }}>{a.why}</div>
-                    </div>
-                    {logged.has(a.title) ? (
-                      <span className="pill good">✓ in your Ledger</span>
-                    ) : (
-                      <button className="btn btn-ghost btn-sm" onClick={() => logPick(a.title, a.why)}>
-                        I&apos;ll use this — log it
-                      </button>
-                    )}
-                  </div>
-                ))}
+                <span className="k">Three ways to go — you pick</span>
+                <div className="grid g3" style={{ marginTop: 10, alignItems: "stretch" }}>
+                  {result.analysis.options.map((a) => {
+                    const badge = OPTION_BADGE[a.type] ?? OPTION_BADGE.safe;
+                    return (
+                      <div key={a.title} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+                        <span className={`pill ${badge.cls}`} style={{ alignSelf: "flex-start", textTransform: "uppercase", letterSpacing: ".06em", fontSize: 10.5 }}>
+                          {badge.label}
+                        </span>
+                        <b style={{ fontSize: 13.5 }}>{a.title}</b>
+                        <div style={{ color: "var(--ink2)", fontSize: 12.5 }}>{a.why}</div>
+                        <ConfidenceBar value={a.confidence} />
+                        <EvidenceChips items={a.evidence} />
+                        {a.audience_fit && (
+                          <div className="sub">◎ {a.audience_fit}</div>
+                        )}
+                        <div style={{ marginTop: "auto" }}>
+                          {logged.has(a.title) ? (
+                            <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                          ) : (
+                            <button className="btn btn-ghost btn-sm" onClick={() => logPick(a.title, a.why, a.confidence, a.evidence)}>
+                              I&apos;ll use this — log it
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
 import { accessTokenFromRow, yt } from "@/lib/server/youtube";
-import { analystJson, claudeConfigured } from "@/lib/server/claude";
+import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystGrounding } from "@/lib/server/grounding";
 
 export const maxDuration = 120;
 
@@ -10,6 +11,7 @@ export const maxDuration = 120;
     viewers literally ask for into a ranked idea list — every idea with a
     receipt (the actual comment). Ideas land in the Ledger as target_type=idea. */
 
+type Evidence = { kind: "ledger" | "library" | "search" | "audience" | "caution"; label: string };
 type Mined = {
   summary: string;
   ideas: {
@@ -18,6 +20,8 @@ type Mined = {
     receipt_quote: string;
     receipt_likes: number;
     note: string;
+    confidence: number;
+    evidence: Evidence[];
   }[];
 };
 
@@ -33,13 +37,26 @@ const SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "ask_count", "receipt_quote", "receipt_likes", "note"],
+        required: ["title", "ask_count", "receipt_quote", "receipt_likes", "note", "confidence", "evidence"],
         properties: {
           title: { type: "string", description: "A working video title, in the creator's voice." },
           ask_count: { type: "integer", description: "How many DISTINCT given comments support this idea. Count only from the comments provided." },
           receipt_quote: { type: "string", description: "The single best supporting comment, quoted VERBATIM from the given comments." },
           receipt_likes: { type: "integer", description: "That comment's like count, copied from the data. 0 if none." },
           note: { type: "string", description: "One line: why this idea, in plain words." },
+          confidence: { type: "integer", description: "0-100, derived per the confidence rules — viewer demand counts as audience evidence." },
+          evidence: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["kind", "label"],
+              properties: {
+                kind: { type: "string", enum: ["ledger", "library", "search", "audience", "caution"] },
+                label: { type: "string" },
+              },
+            },
+          },
         },
       },
     },
@@ -103,9 +120,10 @@ export async function POST(req: Request) {
       .map((c, i) => `#${i + 1} (${c.likes} likes${c.videoTitle ? `, on "${c.videoTitle}"` : ""}): ${c.text.replace(/\s+/g, " ")}`)
       .join("\n");
 
+    const grounding = await analystGrounding(svc, user.id);
     const mined = await analystJson<Mined>({
-      system: `You are the Audience Analyst. Read the creator's real comments and pull out what viewers are literally asking to see next — requests, repeated questions, "please make a video on…". Only count real asks; praise and small talk are not ideas. Quotes must be copied verbatim from the given comments. If there are no genuine requests, return an empty ideas list and say so in the summary — never pad.`,
-      user: `THE CHANNEL'S COMMENTS (${comments.length} most relevant, with like counts)\n${commentBlock}`,
+      system: `You are the Audience Analyst. Read the creator's real comments and pull out what viewers are literally asking to see next — requests, repeated questions, "please make a video on…". Only count real asks; praise and small talk are not ideas. Quotes must be copied verbatim from the given comments. If there are no genuine requests, return an empty ideas list and say so in the summary — never pad.\n\n${OPTIONS_RULES}`,
+      user: `${grounding.audienceBlock}\n\n${grounding.trackBlock}\n\nTHE CHANNEL'S COMMENTS (${comments.length} most relevant, with like counts)\n${commentBlock}`,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
 
@@ -123,6 +141,8 @@ export async function POST(req: Request) {
           recommendation: i.title,
           target_type: "idea",
           notes: `${i.ask_count} viewer${i.ask_count === 1 ? "" : "s"} asked · "${i.receipt_quote}"${i.receipt_likes ? ` (${i.receipt_likes} likes)` : ""} — ${i.note}`,
+          confidence: Math.max(0, Math.min(100, Math.round(i.confidence))),
+          evidence: i.evidence ?? [],
         }))
       );
       if (iErr) throw new Error(iErr.message);

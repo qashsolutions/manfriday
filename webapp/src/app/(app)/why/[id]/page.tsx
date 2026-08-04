@@ -8,6 +8,7 @@ import { loadChannelData, fmtNum, type VideoPerf, type ChannelData } from "@/lib
 import { RetentionChart, type RetentionPoint, type RetentionDrop } from "@/components/RetentionChart";
 import { Explain } from "@/components/Explain";
 import { Md } from "@/components/Md";
+import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 
 type Retention =
   | { state: "loading" }
@@ -15,7 +16,13 @@ type Retention =
   | { state: "empty" }
   | { state: "unavailable"; reason: string };
 
-type AnalystReport = { id: string; title: string; body_md: string; created_at: string };
+type AnalystData = {
+  verdict: string;
+  drop_reads: { at: number; label: string; likely_cause: string; fix: string }[];
+  fixes: { recommendation: string; category: string; expected: string; confidence: number; evidence: EvidenceItem[] }[];
+  packaging_note: string | null;
+};
+type AnalystReport = { id: string; title: string; body_md: string; created_at: string; data: AnalystData | null };
 
 export default function WhyDetailPage() {
   const params = useParams<{ id: string }>();
@@ -53,7 +60,7 @@ export default function WhyDetailPage() {
       }
     })();
     // Latest saved analyst read for this video (RLS: own rows only).
-    supabase.from("reports").select("id,title,body_md,created_at")
+    supabase.from("reports").select("id,title,body_md,created_at,data")
       .eq("video_id", v.id).eq("agent", "Retention Analyst")
       .order("created_at", { ascending: false }).limit(1)
       .then(({ data: reps }: { data: AnalystReport[] | null }) => {
@@ -172,7 +179,42 @@ export default function WhyDetailPage() {
 
         {report ? (
           <>
-            <div style={{ marginTop: 8 }}><Md md={report.body_md} /></div>
+            {report.data ? (
+              <div style={{ marginTop: 10, display: "grid", gap: 12 }}>
+                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6 }}>{report.data.verdict}</p>
+                {report.data.drop_reads.length > 0 && (
+                  <div className="grid g3" style={{ alignItems: "stretch" }}>
+                    {report.data.drop_reads.map((d, i) => (
+                      <div key={i} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 13 }}>
+                        <span className="pill crit" style={{ fontSize: 10.5 }}>drop at {d.label}</span>
+                        <p style={{ margin: "8px 0 6px", fontSize: 12.5, color: "var(--ink2)" }}>{d.likely_cause}</p>
+                        <p style={{ margin: 0, fontSize: 12.5 }}><b>Fix:</b> {d.fix}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {report.data.packaging_note && (
+                  <div className="aside-note"><b>About the packaging</b>{report.data.packaging_note}</div>
+                )}
+                {report.data.fixes.length > 0 && (
+                  <div>
+                    <span className="k">Logged to your Ledger — the Scorekeeper checks these</span>
+                    <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
+                      {report.data.fixes.map((f, i) => (
+                        <div key={i} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 13, display: "grid", gap: 7, maxWidth: 560 }}>
+                          <b style={{ fontSize: 13 }}>{f.recommendation}</b>
+                          <div className="sub">expect: {f.expected}</div>
+                          <ConfidenceBar value={f.confidence} />
+                          <EvidenceChips items={f.evidence} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ marginTop: 8 }}><Md md={report.body_md} /></div>
+            )}
             <Explain
               why="A curve shows where viewers left; the analyst's job is the why and the fix."
               how="The drops above, your title and description, and your channel's normal — read together. Fixes are logged to your Ledger and checked later."

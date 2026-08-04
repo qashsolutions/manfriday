@@ -638,3 +638,28 @@ signed-in visits to `/` and successful logins now land on **/desk** (was
 /settings). Style consolidation: public-site classes + shared `.t` table,
 `.aside-note` (was referenced but never defined — now fixed), `.quiet`,
 `.sub`, `.vcell` utilities all central in `globals.css`.
+
+## 14. Aug 4 update — Scorekeeper live + grounded confidence everywhere
+
+One release, two halves (user-confirmed outline):
+**A. The trust loop closes.** Daily Vercel Cron (`webapp/vercel.json`,
+`/api/cron/daily`, locked by new env `CRON_SECRET`) refreshes every active
+channel (shared engine `lib/server/refresh.ts` — first-run now uses the
+same code) and runs `lib/server/scorekeeper.ts`: pure-arithmetic verdicts
+on applied tips (≥7 days; video tips = views/day before→after; channel/
+idea tips = first upload ≥5 days old vs format normal; 1.5×/0.75×
+thresholds; "unclear" said plainly). Ledger UI got the lifecycle:
+"I applied this"/Skip → "checking — day N of 7" → before→after bars +
+verdict pill (`components/Verdict.tsx`).
+**B. No one-size-fits-all.** Migration 14 (`reports.data` jsonb;
+`recommendations.confidence` 0-100 + `evidence` jsonb — applied via MCP,
+advisors clean). Every analyst now reads `lib/server/grounding.ts`
+(user-defined audience from channel_profiles + the Scorekeeper-verified
+track record) and follows `OPTIONS_RULES` in `claude.ts`: packaging
+returns three TYPED options (safe = own winners / reach = typed phrases +
+audience / bold = untested, confidence-capped), all confidence scores are
+DERIVED from citable evidence chips (ledger/library/search/audience/
+caution) with hard caps on thin data. UI: confidence sliders + evidence
+chips on packaging cards, retention fixes (rendered from `reports.data`),
+idea list, and open Ledger tips.
+**User action:** add `CRON_SECRET` (in `.env.local`) to Vercel env vars.
