@@ -7,6 +7,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, type VideoPerf, type ChannelData } from "@/lib/channelData";
 import { RetentionChart, type RetentionPoint, type RetentionDrop } from "@/components/RetentionChart";
 import { Explain } from "@/components/Explain";
+import { Md } from "@/components/Md";
 
 type Retention =
   | { state: "loading" }
@@ -14,12 +15,19 @@ type Retention =
   | { state: "empty" }
   | { state: "unavailable"; reason: string };
 
+type AnalystReport = { id: string; title: string; body_md: string; created_at: string };
+
 export default function WhyDetailPage() {
   const params = useParams<{ id: string }>();
   const supabase = supabaseBrowser();
   const [data, setData] = useState<ChannelData | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [ret, setRet] = useState<Retention>({ state: "loading" });
+  const [report, setReport] = useState<AnalystReport | null>(null);
+  const [reportLoaded, setReportLoaded] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [askErr, setAskErr] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState("");
 
   useEffect(() => { loadChannelData().then(setData); }, []);
 
@@ -44,8 +52,36 @@ export default function WhyDetailPage() {
         setRet({ state: "unavailable", reason: "Couldn't reach the retention service." });
       }
     })();
+    // Latest saved analyst read for this video (RLS: own rows only).
+    supabase.from("reports").select("id,title,body_md,created_at")
+      .eq("video_id", v.id).eq("agent", "Retention Analyst")
+      .order("created_at", { ascending: false }).limit(1)
+      .then(({ data: reps }: { data: AnalystReport[] | null }) => {
+        setReport(reps?.[0] ?? null);
+        setReportLoaded(true);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, params.id]);
+
+  async function askAnalyst(ytVideoId: string) {
+    setAskErr(null);
+    setAsking(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const r = await fetch("/api/analyst/retention", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body: JSON.stringify({ video: ytVideoId, transcript: transcript.trim() || undefined }),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error ?? "The analyst couldn't finish the read.");
+      setReport(j.report);
+    } catch (e) {
+      setAskErr(e instanceof Error ? e.message : "The analyst couldn't finish the read.");
+    } finally {
+      setAsking(false);
+    }
+  }
 
   if (!data) return <div style={{ color: "var(--ink3)", fontSize: 13 }}>Loading…</div>;
 
@@ -125,12 +161,67 @@ export default function WhyDetailPage() {
       </div>
 
       <div className="card" style={{ marginTop: 14 }}>
-        <span className="k">Next: the analyst&apos;s read</span>
-        <p style={{ color: "var(--ink2)", fontSize: 13, margin: "8px 0 0", maxWidth: "64ch" }}>
-          The Retention Analyst&apos;s job is to match each marked drop to what you were saying at that
-          moment and hand you fixes with expected outcomes. That layer comes online next — the
-          curve above is already your real data.
-        </p>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <span className="k">The Retention Analyst&apos;s read</span>
+          {report && (
+            <span style={{ fontSize: 11.5, color: "var(--ink3)" }}>
+              written {new Date(report.created_at).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+
+        {report ? (
+          <>
+            <div style={{ marginTop: 8 }}><Md md={report.body_md} /></div>
+            <Explain
+              why="A curve shows where viewers left; the analyst's job is the why and the fix."
+              how="The drops above, your title and description, and your channel's normal — read together. Fixes are logged to your Ledger and checked later."
+              what="Apply a fix on your next upload — the Scorekeeper calls the result honestly."
+            />
+            <div style={{ marginTop: 12 }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => v && askAnalyst(v.yt_video_id)} disabled={asking || ret.state !== "ready"}>
+                {asking ? "Re-reading…" : "Ask again"}
+              </button>
+              {askErr && <span className="err" style={{ marginLeft: 10, fontSize: 12.5 }}>{askErr}</span>}
+            </div>
+          </>
+        ) : (
+          <>
+            <p style={{ color: "var(--ink2)", fontSize: 13, margin: "8px 0 0", maxWidth: "64ch" }}>
+              The analyst matches each marked drop to what was happening in the video at that moment
+              and hands you fixes with expected outcomes — logged to your Ledger and checked later.
+            </p>
+            <details style={{ marginTop: 12 }}>
+              <summary style={{ fontSize: 12.5, color: "var(--acc)", cursor: "pointer" }}>
+                Add your script (optional) — quotes make the read sharper
+              </summary>
+              <textarea
+                className="input"
+                rows={5}
+                style={{ marginTop: 8, width: "100%", resize: "vertical", fontFamily: "inherit" }}
+                placeholder="Paste the script or transcript here…"
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
+              />
+            </details>
+            {askErr && <div className="err" style={{ marginTop: 12 }}>{askErr}</div>}
+            <div style={{ marginTop: 12 }}>
+              <button
+                className="btn btn-acc"
+                onClick={() => v && askAnalyst(v.yt_video_id)}
+                disabled={asking || !reportLoaded || ret.state !== "ready"}
+                title={ret.state !== "ready" ? "The analyst needs the retention curve above first" : undefined}
+              >
+                {asking ? "Reading the drops…" : "Ask the Retention Analyst"}
+              </button>
+              {ret.state !== "ready" && ret.state !== "loading" && (
+                <span style={{ marginLeft: 10, fontSize: 12, color: "var(--ink3)" }}>
+                  needs the retention curve above first
+                </span>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </>
   );

@@ -245,10 +245,12 @@ export default function DeskPage() {
           )}
 
           <div className="card" style={{ marginTop: 14 }}>
-            <span className="k">Coming next from your team</span>
+            <span className="k">Your team is on duty</span>
             <p style={{ color: "var(--ink2)", margin: "8px 0 0", fontSize: 13 }}>
-              Retention reads (&quot;why videos win or die&quot;), packaging grades, and the idea list are the
-              next analysts to come online. Your baseline and outliers above are already real.
+              Open any video for the <Link href="/why" style={{ color: "var(--acc)" }}>Retention Analyst&apos;s read</Link>,
+              grade your next <Link href="/packaging" style={{ color: "var(--acc)" }}>title</Link>,
+              have the <Link href="/ideas" style={{ color: "var(--acc)" }}>Audience Analyst read your comments</Link>,
+              or ask for <Link href="/reports" style={{ color: "var(--acc)" }}>this week&apos;s report</Link>.
             </p>
           </div>
         </>

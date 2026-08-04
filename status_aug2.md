@@ -18,6 +18,7 @@ projections.
 10. [Next steps](#10-next-steps) — Phases 0–4 roadmap
 11. [Aug 3 update — Supabase layer live](#11-aug-3-update--supabase-layer-live-applied-audited-tested-end-to-end) — applied, audited, tested end to end
 12. [Web app design (Aug 3): mockups, evaluation, decisions](#12-web-app-design-aug-3-mockups-evaluation-decisions) — v1→v3 flow, multi-agent eval, hosting, the 3 post-build decision points
+13. [Aug 3 update — the analyst layer is live](#13-aug-3-update--the-analyst-layer-is-live-llm-analysts-via-claude-api) — 4 Claude-powered analysts, routes, tables touched, `ANTHROPIC_API_KEY`
 
 ## 1. What this project is
 
@@ -598,3 +599,31 @@ connections management (see what's connected, disconnect), **pause
 account** (new `profiles.paused_at`, migration 13), delete account, and a
 payment/billing surface (pricing still parked — surface ships as
 placeholder).
+
+## 13. Aug 3 update — the analyst layer is live (LLM analysts via Claude API)
+
+The judgment layer shipped: four server-side analysts in `webapp/`, all
+calling **Claude Opus 5** (`claude-opus-5`, Anthropic TS SDK, structured
+JSON outputs, server-side refusal fallback to Opus 4.8). Shared helper:
+`src/lib/server/claude.ts` — one entry point (`analystJson`), a common
+`TEAM_RULES` system preamble enforcing plain English and the verified
+API-truth limits (no thumbnail impressions/CTR, no audience overlap, no
+publish-timing, no search volumes — "many people type this" only).
+
+| Analyst | Route | Reads | Writes |
+|---|---|---|---|
+| Retention Analyst | `POST /api/analyst/retention` | real retention curve + drops, live title/description, baseline, optional pasted transcript | `reports` (rendered on `/why/[id]`) + 1–3 fixes to `recommendations` |
+| Packaging Analyst | `POST /api/analyst/packaging` | draft title vs the creator's own winners/misses (`channel_baselines.videos`) + live autocomplete phrases | returns grade + 3 rewrites; picks logged to Ledger client-side |
+| Audience Analyst | `POST /api/analyst/ideas` | up to ~200 channel comments (Data API, OAuth) | deduped ideas → `recommendations` (`target_type='idea'`) with verbatim receipts |
+| The Team (weekly) | `POST /api/analyst/weekly` | stored snapshots/baselines/ledger/ideas only | 3-section report → `reports` (honest "tracking starts now" when no history) |
+
+UI: `/why/[id]` shows the saved read (+ Ask/Ask-again, optional script
+paste), `/packaging` grades live with per-rewrite "log it", `/ideas` has
+"Read my comments", `/reports` has "Write this week's report". All routes
+`maxDuration = 120`; thin-data honesty threads through every prompt.
+
+**New env var: `ANTHROPIC_API_KEY`** (server-only; in `.env.example`).
+Must be set in Vercel (and `.env.local`) — routes return 501 with a
+friendly message until it is. Transcripts are user-pasted for now
+(captions API needs the `youtube.force-ssl` scope we deliberately don't
+request); comment mining uses the existing readonly scope.

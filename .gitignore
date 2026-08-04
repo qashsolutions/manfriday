@@ -12,7 +12,7 @@ __pycache__/
 *.pyc
 
 # generated output & local state
-reports/
+/reports/
 .claude/yt-monitor-state.json
 .claude/yt-ledger.jsonl
 .claude/settings.local.json
