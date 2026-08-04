@@ -123,15 +123,42 @@ export default function LandingPage() {
           <span className="eyebrow">Why trust it</span>
           <h2>Advice that never gets checked is just a horoscope.</h2>
           <div className="grid g2" style={{ marginTop: 18, alignItems: "start" }}>
-            <div>
-              <p className="lead">
-                Every tip is written to a ledger with your numbers at that moment. Apply it, and
-                the Scorekeeper compares before and after — then calls it honestly.
-              </p>
-              <p className="lead" style={{ marginBottom: 0 }}>
-                Misses included. A team that hides its misses can&apos;t be trusted about its wins —
-                and when your numbers are too small to judge, it says so instead of guessing.
-              </p>
+            <div className="trust">
+              <div className="n">
+                <span className="dot" aria-hidden>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <rect x="4" y="3.5" width="16" height="17" rx="3" />
+                    <path d="M8 9h8M8 13h5" />
+                  </svg>
+                </span>
+                <div>
+                  <b>Written down</b>
+                  <span>Every tip lands in the Ledger — with your numbers at that exact moment.</span>
+                </div>
+              </div>
+              <div className="n">
+                <span className="dot" aria-hidden>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M5 20V12M12 20V6M19 20V9" />
+                    <path d="M3.5 3.5h6" strokeDasharray="1 3" />
+                  </svg>
+                </span>
+                <div>
+                  <b>Checked against reality</b>
+                  <span>You apply it, the Scorekeeper compares before and after. No vibes — your numbers.</span>
+                </div>
+              </div>
+              <div className="n">
+                <span className="dot bad" aria-hidden>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </span>
+                <div>
+                  <b>Misses stay on the record</b>
+                  <span>A team that hides its misses can&apos;t be trusted about its wins. Too little data? You hear &quot;too early to judge&quot; — never a guess.</span>
+                </div>
+              </div>
             </div>
             <div className="card ldemo">
               <span className="k">The Ledger — how a checked tip reads</span>
