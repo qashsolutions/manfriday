@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { AuthCard } from "@/components/AuthCard";
 
 type ThemeChoice = "light" | "dark" | "system";
 type Factor = { id: string; friendly_name?: string | null; status: string };
@@ -40,6 +41,7 @@ export default function SettingsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteText, setDeleteText] = useState("");
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
   const loadAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -63,7 +65,20 @@ export default function SettingsPage() {
       const t = localStorage.getItem("mf-theme");
       setTheme(t === "dark" || t === "light" ? t : "system");
     } catch {}
-    loadAll();
+    // Signed out (or MFA pending): the Account section hosts the sign-in and
+    // the rest of the page waits, dimmed. Auth events unlock it in place.
+    const evaluate = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setSignedIn(false); return; }
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") { setSignedIn(false); return; }
+      setSignedIn(true);
+      loadAll();
+    };
+    evaluate();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => { evaluate(); });
+    return () => sub.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadAll]);
 
   function applyTheme(t: ThemeChoice) {
@@ -193,12 +208,26 @@ export default function SettingsPage() {
     router.replace("/settings");
   }
 
+  if (signedIn === null) return <div className="quiet">Loading…</div>;
+
   return (
     <>
-      <div className="pagehead"><h1>Settings</h1></div>
+      <div className="pagehead"><h1>{signedIn ? "Settings" : "Sign in to start your team"}</h1></div>
       {msg && <div className="ok-note">{msg}</div>}
-      {err && <div className="err">{err}</div>}
+      {signedIn && err && <div className="err">{err}</div>}
 
+      {!signedIn && (
+        <div className="setsect card">
+          <h2>Account</h2>
+          <AuthCard />
+          <p className="quiet" style={{ marginTop: 14 }}>
+            Everything below — your security, connections, and data — unlocks the moment you&apos;re in.
+          </p>
+        </div>
+      )}
+
+      <div className={signedIn ? undefined : "locked"} aria-hidden={signedIn ? undefined : true}>
+      {signedIn && (
       <div className="setsect card">
         <h2>Account</h2>
         <div className="setrow">
@@ -214,6 +243,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+      )}
 
       <div className="setsect card">
         <h2>Sign-in &amp; security</h2>
@@ -399,6 +429,7 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
+      </div>
       </div>
 
       {confirmDelete && (

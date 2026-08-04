@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { SiteHeader, SiteFooter } from "@/components/Site";
-import { AuthCard } from "@/components/AuthCard";
 
 const NAV = [
   { href: "/desk", label: "The Desk" },
@@ -33,14 +31,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
-    // Signed out (or MFA pending)? Show the sign-in card right here — no
-    // separate login page. Settings is home base after it completes.
+    // Signed out (or MFA pending)? The app frame stays, the rail locks, and
+    // /settings hosts the sign-in inline — every other path goes there.
     const evaluate = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setState("signedout"); return; }
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
-        setState("signedout"); // AuthCard detects the pending MFA step itself
+        setState("signedout"); // the settings page shows the MFA step inline
         return;
       }
       setEmail(session.user.email ?? "");
@@ -83,6 +81,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Signed out, anywhere but /settings? That's where the sign-in lives.
+  useEffect(() => {
+    if (state === "signedout" && pathname !== "/settings") router.replace("/settings");
+  }, [state, pathname, router]);
+
   function toggleTheme() {
     const root = document.documentElement;
     const current =
@@ -101,23 +104,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (state === "signedout") {
-    return (
-      <>
-        <SiteHeader />
-        <div className="authpage"><AuthCard /></div>
-        <SiteFooter />
-      </>
-    );
-  }
+  const locked = state === "signedout";
 
   return (
     <div className="shell">
       <aside className="rail">
-        <Link className="logo" href="/desk"><i />manfriday</Link>
+        <Link className="logo" href={locked ? "/settings" : "/desk"}><i />manfriday</Link>
         <nav>
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className={pathname.startsWith(n.href) ? "on" : ""}>
+            <Link
+              key={n.href}
+              href={n.href}
+              className={`${!locked && pathname.startsWith(n.href) ? "on" : ""} ${locked ? "lock" : ""}`.trim()}
+              aria-disabled={locked || undefined}
+              tabIndex={locked ? -1 : undefined}
+            >
               {n.label}
             </Link>
           ))}
@@ -141,7 +142,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div>
         <div className="main">
           <div className="topbar">
-            <span className="chan"><span className="ava" />{email || "Your account"}</span>
+            <span className="chan"><span className="ava" />{locked ? "Signed out" : (email || "Your account")}</span>
             <span className="sp" />
             <button className="iconbtn" onClick={toggleTheme} title="Switch light/dark" aria-label="Switch theme">◐</button>
             <Link href="/settings" className="iconbtn" title="Settings" aria-label="Settings">⚙</Link>

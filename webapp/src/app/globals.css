@@ -359,3 +359,8 @@ button { font-family: inherit; }
 .trust .dot.bad { background: var(--crit-soft); color: var(--crit); border-color: var(--crit-line); }
 .trust .n b { display: block; font-size: 14px; margin-top: 2px; }
 .trust .n span { font-size: 13px; color: var(--ink); line-height: 1.55; }
+
+/* signed-out shell: rail present but inert until sign-in completes */
+.rail nav a.lock { opacity: .4; pointer-events: none; }
+.rail nav a.lock::after { content: "🔒"; font-size: 9px; margin-left: 6px; opacity: .8; }
+.locked { opacity: .45; pointer-events: none; user-select: none; }
