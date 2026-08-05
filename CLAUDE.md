@@ -63,6 +63,23 @@ why we can't tell them yet. Anything else is faff — delete it. Corollaries:
   something right — study it" / "fell short — find out why"), not to
   display metrics.
 
+**Lessons on advice quality (Aug 5, from user challenge — apply to analyst
+prompts AND to session reports to the user):**
+- **The insight is what the data reveals that the user couldn't see** (e.g.
+  "zero of your 15 views came from search — every one was a link you
+  shared"); the tip that follows is usually generic ("use searchable
+  titles" is YouTube 101). Lead every action with its revelation, in the
+  same sentence — the evidence is what separates us from a listicle.
+- **Prefer the cheapest testable action**, including edits to the EXISTING
+  video (YouTube allows retitling) over "on your next upload" — cheaper,
+  faster, and directly verifiable by the Scorekeeper.
+- **Never grade our own output.** "Aha" is an empirical claim settled by
+  the Scorekeeper's verdict after a user acts, never asserted at ship
+  time. Builder's pride is a real bias — in product copy and in session
+  summaries alike. Describe outputs as what they are ("new information
+  the user couldn't see" / "generic advice with evidence attached") and
+  let outcomes decide.
+
 manfriday is a **guide, not an oracle**. Locked principles:
 
 - **Options, never one tip.** Every analyst offers 2–3 typed choices (the
