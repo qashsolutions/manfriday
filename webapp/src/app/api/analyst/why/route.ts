@@ -143,7 +143,6 @@ export async function POST(req: Request) {
       ? ret.drops.map((d, i) => `Drop ${i + 1} at ${atLabel(d.x, dur)}: lost ${Math.round(d.delta * 100)} of every 100 remaining viewers`).join("; ")
       : "no retention curve available yet";
 
-    const grounding = await analystGrounding(svc, user.id);
     const userMsg = `
 ${grounding.audienceBlock}
 
