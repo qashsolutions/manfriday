@@ -230,7 +230,7 @@ export default function DeskPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="num" style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{fmtNum(v.view_count)} views</td>
+                      <td className="num" style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{fmtNum(v.view_count)} {v.view_count === 1 ? "view" : "views"}</td>
                       <td style={{ padding: "9px 0", minWidth: 150 }}>
                         <RatioBar ratio={v.ratio} muted={!flagsActive} />
                       </td>
