@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { loadChannelData, fmtNum, daysAgo, type ChannelData } from "@/lib/channelData";
-import { RatioBar, Thumb } from "@/components/Explain";
+import { loadChannelData, fmtNum, daysAgo, type ChannelData, type VideoPerf } from "@/lib/channelData";
+import { Thumb } from "@/components/Explain";
 
 export default function DeskPage() {
   const supabase = supabaseBrowser();
@@ -12,6 +12,8 @@ export default function DeskPage() {
   const [paused, setPaused] = useState(false);
   const [data, setData] = useState<ChannelData>({ channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null });
   const [ledger, setLedger] = useState({ open: 0, worked: 0, mixed: 0, failed: 0 });
+  const [openFixes, setOpenFixes] = useState<Map<string, number>>(new Map());
+  const [readVerdicts, setReadVerdicts] = useState<Map<string, string>>(new Map());
   const [running, setRunning] = useState(false);
   const [runErr, setRunErr] = useState<string | null>(null);
   const [tuneHidden, setTuneHidden] = useState(true);
@@ -23,20 +25,37 @@ export default function DeskPage() {
   const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const [prof, cd, recs] = await Promise.all([
+    const [prof, cd, recs, reads] = await Promise.all([
       supabase.from("profiles").select("paused_at").eq("id", user.id).maybeSingle(),
       loadChannelData(),
-      supabase.from("recommendations").select("status,verdict"),
+      supabase.from("recommendations").select("status,verdict,target_type,target_yt_id"),
+      supabase.from("reports").select("video_id,data,created_at")
+        .eq("agent", "Retention Analyst").not("video_id", "is", null)
+        .order("created_at", { ascending: false }).limit(50),
     ]);
     setPaused(Boolean(prof.data?.paused_at));
     setData(cd);
-    const rows = (recs.data ?? []) as { status: string; verdict: string | null }[];
+    const rows = (recs.data ?? []) as { status: string; verdict: string | null; target_type: string | null; target_yt_id: string | null }[];
     setLedger({
       open: rows.filter((r) => r.status === "open").length,
       worked: rows.filter((r) => r.verdict === "worked").length,
       mixed: rows.filter((r) => r.verdict === "mixed").length,
       failed: rows.filter((r) => r.verdict === "failed").length,
     });
+    const fixes = new Map<string, number>();
+    for (const r of rows) {
+      if (r.status === "open" && r.target_type === "video" && r.target_yt_id) {
+        fixes.set(r.target_yt_id, (fixes.get(r.target_yt_id) ?? 0) + 1);
+      }
+    }
+    setOpenFixes(fixes);
+    const verdicts = new Map<string, string>();
+    for (const rep of (reads.data ?? []) as { video_id: string; data: { verdict?: string } | null }[]) {
+      if (rep.video_id && rep.data?.verdict && !verdicts.has(rep.video_id)) {
+        verdicts.set(rep.video_id, rep.data.verdict);
+      }
+    }
+    setReadVerdicts(verdicts);
     setLoading(false);
   }, [supabase]);
 
@@ -59,6 +78,28 @@ export default function DeskPage() {
     } finally {
       setRunning(false);
     }
+  }
+
+  /** One line per video — the most useful thing the team can say about it,
+      linking straight to the analyst behind it. Priority: an action you can
+      take now > a lesson to study > this week's movement > start the read. */
+  function teamBlurb(v: VideoPerf): { text: string; who: string } {
+    const fixes = openFixes.get(v.yt_video_id) ?? 0;
+    if (fixes > 0) {
+      return { text: `${fixes} fix${fixes === 1 ? "" : "es"} waiting — apply one to your next upload`, who: "Retention Analyst" };
+    }
+    if (v.flag === "underperformer") return { text: "fell short — find out why", who: "Retention Analyst" };
+    if (v.flag === "outperformer") return { text: "did something right — study it", who: "Retention Analyst" };
+    const verdict = readVerdicts.get(v.id);
+    if (verdict) {
+      const firstSentence = verdict.split(/(?<=[.!?])\s/)[0] ?? verdict;
+      const trimmed = firstSentence.length > 90 ? `${firstSentence.slice(0, 87)}…` : firstSentence;
+      return { text: trimmed, who: "Retention Analyst" };
+    }
+    if (v.views_week_delta !== null && v.views_week_delta > 0) {
+      return { text: `+${v.views_week_delta} view${v.views_week_delta === 1 ? "" : "s"} this week — see what's pulling people in`, who: "The Team" };
+    }
+    return { text: "not read yet — get the team's take", who: "The Team" };
   }
 
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
@@ -212,54 +253,39 @@ export default function DeskPage() {
                     <th style={{ padding: "0 10px 4px 0" }}></th>
                     <th style={{ padding: "0 10px 4px" }}></th>
                     <th style={{ padding: "0 0 4px", fontSize: 10.5, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--ink3)", textAlign: "left" }}>
-                      {flagsActive ? "what it tells you" : "views vs your usual"}
+                      what the team sees
                     </th>
-                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(flagsActive ? attention : recent).map((v) => (
-                    <tr key={v.id}>
-                      <td style={{ padding: "9px 10px 9px 0" }}>
-                        <div className="vcell">
-                          <Thumb url={v.thumbnail_url} alt="" />
-                          <div>
-                            <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
-                            <div className="sub">
-                              {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
-                              {v.is_short ? " · Short" : ""}
+                  {(flagsActive ? attention : recent).map((v) => {
+                    const blurb = teamBlurb(v);
+                    return (
+                      <tr key={v.id}>
+                        <td style={{ padding: "9px 10px 9px 0" }}>
+                          <div className="vcell">
+                            <Thumb url={v.thumbnail_url} alt="" />
+                            <div>
+                              <b style={{ fontSize: 13 }}>{v.title ?? v.yt_video_id}</b>
+                              <div className="sub">
+                                {v.published_at ? new Date(v.published_at).toLocaleDateString() : ""}
+                                {v.is_short ? " · Short" : ""}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="num" style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{fmtNum(v.view_count)} {v.view_count === 1 ? "view" : "views"}</td>
-                      <td style={{ padding: "9px 0", minWidth: 150 }}>
-                        <RatioBar
-                          ratio={v.ratio}
-                          muted={!flagsActive}
-                          views={v.view_count}
-                          usual={(v.is_short ? baselines.shorts : baselines.longform)?.median_views ?? null}
-                        />
-                      </td>
-                      <td style={{ padding: "9px 0 9px 10px" }}>
-                        {v.flag === "underperformer" ? (
-                          <Link href={`/why/${v.id}`} className="btn btn-acc btn-sm">Why?</Link>
-                        ) : v.flag === "outperformer" ? (
-                          <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">What worked?</Link>
-                        ) : (
-                          <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">Open</Link>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="num" style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{fmtNum(v.view_count)} {v.view_count === 1 ? "view" : "views"}</td>
+                        <td style={{ padding: "9px 0" }}>
+                          <Link href={`/why/${v.id}`} style={{ color: "var(--acc)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                            {blurb.text}
+                          </Link>
+                          <div className="sub">{blurb.who}</div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-            )}
-            {!flagsActive && (flagsActive ? attention : recent).length > 0 && (
-              <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
-                Too few views to point at lessons yet. As your views grow, each row will tell you
-                which videos to study and which to fix — that&apos;s how the next upload gets more views.
-              </p>
             )}
           </div>
 

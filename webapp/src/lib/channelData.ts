@@ -21,6 +21,8 @@ export type VideoPerf = {
   views_per_day: number | null;
   ratio: number | null;
   flag: "outperformer" | "underperformer" | "typical" | null;
+  /** Views gained over the last ~7 days of snapshots; null until history exists. */
+  views_week_delta: number | null;
 };
 
 export type ChannelData = {
@@ -80,8 +82,12 @@ export async function loadChannelData(): Promise<ChannelData> {
 
   const lastUpdated = ((snaps ?? []) as { captured_at: string }[])[0]?.captured_at ?? null;
   const latestSnap = new Map<string, { view_count: number | null; views_per_day: number | null }>();
-  for (const s of (snaps ?? []) as { video_id: string; view_count: number | null; views_per_day: number | null }[]) {
+  // Oldest snapshot within the last 7 days, per video — for "what moved this week".
+  const weekAgo = Date.now() - 7 * 86_400_000;
+  const oldestRecent = new Map<string, { view_count: number | null; captured_at: string }>();
+  for (const s of (snaps ?? []) as { video_id: string; view_count: number | null; views_per_day: number | null; captured_at: string }[]) {
     if (!latestSnap.has(s.video_id)) latestSnap.set(s.video_id, s);
+    if (Date.parse(s.captured_at) >= weekAgo) oldestRecent.set(s.video_id, s); // snaps are newest-first; last write wins = oldest recent
   }
 
   const videos: VideoPerf[] = ((vids ?? []) as Omit<VideoPerf, "view_count" | "views_per_day" | "ratio" | "flag">[]).map((v) => {
@@ -90,11 +96,18 @@ export async function loadChannelData(): Promise<ChannelData> {
     const snap = latestSnap.get(v.id);
     const views = snap?.view_count ?? null;
     const ratio = views !== null && b?.median_views ? Math.round((views / b.median_views) * 100) / 100 : null;
+    const oldest = oldestRecent.get(v.id);
+    const views_week_delta =
+      views !== null && oldest?.view_count !== null && oldest !== undefined &&
+      oldest.captured_at !== (latestSnap.get(v.id) as { captured_at?: string } | undefined)?.captured_at
+        ? views - (oldest.view_count as number)
+        : null;
     return {
       ...v,
       view_count: views,
       views_per_day: snap?.views_per_day ?? null,
       ratio,
+      views_week_delta,
       // No verdicts on noise: flags only exist where the format has real signal.
       flag: !hasSignal || ratio === null
         ? null
