@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, daysAgo, type ChannelData, type VideoPerf } from "@/lib/channelData";
 import { Thumb } from "@/components/Explain";
+import { TEAM_LINES } from "@/lib/team";
 
 export default function DeskPage() {
   const supabase = supabaseBrowser();
@@ -286,7 +287,7 @@ export default function DeskPage() {
                           <Link href={`/why/${v.id}`} style={{ color: "var(--acc)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
                             {blurb.text}
                           </Link>
-                          <div className="sub">{blurb.who}</div>
+                          <div className="sub" title={TEAM_LINES[blurb.who]}>{blurb.who}</div>
                         </td>
                       </tr>
                     );

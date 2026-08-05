@@ -52,8 +52,11 @@ function mmss(s: number | null): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+import { TEAM_LINES } from "@/lib/team";
+
 function Byline({ name }: { name: string }) {
-  return <span className="k" style={{ display: "block", marginBottom: 8 }}>{name}</span>;
+  const who = name.split(" — ")[0];
+  return <span className="k" title={TEAM_LINES[who]} style={{ display: "block", marginBottom: 8 }}>{name}</span>;
 }
 
 export default function ScoutPage() {

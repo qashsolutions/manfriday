@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { TEAM_LINES } from "@/lib/team";
 
 const NAV = [
   { href: "/desk", label: "The Desk" },
@@ -17,12 +18,12 @@ const NAV = [
 ];
 
 const TEAM = [
-  { name: "Retention Analyst", st: "idle", note: "ready" },
-  { name: "Packaging Analyst", st: "idle", note: "ready" },
-  { name: "Audience Analyst", st: "idle", note: "ready" },
-  { name: "The Scout", st: "idle", note: "ready" },
-  { name: "The Researcher", st: "idle", note: "ready" },
-  { name: "The Scorekeeper", st: "idle", note: "ready" },
+  "Retention Analyst",
+  "Packaging Analyst",
+  "Audience Analyst",
+  "The Scout",
+  "The Researcher",
+  "The Scorekeeper",
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -127,11 +128,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="sect">Your team of six</div>
         <div className="team">
-          {TEAM.map((t) => (
-            <div className="an" key={t.name}>
-              <span className={`st ${t.st}`} />
-              {t.name}
-              <em>{t.note}</em>
+          {TEAM.map((name) => (
+            <div className="an" key={name} style={{ alignItems: "flex-start" }}>
+              <span className="st idle" style={{ marginTop: 5 }} />
+              <div>
+                {name}
+                <div style={{ fontSize: 10.5, color: "var(--ink3)", lineHeight: 1.35, marginTop: 1 }}>
+                  {TEAM_LINES[name]}
+                </div>
+              </div>
             </div>
           ))}
         </div>
