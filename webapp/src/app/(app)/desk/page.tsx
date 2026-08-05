@@ -194,8 +194,10 @@ export default function DeskPage() {
             {!flagsActive && (
               <div className="aside-note" style={{ margin: "10px 0 4px" }}>
                 <b>Early days — no verdicts yet, on purpose</b>
-                With videos under ~100 views, ×-comparisons are noise, not judgment. The team tracks
-                everything below; flags switch on by themselves as your numbers grow.
+                While your videos are under about 100 views, one extra viewer can double a score —
+                the numbers jump around too much to call anything a win or a miss. So we don&apos;t.
+                The team still tracks everything below, and verdicts switch on by themselves as your
+                views grow.
               </div>
             )}
 
@@ -249,14 +251,18 @@ export default function DeskPage() {
               </table>
             )}
             {(flagsActive ? attention : recent).length > 0 && (
-              <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink3)" }}>
-                &quot;Your usual&quot; is what your own videos get — about{" "}
-                {fmtNum(baselines.longform?.median_views ?? baselines.shorts?.median_views)} views right now.
-                Under 1× = fewer views than usual for you. Over 1× = more.
-                {flagsActive
-                  ? " The low ones are worth a “Why?” and the high ones are worth copying — that's where the next video gets better."
-                  : " Your numbers are still small, so treat this as a picture, not a verdict — open any video for the full story."}
-              </p>
+              <div style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
+                <p style={{ margin: 0 }}>
+                  &quot;Your usual&quot; is what your own videos get — about{" "}
+                  <b>{fmtNum(baselines.longform?.median_views ?? baselines.shorts?.median_views)} views</b> right now.
+                  Under 1× = fewer views than usual for you; over 1× = more.
+                </p>
+                <p style={{ margin: "4px 0 0" }}>
+                  {flagsActive
+                    ? "The low ones are worth a “Why?” and the high ones are worth copying — that's where the next video gets better."
+                    : "Your numbers are still small, so treat this as a picture, not a verdict — open any video for the full story."}
+                </p>
+              </div>
             )}
           </div>
 
