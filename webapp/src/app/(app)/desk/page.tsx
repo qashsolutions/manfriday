@@ -112,7 +112,14 @@ export default function DeskPage() {
     .filter((v) => { const d = daysAgo(v.published_at); return d !== null && d <= 120; })
     .sort((a, b) => (a.flag === "underperformer" ? 0 : 1) - (b.flag === "underperformer" ? 0 : 1))
     .slice(0, 5);
-  const recent = videos.slice(0, 5);
+  // Most actionable first: fixes to apply > a read to see > movement > the rest
+  // (stable sort keeps newest-first within each tier).
+  const actionPriority = (v: VideoPerf) =>
+    (openFixes.get(v.yt_video_id) ?? 0) > 0 ? 0
+    : readVerdicts.has(v.id) ? 1
+    : (v.views_week_delta ?? 0) > 0 ? 2
+    : 3;
+  const recent = [...videos].sort((a, b) => actionPriority(a) - actionPriority(b)).slice(0, 5);
 
   if (loading) return <div className="quiet">Opening the Desk…</div>;
 
