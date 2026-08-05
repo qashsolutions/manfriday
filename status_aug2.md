@@ -1,7 +1,7 @@
-# manfriday — Project Status (2026-08-03)
+# manfriday — Project Status (2026-08-04)
 
 Everything below is taken directly from the code and configuration on disk and
-from live tests executed during the build sessions of Aug 1–3, 2026. No
+from live tests executed during the build sessions of Aug 1–4, 2026. No
 projections.
 
 ## Contents
@@ -20,7 +20,8 @@ projections.
 12. [Web app design (Aug 3): mockups, evaluation, decisions](#12-web-app-design-aug-3-mockups-evaluation-decisions) — v1→v3 flow, multi-agent eval, hosting, the 3 post-build decision points
 13. [Aug 3 update — the analyst layer is live](#13-aug-3-update--the-analyst-layer-is-live-llm-analysts-via-claude-api) — 4 Claude-powered analysts, routes, tables touched, `ANTHROPIC_API_KEY`
 14. [Aug 4 update — Scorekeeper live + grounded confidence everywhere](#14-aug-4-update--scorekeeper-live--grounded-confidence-everywhere) — daily cron, arithmetic verdicts, migration 14
-15. [Aug 4 update — guide stance shipped + Scout & Researcher live](#15-aug-4-update--guide-stance-shipped--scout--researcher-live) — team of six complete, migration 15, options everywhere
+15. [Aug 4 update — guide stance shipped + Scout & Researcher live](#15-aug-4-update--guide-stance-shipped--scout--researcher-live) — team of six complete, migration 15, options everywhere; all six seats live-tested; comparison desk (own video vs any video); comments via `YOUTUBE_API_KEY`; weekly reports auto-write Mondays
+16. [Aug 4 update — the cardinal rule + Desk content pass](#16-aug-4-update--the-cardinal-rule--desk-content-pass) — every line must tell the user how to get more views; ratio jargon killed; private-thumbnail discovery
 
 ## 1. What this project is
 
@@ -756,3 +757,43 @@ a channel with real comments to exercise.
   (mailto hello@manfriday.app — create that alias); ideas empty-state
   points to the comparison desk. Remaining opens: onboarding polish,
   pricing screens (pricing parked by user decision).
+
+## 16. Aug 4 update — the cardinal rule + Desk content pass
+
+**THE CARDINAL RULE (user-set, non-negotiable, now in CLAUDE.md):** every
+single line of product copy MUST state its value to the user — how it helps
+them increase views / improve content, and therefore revenue. A line either
+tells the user how to get more views, or honestly explains why we can't tell
+them yet. Anything else is faff and gets deleted. No measurement jargon
+(×-ratios, medians, "baselines") in user-facing copy — plain words that say
+what to DO.
+
+**Page-by-page content review started with the user (the Desk done,
+commits a8fd227 → 0c329af, all verified live):**
+- "Updated from your YouTube numbers" → italic + real last-pull timestamp.
+- Objective line under the headline: "Today's numbers, today's one thing
+  to do."
+- Team track record card shows the value: verdict tallies once they exist
+  ("3/5 worked · …"), else "N waiting — every tip you apply gets checked
+  against your real numbers", linking to the Ledger.
+- **The ratio notation is dead.** After three review rounds it was still
+  meaningless to the user — the fix was never phrasing, it was purpose.
+  The column is a lesson-router and now says so: "did something right —
+  study it" / "fell short — find out why" / "typical for you" (header:
+  "What it tells you"). In early days it shows plain facts ("1 view vs
+  your usual 12") plus one honest line — no fake judgment. Same treatment
+  on the why-list page.
+- Measuring stick card: full width, two sentences, the user's own number
+  ("That's your bar. Beat it and you've genuinely done better").
+- "Your team is on duty" → "What your team can do for you right now":
+  five outcome-first links with analyst bylines.
+- Every row always has an action (Open / Why? / What worked?).
+- **Discovery: 11 of the test channel's 14 videos are PRIVATE** — private
+  videos only get short-lived signed thumbnail URLs from the API (that's
+  why images "disappeared overnight"). Thumb component now falls back to a
+  clean grey block on load failure; daily cron re-fetches fresh URLs.
+- Plain-English rewrites of both early-days notes (Desk + why list).
+
+**Still to review page-by-page:** why detail, Titles & thumbnails, Idea
+list, Compare with any video, Research a topic, Ledger, Reports, Settings,
+Profile, landing page.

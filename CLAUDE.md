@@ -42,6 +42,19 @@ light background. Users meet a "team of six" analysts — never tech jargon.
 
 ## Guide stance (Aug 4 — applies to every analyst and all product copy)
 
+**THE CARDINAL RULE (Aug 4, user-set, non-negotiable, overrides everything
+below when in tension):** every single line of product copy MUST be about
+the value it provides to the user — how it helps them **increase views /
+improve their content, and therefore revenue**. That is the ONLY focus.
+A line either tells the user how to get more views, or honestly explains
+why we can't tell them yet. Anything else is faff — delete it. Corollaries:
+no measurement jargon in user-facing copy (no "×-ratios", "medians",
+"baselines" — say "your usual video gets about 12 views"); numbers never
+stand alone (a number without the action it points to is meaningless);
+UI elements exist to route the user to their next views-improving action
+(e.g. the video list's comparison column is a lesson-router: "did something
+right — study it" / "fell short — find out why"), not to display metrics.
+
 manfriday is a **guide, not an oracle**. Locked principles:
 
 - **Options, never one tip.** Every analyst offers 2–3 typed choices (the
