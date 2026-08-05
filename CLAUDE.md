@@ -126,7 +126,57 @@ calls Claude Opus 5 via `webapp/src/lib/server/claude.ts` and needs
 `ANTHROPIC_API_KEY` + `YOUTUBE_API_KEY` (both server-only, in Vercel +
 `webapp/.env.local` — the YT key reads public comments; the readonly OAuth
 scope can't). Still open: onboarding polish, pricing screens (pricing
-itself parked by user decision). API hard limits to respect in ALL product
-work: no thumbnail impressions/CTR, no audience overlap, no
-best-time-to-publish, no search-volume trends — status_aug2.md §12 lists
-the verified substitutions.
+itself parked by user decision). API limits to respect in ALL product
+work: thumbnail impressions/CTR ARE available (since Jan 15, 2026) via
+YouTube Reporting API reach jobs — `channel_reach_basic_a1` /
+`channel_reach_combined_a1` with `video_thumbnail_impressions` and
+`video_thumbnail_impressions_ctr`
+(developers.google.com/youtube/reporting/revision_history) — but data
+accrues only from job creation, so create reach jobs at channel connect
+(see the status_aug2.md roadmap). Still genuinely absent: audience overlap,
+best-time-to-publish, search-volume trends — status_aug2.md §12 lists the
+verified substitutions.
+
+## Session discipline (2026-08-05 — every session, every task)
+
+1. **Plan-gate.** Before any edit: list the files you will touch and what
+   changes in each, then wait for an explicit "GO". No edits before GO.
+2. **Scope is a contract.** Touch only files in the task's allowlist. If
+   anything outside it seems necessary, STOP, record it in your report
+   under "blocked on", and ask. Never "improve" adjacent code, rename,
+   reformat, or refactor beyond the task.
+3. **No git writes, no deploys.** Never run git add/commit/push, vercel,
+   or supabase db push. The user reviews diffs and commits.
+4. **Frozen unless a task explicitly grants it:** package.json
+   dependencies; supabase/migrations (mirror rule applies when granted);
+   youtube-mcp/server.py; model strings in webapp/src/lib/server/claude.ts;
+   .env*; everything on the never-commit list above. Never copy content
+   from deck/findings.md or deck/two-steps.md into committed files —
+   product copy must stand alone.
+5. **Done = the task's acceptance criteria verified, not "it compiles."**
+   Always run the repo's build. For UI work: run the app, screenshot every
+   changed screen at 1440px and 390px, open and LOOK at the screenshots,
+   critique them against webapp/DESIGN.md (especially the anti-checklist),
+   iterate at least twice, keep the final screenshots and cite their paths.
+6. **Copy checklist — every user-visible string:**
+   - States what the user gains, via the chain: better content → viewers
+     stay → YouTube shows it more → more views → revenue. A line that
+     can't point at one link of that chain gets deleted.
+   - Every number is welded to the action it points to. No naked numbers.
+   - Banned in UI: median, baseline, ratio, quartile, delta, metric, KPI,
+     dashboard, optimize, insight(s), leverage, AI-powered. Translate:
+     baseline → "your normal"; retention → "how long viewers stay";
+     CTR → "how often people click when YouTube shows it"; traffic
+     source → "how viewers found it".
+   - Decisions ship as 2–3 typed options with effort tags — choices,
+     never orders.
+   - No invented numbers. Ranges with a named source only. Demo or
+     illustrative data always carries a visible "sample" label.
+   - Never self-grade output ("powerful", "aha", "game-changing").
+     Verdicts belong to the Scorekeeper, afterward.
+7. **Report at session end:** (a) files changed, one line each; (b) what
+   was explicitly NOT done; (c) deviations from the approved plan —
+   target zero, each one explained; (d) screenshot paths; (e) blocked-on
+   items and open questions. Describe outputs plainly; no self-praise.
+8. **Uncertain → stop and ask.** A question costs a minute; a wrong
+   guess costs a session.

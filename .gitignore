@@ -20,6 +20,8 @@ __pycache__/
 # strategy research — local only, never commit
 deck/findings.md
 deck/mockup-eval.md
+deck/two-steps.md
+FLOW-REVIEW.md
 
 # build artifacts
 .next/
