@@ -253,9 +253,9 @@ export default function DeskPage() {
             {(flagsActive ? attention : recent).length > 0 && (
               <div style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
                 <p style={{ margin: 0 }}>
-                  &quot;Your usual&quot; is what your own videos get — about{" "}
-                  <b>{fmtNum(baselines.longform?.median_views ?? baselines.shorts?.median_views)} views</b> right now.
-                  Under 1× = fewer views than usual for you; over 1× = more.
+                  &quot;Your usual video&quot; gets about{" "}
+                  <b>{fmtNum(baselines.longform?.median_views ?? baselines.shorts?.median_views)} views</b> right now —
+                  the line on each bar marks it.
                 </p>
                 <p style={{ margin: "4px 0 0" }}>
                   {flagsActive

@@ -50,21 +50,29 @@ export function Thumb({ url, alt }: { url: string | null; alt: string }) {
   return <img src={url} alt={alt} style={base} loading="lazy" onError={() => setBroken(true)} />;
 }
 
-/** Small horizontal ratio bar: this video vs the channel's normal (1.0×).
-    muted = thin-data mode: the ratio renders as context, never as a verdict color. */
+/** How a video did against the channel's own usual, in plain words. The small
+    bar is the picture (tick = your usual); the words carry the meaning.
+    muted = thin-data mode: context colors only, never verdict colors. */
 export function RatioBar({ ratio, muted }: { ratio: number | null; muted?: boolean }) {
   if (ratio === null) return <span style={{ color: "var(--ink3)" }}>—</span>;
+  const label =
+    ratio === 0 ? "no views yet"
+    : ratio < 0.5 ? "well below your usual"
+    : ratio < 0.85 ? "below your usual"
+    : ratio <= 1.2 ? "about your usual"
+    : ratio < 2 ? "above your usual"
+    : "well above your usual";
   const max = 3;
   const pct = Math.min(ratio, max) / max * 100;
-  const color = muted ? "var(--ink3)" : ratio >= 2 ? "var(--good)" : ratio <= 0.5 ? "var(--crit)" : "var(--ink3)";
+  const color = muted ? "var(--ink2)" : ratio >= 2 ? "var(--good)" : ratio <= 0.5 ? "var(--crit)" : "var(--ink2)";
   const normalPct = (1 / max) * 100;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 130 }}>
-      <div style={{ position: "relative", flex: 1, height: 6, borderRadius: 3, background: "var(--line2)" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 130 }} title={`${ratio}× your usual video`}>
+      <div style={{ position: "relative", flex: 1, minWidth: 60, height: 6, borderRadius: 3, background: "var(--line2)" }}>
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, borderRadius: 3, background: color }} />
-        <div title="your normal (1×)" style={{ position: "absolute", left: `${normalPct}%`, top: -2, bottom: -2, width: 2, background: "var(--ink3)", opacity: .6 }} />
+        <div title="your usual" style={{ position: "absolute", left: `${normalPct}%`, top: -2, bottom: -2, width: 2, background: "var(--ink3)", opacity: .6 }} />
       </div>
-      <span className="num" style={{ fontSize: 11.5, color, width: 38, textAlign: "right" }}>{ratio}×</span>
+      <span style={{ fontSize: 11.5, color, whiteSpace: "nowrap" }}>{label}</span>
     </div>
   );
 }

@@ -38,7 +38,7 @@ export default function WhyPage() {
         <div className="card">
           <table className="t">
             <thead>
-              <tr>{["Video", "Views", "vs normal", ""].map((h) => <th key={h}>{h}</th>)}</tr>
+              <tr>{["Video", "Views", "How it did vs your usual video", ""].map((h) => <th key={h}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {data.videos.map((v) => (
