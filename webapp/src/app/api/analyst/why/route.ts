@@ -119,7 +119,8 @@ export async function POST(req: Request) {
   try {
     const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
 
-    const [snippetData, traffic, comments, ret, { data: blRows }, { data: snapRows }] = await Promise.all([
+    const titleWords = String(video.title ?? "").toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter((w) => w.length > 2);
+    const [snippetData, traffic, comments, ret, { data: blRows }, { data: snapRows }, phrases, grounding] = await Promise.all([
       yt(`videos?part=snippet&id=${encodeURIComponent(ytVideoId)}`, access).catch(() => ({} as Record<string, unknown>)),
       fetchTrafficSources(access, ytVideoId),
       fetchVideoComments(access, ytVideoId, 15),
@@ -128,6 +129,8 @@ export async function POST(req: Request) {
         .eq("channel_id", video.channel_id).order("computed_at", { ascending: false }).limit(10),
       svc.from("video_snapshots").select("view_count,views_per_day,captured_at")
         .eq("video_id", video.id).order("captured_at", { ascending: false }).limit(1),
+      titleWords.length ? typedPhrases(titleWords.slice(0, 4).join(" ")) : Promise.resolve([]),
+      analystGrounding(svc, user.id),
     ]);
     const snippet = (snippetData.items as Record<string, any>[] | undefined)?.[0]?.snippet ?? {};
     const fmt = video.is_short ? "shorts" : "longform";
@@ -135,10 +138,6 @@ export async function POST(req: Request) {
       .find((b) => b.format === fmt);
     const snap = (snapRows ?? [])[0] as { view_count: number | null; views_per_day: number | null } | undefined;
     const winners = (baseline?.videos ?? []).filter((v) => v.flag === "outperformer").slice(0, 4);
-
-    const words = String(video.title ?? "").toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter((w) => w.length > 2);
-    const phrases = words.length ? await typedPhrases(words.slice(0, 4).join(" ")) : [];
-
     const dur = video.duration_seconds as number | null;
     const dropsText = ret?.drops?.length
       ? ret.drops.map((d, i) => `Drop ${i + 1} at ${atLabel(d.x, dur)}: lost ${Math.round(d.delta * 100)} of every 100 remaining viewers`).join("; ")
@@ -183,6 +182,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       system: `You are the team of six at manfriday (${AGENTS.join(", ")}), answering ONE question together: why did this video get the views it got? Rank only reasons the given data supports, attribute each to the right analyst, then argue against yourselves honestly in devils_advocate — the boring explanation (channel size, video age, nobody searched this) often wins, and saying so IS the service. Then give the single next step. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
+      maxTokens: 6000,
     });
 
     const { data: report, error: rErr } = await svc

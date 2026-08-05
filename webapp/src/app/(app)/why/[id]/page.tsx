@@ -127,9 +127,13 @@ export default function WhyDetailPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
         body: JSON.stringify({ video: ytVideoId }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "The team's read couldn't finish.");
-      setWhyReport({ id: j.report.id, created_at: j.report.created_at, data: j.analysis });
+      const raw = await r.text();
+      let j: { error?: string; report?: { id: string; created_at: string }; analysis?: WhyData };
+      try { j = JSON.parse(raw); } catch {
+        throw new Error("The team's read took too long — try again in a moment.");
+      }
+      if (!r.ok || !j.report) throw new Error(j.error ?? "The team's read couldn't finish.");
+      setWhyReport({ id: j.report.id, created_at: j.report.created_at, data: j.analysis ?? null });
     } catch (e) {
       setWhyErr(e instanceof Error ? e.message : "The team's read couldn't finish.");
     } finally {
