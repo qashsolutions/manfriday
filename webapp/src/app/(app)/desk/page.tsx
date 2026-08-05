@@ -210,7 +210,7 @@ export default function DeskPage() {
                     <th style={{ padding: "0 10px 4px 0" }}></th>
                     <th style={{ padding: "0 10px 4px" }}></th>
                     <th style={{ padding: "0 0 4px", fontSize: 10.5, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--ink3)", textAlign: "left" }}>
-                      vs your normal (1× = typical)
+                      how it did vs your usual video
                     </th>
                     <th></th>
                   </tr>
@@ -235,11 +235,12 @@ export default function DeskPage() {
                         <RatioBar ratio={v.ratio} muted={!flagsActive} />
                       </td>
                       <td style={{ padding: "9px 0 9px 10px" }}>
-                        {v.flag === "underperformer" && (
+                        {v.flag === "underperformer" ? (
                           <Link href={`/why/${v.id}`} className="btn btn-acc btn-sm">Why?</Link>
-                        )}
-                        {v.flag === "outperformer" && (
+                        ) : v.flag === "outperformer" ? (
                           <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">What worked?</Link>
+                        ) : (
+                          <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">Open</Link>
                         )}
                       </td>
                     </tr>
@@ -247,15 +248,29 @@ export default function DeskPage() {
                 </tbody>
               </table>
             )}
+            {(flagsActive ? attention : recent).length > 0 && (
+              <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink3)" }}>
+                &quot;Your usual&quot; is what your own videos get — about{" "}
+                {fmtNum(baselines.longform?.median_views ?? baselines.shorts?.median_views)} views right now.
+                Under 1× = fewer views than usual for you. Over 1× = more.
+                {flagsActive
+                  ? " The low ones are worth a “Why?” and the high ones are worth copying — that's where the next video gets better."
+                  : " Your numbers are still small, so treat this as a picture, not a verdict — open any video for the full story."}
+              </p>
+            )}
           </div>
 
           {(baselines.longform || baselines.shorts) && (
             <div className="card" style={{ marginTop: 14 }}>
               <h4 style={{ margin: "0 0 4px", fontSize: 13.5 }}>Your measuring stick</h4>
-              <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "var(--ink2)", maxWidth: "68ch" }}>
-                What a typical upload of yours gets — full videos and Shorts measured separately,
-                because YouTube treats them separately. Every ×-number in the app compares a video
-                against the right one of these bars, so a real win is never confused with a big-video illusion.
+              <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "var(--ink2)" }}>
+                {baselines.longform
+                  ? <>A full video of yours usually gets about <b>{fmtNum(baselines.longform.median_views)} views</b>{baselines.shorts ? <> — a Short about <b>{fmtNum(baselines.shorts.median_views)}</b></> : null}. That&apos;s your bar.{" "}</>
+                  : baselines.shorts
+                    ? <>A Short of yours usually gets about <b>{fmtNum(baselines.shorts.median_views)} views</b>. That&apos;s your bar.{" "}</>
+                    : null}
+                Beat it and you&apos;ve genuinely done better — no comparing yourself with big channels.
+                When a video clears the bar, the team digs into why, so you can do it again on purpose.
               </p>
               {(["longform", "shorts"] as const).map((fmt) => {
                 const b = baselines[fmt];
