@@ -212,7 +212,7 @@ export default function DeskPage() {
                     <th style={{ padding: "0 10px 4px 0" }}></th>
                     <th style={{ padding: "0 10px 4px" }}></th>
                     <th style={{ padding: "0 0 4px", fontSize: 10.5, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--ink3)", textAlign: "left" }}>
-                      how it did vs your usual video
+                      {flagsActive ? "what it tells you" : "views vs your usual"}
                     </th>
                     <th></th>
                   </tr>
@@ -234,7 +234,12 @@ export default function DeskPage() {
                       </td>
                       <td className="num" style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{fmtNum(v.view_count)} {v.view_count === 1 ? "view" : "views"}</td>
                       <td style={{ padding: "9px 0", minWidth: 150 }}>
-                        <RatioBar ratio={v.ratio} muted={!flagsActive} />
+                        <RatioBar
+                          ratio={v.ratio}
+                          muted={!flagsActive}
+                          views={v.view_count}
+                          usual={(v.is_short ? baselines.shorts : baselines.longform)?.median_views ?? null}
+                        />
                       </td>
                       <td style={{ padding: "9px 0 9px 10px" }}>
                         {v.flag === "underperformer" ? (
@@ -250,19 +255,11 @@ export default function DeskPage() {
                 </tbody>
               </table>
             )}
-            {(flagsActive ? attention : recent).length > 0 && (
-              <div style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
-                <p style={{ margin: 0 }}>
-                  &quot;Your usual video&quot; gets about{" "}
-                  <b>{fmtNum(baselines.longform?.median_views ?? baselines.shorts?.median_views)} views</b> right now —
-                  the line on each bar marks it.
-                </p>
-                <p style={{ margin: "4px 0 0" }}>
-                  {flagsActive
-                    ? "The low ones are worth a “Why?” and the high ones are worth copying — that's where the next video gets better."
-                    : "Your numbers are still small, so treat this as a picture, not a verdict — open any video for the full story."}
-                </p>
-              </div>
+            {!flagsActive && (flagsActive ? attention : recent).length > 0 && (
+              <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
+                Too few views to point at lessons yet. As your views grow, each row will tell you
+                which videos to study and which to fix — that&apos;s how the next upload gets more views.
+              </p>
             )}
           </div>
 

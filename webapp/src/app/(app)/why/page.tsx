@@ -30,15 +30,16 @@ export default function WhyPage() {
         <>
         {!data.flagsActive && (
           <div className="aside-note" style={{ marginBottom: 12 }}>
-            <b>Early days — ratios shown as context, not verdicts</b>
-            Until your videos regularly pass ~100 views, the ×-numbers below are too small to judge.
-            They firm up on their own as your channel grows.
+            <b>Early days — too few views to point at lessons yet</b>
+            While your videos are under about 100 views, one extra viewer can flip a row, so we
+            don&apos;t call wins or misses. As your views grow, each row will tell you which videos
+            to study and which to fix — that&apos;s how the next upload gets more views.
           </div>
         )}
         <div className="card">
           <table className="t">
             <thead>
-              <tr>{["Video", "Views", "How it did vs your usual video", ""].map((h) => <th key={h}>{h}</th>)}</tr>
+              <tr>{["Video", "Views", data.flagsActive ? "What it tells you" : "Views vs your usual", ""].map((h) => <th key={h}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {data.videos.map((v) => (
@@ -57,7 +58,12 @@ export default function WhyPage() {
                   </td>
                   <td className="num">{fmtNum(v.view_count)}</td>
                   <td style={{ minWidth: 150 }}>
-                    <RatioBar ratio={v.ratio} muted={!data.flagsActive} />
+                    <RatioBar
+                      ratio={v.ratio}
+                      muted={!data.flagsActive}
+                      views={v.view_count}
+                      usual={(v.is_short ? data.baselines.shorts : data.baselines.longform)?.median_views ?? null}
+                    />
                   </td>
                   <td>
                     <Link href={`/why/${v.id}`} className="btn btn-ghost btn-sm">Open</Link>
@@ -68,8 +74,8 @@ export default function WhyPage() {
           </table>
           <Explain
             why="Raw views lie — 5,000 views is a win for one channel and a flop for another."
-            how="Each bar is this video against your own median for its format (the tick is your normal, 1×). Shorts and full videos are never mixed."
-            what="Open the red ones to see where viewers left; study the green ones — they're your patterns to repeat."
+            how="Each video is compared with what YOUR uploads usually get. Shorts and full videos are never mixed."
+            what="Open a 'fell short' video to see where viewers left; study the 'did something right' ones — they're your patterns to repeat."
           />
         </div>
         </>
