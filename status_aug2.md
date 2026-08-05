@@ -764,9 +764,12 @@ a channel with real comments to exercise.
 single line of product copy MUST state its value to the user — how it helps
 them increase views / improve content, and therefore revenue. A line either
 tells the user how to get more views, or honestly explains why we can't tell
-them yet. Anything else is faff and gets deleted. No measurement jargon
-(×-ratios, medians, "baselines") in user-facing copy — plain words that say
-what to DO.
+them yet. Anything else is faff and gets deleted. Metrics may appear
+ONLY in simple English and with why they matter spelled out — the chain is
+always: better content → viewers stay longer → YouTube shows it to more
+people → more views → more subscribers → revenue. Every metric shown must
+point at one link of that chain; no raw jargon (×-ratios, medians,
+"baselines"), plain words that say what to DO.
 
 **Page-by-page content review started with the user (the Desk done,
 commits a8fd227 → 0c329af, all verified live):**

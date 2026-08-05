@@ -48,12 +48,20 @@ the value it provides to the user — how it helps them **increase views /
 improve their content, and therefore revenue**. That is the ONLY focus.
 A line either tells the user how to get more views, or honestly explains
 why we can't tell them yet. Anything else is faff — delete it. Corollaries:
-no measurement jargon in user-facing copy (no "×-ratios", "medians",
-"baselines" — say "your usual video gets about 12 views"); numbers never
-stand alone (a number without the action it points to is meaningless);
-UI elements exist to route the user to their next views-improving action
-(e.g. the video list's comparison column is a lesson-router: "did something
-right — study it" / "fell short — find out why"), not to display metrics.
+- **Metrics must earn their place.** A metric may appear ONLY in simple
+  English AND with why it matters spelled out — the chain is always:
+  better content → viewers stay longer (retention/watch time) → YouTube
+  shows it to more people → more views → more subscribers → revenue.
+  Every metric shown must point at one link of that chain ("where viewers
+  stop watching" → keep them longer; "views vs your usual" → which videos
+  to copy or fix; "what people type" → titles that get found).
+- No raw jargon: not "×-ratio"/"median"/"baseline" but "your usual video
+  gets about 12 views". Numbers never stand alone — a number without the
+  action it points to is meaningless.
+- UI elements exist to route the user to their next views-improving action
+  (e.g. the video list's comparison column is a lesson-router: "did
+  something right — study it" / "fell short — find out why"), not to
+  display metrics.
 
 manfriday is a **guide, not an oracle**. Locked principles:
 
