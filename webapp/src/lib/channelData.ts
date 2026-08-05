@@ -29,6 +29,8 @@ export type ChannelData = {
   videos: VideoPerf[];
   /** false = the channel's numbers are too small for ×-comparisons to mean anything yet */
   flagsActive: boolean;
+  /** When the numbers were last pulled from YouTube (newest snapshot). */
+  lastUpdated: string | null;
 };
 
 /** Flags only mean something once a format has a real sample and real views. */
@@ -41,7 +43,7 @@ function formatHasSignal(b: Baseline | undefined): boolean {
 export async function loadChannelData(): Promise<ChannelData> {
   const supabase = supabaseBrowser();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { channel: null, baselines: {}, videos: [], flagsActive: false };
+  if (!user) return { channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null };
 
   const { data: chans } = await supabase
     .from("channels")
@@ -49,7 +51,7 @@ export async function loadChannelData(): Promise<ChannelData> {
     .eq("is_owned", true)
     .limit(1);
   const channel = (chans?.[0] as ChannelData["channel"]) ?? null;
-  if (!channel) return { channel: null, baselines: {}, videos: [], flagsActive: false };
+  if (!channel) return { channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null };
 
   const [{ data: bl }, { data: vids }, { data: snaps }] = await Promise.all([
     supabase
@@ -76,6 +78,7 @@ export async function loadChannelData(): Promise<ChannelData> {
     if (!baselines[b.format]) baselines[b.format] = b;
   }
 
+  const lastUpdated = ((snaps ?? []) as { captured_at: string }[])[0]?.captured_at ?? null;
   const latestSnap = new Map<string, { view_count: number | null; views_per_day: number | null }>();
   for (const s of (snaps ?? []) as { video_id: string; view_count: number | null; views_per_day: number | null }[]) {
     if (!latestSnap.has(s.video_id)) latestSnap.set(s.video_id, s);
@@ -100,7 +103,7 @@ export async function loadChannelData(): Promise<ChannelData> {
   });
 
   const flagsActive = formatHasSignal(baselines.longform) || formatHasSignal(baselines.shorts);
-  return { channel, baselines, videos, flagsActive };
+  return { channel, baselines, videos, flagsActive, lastUpdated };
 }
 
 /** Days since publish; null when unknown. */

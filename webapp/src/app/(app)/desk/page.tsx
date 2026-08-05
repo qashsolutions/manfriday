@@ -4,14 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, daysAgo, type ChannelData } from "@/lib/channelData";
-import { Explain, RatioBar, Thumb } from "@/components/Explain";
+import { RatioBar, Thumb } from "@/components/Explain";
 
 export default function DeskPage() {
   const supabase = supabaseBrowser();
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
-  const [data, setData] = useState<ChannelData>({ channel: null, baselines: {}, videos: [], flagsActive: false });
-  const [openTips, setOpenTips] = useState(0);
+  const [data, setData] = useState<ChannelData>({ channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null });
+  const [ledger, setLedger] = useState({ open: 0, worked: 0, mixed: 0, failed: 0 });
   const [running, setRunning] = useState(false);
   const [runErr, setRunErr] = useState<string | null>(null);
   const [tuneHidden, setTuneHidden] = useState(true);
@@ -26,11 +26,17 @@ export default function DeskPage() {
     const [prof, cd, recs] = await Promise.all([
       supabase.from("profiles").select("paused_at").eq("id", user.id).maybeSingle(),
       loadChannelData(),
-      supabase.from("recommendations").select("id", { count: "exact", head: true }).eq("status", "open"),
+      supabase.from("recommendations").select("status,verdict"),
     ]);
     setPaused(Boolean(prof.data?.paused_at));
     setData(cd);
-    setOpenTips(recs.count ?? 0);
+    const rows = (recs.data ?? []) as { status: string; verdict: string | null }[];
+    setLedger({
+      open: rows.filter((r) => r.status === "open").length,
+      worked: rows.filter((r) => r.verdict === "worked").length,
+      mixed: rows.filter((r) => r.verdict === "mixed").length,
+      failed: rows.filter((r) => r.verdict === "failed").length,
+    });
     setLoading(false);
   }, [supabase]);
 
@@ -75,11 +81,19 @@ export default function DeskPage() {
         <h1>The Desk</h1>
         <span className="when">{today}</span>
         {hasBaseline && (
-          <span className="byline" style={{ marginLeft: "auto" }}>
-            <i />Updated from your YouTube numbers
+          <span style={{ marginLeft: "auto", fontStyle: "italic", fontSize: 12, color: "var(--ink3)" }}>
+            Updated from your YouTube numbers
+            {data.lastUpdated
+              ? ` · ${new Date(data.lastUpdated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
+              : ""}
           </span>
         )}
       </div>
+      {hasBaseline && (
+        <p style={{ margin: "-6px 0 14px", fontSize: 13, color: "var(--ink2)" }}>
+          Today&apos;s numbers, today&apos;s one thing to do.
+        </p>
+      )}
 
       {paused && (
         <div className="banner">
@@ -149,8 +163,23 @@ export default function DeskPage() {
             </div>
             <div className="card stat">
               <span className="k">Team track record</span>
-              <div className="big num">{openTips} open</div>
-              <span className="delta fl">your first verdict lands a few days after you apply a tip</span>
+              {ledger.worked + ledger.mixed + ledger.failed > 0 ? (
+                <>
+                  <div className="big num">{ledger.worked}/{ledger.worked + ledger.mixed + ledger.failed} worked</div>
+                  <span className="delta fl">
+                    mixed {ledger.mixed} · didn&apos;t {ledger.failed} · {ledger.open} open —{" "}
+                    <Link href="/ledger" style={{ color: "var(--acc)" }}>see the Ledger</Link>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="big num">{ledger.open} waiting</div>
+                  <span className="delta fl">
+                    every tip you apply gets checked against your real numbers —{" "}
+                    <Link href="/ledger" style={{ color: "var(--acc)" }}>see them</Link>
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -159,7 +188,7 @@ export default function DeskPage() {
               <h4 style={{ margin: 0, fontSize: 13.5 }}>
                 {flagsActive ? "Needs your attention" : "Your recent videos"}
               </h4>
-              <Link href="/why" style={{ fontSize: 12, color: "var(--acc)" }}>all videos →</Link>
+              <Link href="/why" style={{ fontSize: 12, color: "var(--acc)", textDecoration: "none" }}>All your videos</Link>
             </div>
 
             {!flagsActive && (
@@ -176,6 +205,16 @@ export default function DeskPage() {
               </p>
             ) : (
               <table className="t rowed" style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: "0 10px 4px 0" }}></th>
+                    <th style={{ padding: "0 10px 4px" }}></th>
+                    <th style={{ padding: "0 0 4px", fontSize: 10.5, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--ink3)", textAlign: "left" }}>
+                      vs your normal (1× = typical)
+                    </th>
+                    <th></th>
+                  </tr>
+                </thead>
                 <tbody>
                   {(flagsActive ? attention : recent).map((v) => (
                     <tr key={v.id}>
@@ -212,7 +251,12 @@ export default function DeskPage() {
 
           {(baselines.longform || baselines.shorts) && (
             <div className="card" style={{ marginTop: 14 }}>
-              <h4 style={{ margin: "0 0 10px", fontSize: 13.5 }}>Your two normals</h4>
+              <h4 style={{ margin: "0 0 4px", fontSize: 13.5 }}>Your measuring stick</h4>
+              <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "var(--ink2)", maxWidth: "68ch" }}>
+                What a typical upload of yours gets — full videos and Shorts measured separately,
+                because YouTube treats them separately. Every ×-number in the app compares a video
+                against the right one of these bars, so a real win is never confused with a big-video illusion.
+              </p>
               {(["longform", "shorts"] as const).map((fmt) => {
                 const b = baselines[fmt];
                 if (!b) return null;
@@ -236,22 +280,27 @@ export default function DeskPage() {
                   </div>
                 );
               })}
-              <Explain
-                why="YouTube ranks Shorts and full videos separately — one shared average would mislead you on both."
-                how="Median views of your recent uploads, per format. Medians ignore one-off spikes."
-                what="Every video is judged against its own format's bar — that's what the ×-numbers everywhere mean."
-              />
             </div>
           )}
 
           <div className="card" style={{ marginTop: 14 }}>
-            <span className="k">Your team is on duty</span>
-            <p style={{ color: "var(--ink2)", margin: "8px 0 0", fontSize: 13 }}>
-              Open any video for the <Link href="/why" style={{ color: "var(--acc)" }}>Retention Analyst&apos;s read</Link>,
-              grade your next <Link href="/packaging" style={{ color: "var(--acc)" }}>title</Link>,
-              have the <Link href="/ideas" style={{ color: "var(--acc)" }}>Audience Analyst read your comments</Link>,
-              or ask for <Link href="/reports" style={{ color: "var(--acc)" }}>this week&apos;s report</Link>.
-            </p>
+            <span className="k">What your team can do for you right now</span>
+            <div style={{ display: "grid", gap: 9, marginTop: 10 }}>
+              {[
+                { href: "/why", text: "Find the exact second viewers quit your last video", who: "Retention Analyst" },
+                { href: "/packaging", text: "Know which title wins — before you publish", who: "Packaging Analyst" },
+                { href: "/ideas", text: "Get video ideas your viewers have already asked for", who: "Audience Analyst" },
+                { href: "/scout", text: "See why a video like yours got more views — and what's yours to take", who: "The Scout" },
+                { href: "/reports", text: "Your week in two minutes, with the one decision it needs", who: "The Team" },
+              ].map((r) => (
+                <div key={r.href} style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                  <Link href={r.href} style={{ color: "var(--acc)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                    {r.text}
+                  </Link>
+                  <span className="sub" style={{ marginLeft: "auto" }}>{r.who}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </>
       )}

@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 /** One-line why/how/what caption under a visual. Keep each part to a phrase. */
 export function Explain({ why, how, what }: { why?: string; how?: string; what?: string }) {
   const Item = ({ label, text }: { label: string; text?: string }) =>
@@ -32,15 +36,18 @@ export function WrongClaim({ context }: { context: string }) {
   );
 }
 
-/** Video thumbnail with a quiet fallback block. */
+/** Video thumbnail with a quiet fallback block — also used when the image
+    fails to load (private videos only get short-lived preview URLs from
+    YouTube; they refresh with the daily data pull). */
 export function Thumb({ url, alt }: { url: string | null; alt: string }) {
+  const [broken, setBroken] = useState(false);
   const base: React.CSSProperties = {
     width: 66, height: 37, borderRadius: 5, flex: "none", objectFit: "cover",
     background: "var(--line2)", display: "block",
   };
-  if (!url) return <span style={base} aria-hidden />;
+  if (!url || broken) return <span style={base} aria-hidden />;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt={alt} style={base} loading="lazy" />;
+  return <img src={url} alt={alt} style={base} loading="lazy" onError={() => setBroken(true)} />;
 }
 
 /** Small horizontal ratio bar: this video vs the channel's normal (1.0×).
