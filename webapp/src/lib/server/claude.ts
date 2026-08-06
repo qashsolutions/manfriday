@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { anthropicClient } from "./anthropicClient";
 
 /** Server-side Claude access for the analyst team. One entry point: a system
     prompt + user material in, schema-validated JSON out. */
@@ -67,7 +68,7 @@ type AnalystArgs = {
     refusal or malformed output; callers surface it to the UI as-is. */
 export async function analystJson<T>({ system, user, schema, maxTokens = 16000 }: AnalystArgs): Promise<T> {
   if (!claudeConfigured()) throw new Error("The analyst service isn't configured on this deployment yet.");
-  const client = new Anthropic();
+  const client = anthropicClient();
 
   const response = await client.beta.messages.create({
     model: "claude-opus-5",
