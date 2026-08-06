@@ -1,12 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
+import { Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 import { TEAM, agentNames, sentenceCase } from "@/lib/team";
+
+type StreamEvent =
+  | { t: "stage"; m: string }
+  | { t: "prose"; d: string }
+  | { t: "error"; error: string }
+  | { t: "done"; report: Report; takeaways: Takeaway[] };
+
+/** The analyst routes answer in newline-delimited JSON so the read can be shown
+    while it is still being written. */
+async function* readEvents(body: ReadableStream<Uint8Array>): AsyncGenerator<StreamEvent> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) !== -1) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (line) yield JSON.parse(line) as StreamEvent;
+    }
+  }
+  const tail = buf.trim();
+  if (tail) yield JSON.parse(tail) as StreamEvent;
+}
 
 type Report = { id: string; title: string; body_md: string; created_at: string };
 type Takeaway = {
@@ -32,11 +60,36 @@ export default function ResearchPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [takeaways, setTakeaways] = useState<Takeaway[]>([]);
   const [logged, setLogged] = useState<Set<string>>(new Set());
+  const [stages, setStages] = useState<string[]>([]);
+  const [prose, setProse] = useState("");
+
+  // Prose lands token by token; repaint on a short beat instead, so a long read
+  // doesn't cost one re-render per word.
+  const pending = useRef("");
+  const beat = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function showProse(delta: string) {
+    pending.current += delta;
+    if (beat.current) return;
+    beat.current = setTimeout(() => {
+      beat.current = null;
+      setProse((p) => p + pending.current);
+      pending.current = "";
+    }, 60);
+  }
+  function flushProse() {
+    if (beat.current) { clearTimeout(beat.current); beat.current = null; }
+    if (pending.current) { setProse((p) => p + pending.current); pending.current = ""; }
+  }
 
   async function research() {
     setErr(null);
     setWorking(true);
     setLogged(new Set());
+    setReport(null);
+    setTakeaways([]);
+    setProse("");
+    pending.current = "";
+    setStages([`${sentenceCase(TEAM.researcher.name)} is picking up your question…`]);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/research", {
@@ -44,10 +97,26 @@ export default function ResearchPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
         body: JSON.stringify({ query }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "The research couldn't finish.");
-      setReport(j.report);
-      const t = (j.takeaways ?? []) as Takeaway[];
+      // Guards that fire before the read starts still answer with a status code
+      // and a whole JSON body; everything after that arrives on the stream.
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error ?? "The research couldn't finish.");
+      }
+      if (!r.body) throw new Error("The research couldn't finish.");
+
+      let finished: Extract<StreamEvent, { t: "done" }> | null = null;
+      for await (const ev of readEvents(r.body)) {
+        if (ev.t === "stage") setStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") showProse(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") finished = ev;
+      }
+      flushProse();
+      if (!finished) throw new Error("The read stopped before it finished — try again.");
+
+      setReport(finished.report);
+      const t = (finished.takeaways ?? []) as Takeaway[];
       setTakeaways(t);
       if (t.length) {
         const { data: existing } = await supabase
@@ -112,21 +181,27 @@ export default function ResearchPage() {
         />
       </div>
 
-      {report && (
+      {(working || report) && (
         <div className="card" style={{ marginTop: 14 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-            <b style={{ fontSize: 14 }}>{report.title}</b>
-            <span style={{ color: "var(--ink3)", fontSize: 12 }}>
-              {sentenceCase(TEAM.researcher.name)} · {new Date(report.created_at).toLocaleDateString()}
-            </span>
-            <Link href="/reports" style={{ marginLeft: "auto", color: "var(--acc)", fontSize: 12 }}>
-              saved with your reports →
-            </Link>
-          </div>
-          <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
-            <Md md={report.body_md} />
-            <WrongClaim context={report.title} />
-          </div>
+          {report ? (
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+              <b style={{ fontSize: 14 }}>{report.title}</b>
+              <span style={{ color: "var(--ink3)", fontSize: 12 }}>
+                {sentenceCase(TEAM.researcher.name)} · {new Date(report.created_at).toLocaleDateString()}
+              </span>
+              <Link href="/reports" style={{ marginLeft: "auto", color: "var(--acc)", fontSize: 12 }}>
+                saved with your reports →
+              </Link>
+            </div>
+          ) : (
+            <Working stages={stages} />
+          )}
+          {(report || prose) && (
+            <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
+              <Md md={report ? report.body_md : prose} />
+              {report && <WrongClaim context={report.title} />}
+            </div>
+          )}
 
           {takeaways.length > 0 && (
             <div style={{ marginTop: 16 }}>

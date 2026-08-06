@@ -34,14 +34,30 @@ export function fakeSvc(tables: Record<string, QueryResult[]> = {}) {
 }
 
 /** A stand-in Anthropic client whose structured-output call answers with
-    `payload` as the analyst's JSON. Pass stopReason "refusal" to exercise
-    the refusal branch. */
+    `payload` as the analyst's JSON. Serves both shapes: `create` for a whole
+    answer, `stream` for the streaming path. Pass stopReason "refusal" to
+    exercise the refusal branch.
+
+    The stream deliberately chops the JSON into ragged 7-character chunks, so
+    the incremental field reader is exercised the way the wire exercises it —
+    keys, escapes and multi-byte characters split across chunk boundaries. */
 export function fakeAnthropic(payload: unknown, stopReason = "end_turn") {
-  const create = vi.fn().mockResolvedValue({
+  const json = JSON.stringify(payload);
+  const final = {
     stop_reason: stopReason,
-    content: stopReason === "refusal" ? [] : [{ type: "text", text: JSON.stringify(payload) }],
-  });
-  return { client: { beta: { messages: { create } } } as any, create };
+    content: stopReason === "refusal" ? [] : [{ type: "text", text: json }],
+  };
+  const create = vi.fn().mockResolvedValue(final);
+  const stream = vi.fn(() => ({
+    async *[Symbol.asyncIterator]() {
+      if (stopReason === "refusal") return;
+      for (let i = 0; i < json.length; i += 7) {
+        yield { type: "content_block_delta", delta: { type: "text_delta", text: json.slice(i, i + 7) } };
+      }
+    },
+    finalMessage: async () => final,
+  }));
+  return { client: { beta: { messages: { create, stream } } } as any, create, stream };
 }
 
 /** POST request to a route handler; omit body for an empty request. */
@@ -54,16 +70,39 @@ export function post(body?: unknown): Request {
   });
 }
 
-/** Reads the response body, asserts it leaks no sentinel secret, no stack
-    frame, and no source paths, then returns the parsed JSON. Use for EVERY
-    response read so the leak check rides along with every assertion. */
-export async function safeJson(res: Response): Promise<any> {
-  const text = await res.text();
+function assertNoLeaks(text: string) {
   for (const [name, value] of Object.entries(SENTINELS)) {
     expect(text, `response body leaked ${name}`).not.toContain(value);
   }
   expect(text, "response body contains a stack frame").not.toContain("    at ");
   expect(text, "response body references source paths").not.toContain("node_modules");
   expect(text, "response body references source paths").not.toContain("webapp/src");
+}
+
+/** Reads the response body, asserts it leaks no sentinel secret, no stack
+    frame, and no source paths, then returns the parsed JSON. Use for EVERY
+    response read so the leak check rides along with every assertion. */
+export async function safeJson(res: Response): Promise<any> {
+  const text = await res.text();
+  assertNoLeaks(text);
   return JSON.parse(text);
 }
+
+/** The streaming sibling of safeJson: drains a newline-delimited analyst
+    response, runs the same leak checks over the whole body — every stage line
+    and every prose delta included — and returns the events in arrival order. */
+export async function safeStream(res: Response): Promise<any[]> {
+  const text = await res.text();
+  assertNoLeaks(text);
+  return text.split("\n").filter((line) => line.trim()).map((line) => JSON.parse(line));
+}
+
+export const stagesOf = (events: any[]): string[] =>
+  events.filter((e) => e.t === "stage").map((e) => e.m);
+
+/** The prose exactly as a reader would have watched it arrive. */
+export const proseOf = (events: any[]): string =>
+  events.filter((e) => e.t === "prose").map((e) => e.d).join("");
+
+export const doneOf = (events: any[]) => events.find((e) => e.t === "done");
+export const errorOf = (events: any[]) => events.find((e) => e.t === "error");
