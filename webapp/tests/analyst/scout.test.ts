@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fakeAnthropic, fakeSvc, post, safeJson, TEST_USER } from "../helpers";
+import { doneOf, errorOf, fakeAnthropic, fakeSvc, post, proseOf, safeJson, safeStream, stagesOf, TEST_USER } from "../helpers";
 import type { PublicChannel, PublicVideo } from "@/lib/server/publicYt";
 
 vi.mock("@/lib/server/auth", () => ({ userFromRequest: vi.fn() }));
@@ -127,10 +127,14 @@ describe("POST /api/analyst/scout", () => {
     happyMocks();
     videos.mockResolvedValue([{ ...OUTSIDE_VIDEO, channelId: "UCmine" }]);
     const res = await POST(post({ url: "https://www.youtube.com/watch?v=vidAAAAAAA1" }));
-    expect(res.status).toBe(400);
-    expect(await safeJson(res)).toEqual({
+    // The lookup had already begun, so the status is spent — it arrives in-band.
+    expect(res.status).toBe(200);
+    const events = await safeStream(res);
+    expect(errorOf(events)).toEqual({
+      t: "error",
       error: "That's one of your own videos — pick it in the 'compare with' box instead, and paste an outside video here.",
     });
+    expect(doneOf(events)).toBeUndefined();
   });
 
   it("compares against the channel's normal and saves the report", async () => {
@@ -139,32 +143,44 @@ describe("POST /api/analyst/scout", () => {
 
     const res = await POST(post({ url: "https://www.youtube.com/watch?v=vidAAAAAAA1" }));
     expect(res.status).toBe(200);
-    expect(await safeJson(res)).toEqual({
-      report: REPORT_ROW,
-      analysis: ANALYSIS,
-      video: {
-        id: OUTSIDE_VIDEO.id,
-        title: OUTSIDE_VIDEO.title,
-        channelTitle: OUTSIDE_VIDEO.channelTitle,
-        viewCount: OUTSIDE_VIDEO.viewCount,
-        likeCount: OUTSIDE_VIDEO.likeCount,
-        commentCount: OUTSIDE_VIDEO.commentCount,
-        publishedAt: OUTSIDE_VIDEO.publishedAt,
-        durationSeconds: OUTSIDE_VIDEO.durationSeconds,
-        subscriberCount: OUTSIDE_CHANNEL.subscriberCount,
-        theirRatio: 1.25,
-      },
-      mine: null,
+    expect(res.headers.get("content-type")).toContain("application/x-ndjson");
+
+    const done = doneOf(await safeStream(res));
+    expect(done.report).toEqual(REPORT_ROW);
+    expect(done.analysis).toEqual(ANALYSIS);
+    expect(done.mine).toBeNull();
+    expect(done.video).toEqual({
+      id: OUTSIDE_VIDEO.id,
+      title: OUTSIDE_VIDEO.title,
+      channelTitle: OUTSIDE_VIDEO.channelTitle,
+      viewCount: OUTSIDE_VIDEO.viewCount,
+      likeCount: OUTSIDE_VIDEO.likeCount,
+      commentCount: OUTSIDE_VIDEO.commentCount,
+      publishedAt: OUTSIDE_VIDEO.publishedAt,
+      durationSeconds: OUTSIDE_VIDEO.durationSeconds,
+      subscriberCount: OUTSIDE_CHANNEL.subscriberCount,
+      theirRatio: 1.25,
     });
+  });
+
+  it("streams the Scout's read before the comparison lands", async () => {
+    service.mockReturnValue(fakeSvc(happyTables()).svc);
+    happyMocks();
+
+    const events = await safeStream(await POST(post({ url: "https://www.youtube.com/watch?v=vidAAAAAAA1" })));
+    expect(proseOf(events)).toBe(ANALYSIS.read);
+    expect(stagesOf(events)[0]).toBe("The Scout is looking up the video you pasted…");
+    expect(stagesOf(events).at(-1)).toBe("The Scout is reading both sides…");
+    expect(events.findIndex((e) => e.t === "prose")).toBeLessThan(events.findIndex((e) => e.t === "done"));
   });
 
   it("surfaces a thrown error as its message only — no stack, no keys", async () => {
     service.mockReturnValue(fakeSvc(happyTables()).svc);
     happyMocks();
     accessToken.mockRejectedValue(new Error("Couldn't refresh YouTube access — reconnect the channel in Settings."));
-    const res = await POST(post({ url: "https://www.youtube.com/watch?v=vidAAAAAAA1" }));
-    expect(res.status).toBe(502);
-    expect(await safeJson(res)).toEqual({
+    const events = await safeStream(await POST(post({ url: "https://www.youtube.com/watch?v=vidAAAAAAA1" })));
+    expect(errorOf(events)).toEqual({
+      t: "error",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });

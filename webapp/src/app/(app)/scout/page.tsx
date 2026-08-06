@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, type ChannelData } from "@/lib/channelData";
 import { Explain, WrongClaim } from "@/components/Explain";
+import { Md } from "@/components/Md";
+import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 
 type ScoutOption = {
@@ -67,6 +69,8 @@ export default function ScoutPage() {
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<ScoutResult | null>(null);
   const [logged, setLogged] = useState<Set<string>>(new Set());
+  const [stages, setStages] = useState<string[]>([]);
+  const [prose, setProse] = useState("");
 
   useEffect(() => { loadChannelData().then(setData); }, []);
 
@@ -74,6 +78,10 @@ export default function ScoutPage() {
     setErr(null);
     setWorking(true);
     setLogged(new Set());
+    setResult(null);
+    setProse("");
+    setStages([`${sentenceCase(TEAM.scout.name)} is picking up both videos…`]);
+    const prose = proseBuffer((add) => setProse((p) => p + add));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/scout", {
@@ -81,8 +89,22 @@ export default function ScoutPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
         body: JSON.stringify({ url, mine: mine || undefined }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "The comparison couldn't finish.");
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error ?? "The comparison couldn't finish.");
+      }
+      if (!r.body) throw new Error("The comparison couldn't finish.");
+
+      let j: ScoutResult | null = null;
+      for await (const ev of readAnalystStream<ScoutResult>(r.body)) {
+        if (ev.t === "stage") setStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") prose.push(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") j = ev;
+      }
+      prose.flush();
+      if (!j) throw new Error("The comparison stopped before it finished — try again.");
+
       setResult({ analysis: j.analysis, video: j.video, mine: j.mine });
       // Takeaways already in the Ledger — so "log it" doesn't double up.
       const takeaways = (j.analysis.options as ScoutOption[]).map((o) => o.takeaway);
@@ -158,6 +180,17 @@ export default function ScoutPage() {
         />
       </div>
 
+      {working && !result && (
+        <div className="card" style={{ marginTop: 14 }}>
+          <Working stages={stages} />
+          {prose && (
+            <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
+              <Md md={prose} />
+            </div>
+          )}
+        </div>
+      )}
+
       {result && a && (
         <div className="card" style={{ marginTop: 14 }}>
           {/* Stats, side by side */}
@@ -198,7 +231,7 @@ export default function ScoutPage() {
           {/* The Scout's read + factors */}
           <div style={{ marginTop: 16 }}>
             <Byline who={TEAM.scout} part="the read" />
-            <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6 }}>{a.read}</p>
+            <Md md={a.read} />
           </div>
           {a.factors.length > 0 && (
             <div style={{ marginTop: 12, overflowX: "auto" }}>

@@ -8,6 +8,7 @@ import { loadChannelData, fmtNum, type VideoPerf, type ChannelData } from "@/lib
 import { RetentionChart, type RetentionPoint, type RetentionDrop } from "@/components/RetentionChart";
 import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
+import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 import { TEAM, TEAM_ATTRIBUTION, agentNames, jobFor, sentenceCase } from "@/lib/team";
 
@@ -48,6 +49,10 @@ export default function WhyDetailPage() {
   const [whyReport, setWhyReport] = useState<WhyReport | null>(null);
   const [whyAsking, setWhyAsking] = useState(false);
   const [whyErr, setWhyErr] = useState<string | null>(null);
+  const [askStages, setAskStages] = useState<string[]>([]);
+  const [askProse, setAskProse] = useState("");
+  const [whyStages, setWhyStages] = useState<string[]>([]);
+  const [whyProse, setWhyProse] = useState("");
 
   useEffect(() => { loadChannelData().then(setData); }, []);
 
@@ -100,6 +105,9 @@ export default function WhyDetailPage() {
   async function askAnalyst(ytVideoId: string) {
     setAskErr(null);
     setAsking(true);
+    setAskProse("");
+    setAskStages([`${sentenceCase(TEAM.editor.name)} is picking up this video…`]);
+    const prose = proseBuffer((add) => setAskProse((p) => p + add));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/retention", {
@@ -107,10 +115,24 @@ export default function WhyDetailPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
         body: JSON.stringify({ video: ytVideoId, transcript: transcript.trim() || undefined }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "The analyst couldn't finish the read.");
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error ?? "The analyst couldn't finish the read.");
+      }
+      if (!r.body) throw new Error("The analyst couldn't finish the read.");
+
+      let j: { report: AnalystReport } | null = null;
+      for await (const ev of readAnalystStream<{ report: AnalystReport }>(r.body)) {
+        if (ev.t === "stage") setAskStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") prose.push(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") j = ev;
+      }
+      prose.flush();
+      if (!j) throw new Error("The read stopped before it finished — try again.");
       setReport(j.report);
     } catch (e) {
+      setAskProse("");
       setAskErr(e instanceof Error ? e.message : "The analyst couldn't finish the read.");
     } finally {
       setAsking(false);
@@ -120,6 +142,9 @@ export default function WhyDetailPage() {
   async function askWhy(ytVideoId: string) {
     setWhyErr(null);
     setWhyAsking(true);
+    setWhyProse("");
+    setWhyStages([`${sentenceCase(TEAM_ATTRIBUTION.name)} is pulling this video's numbers together…`]);
+    const prose = proseBuffer((add) => setWhyProse((p) => p + add));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/why", {
@@ -127,14 +152,26 @@ export default function WhyDetailPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
         body: JSON.stringify({ video: ytVideoId }),
       });
-      const raw = await r.text();
-      let j: { error?: string; report?: { id: string; created_at: string }; analysis?: WhyData };
-      try { j = JSON.parse(raw); } catch {
-        throw new Error("The team's read took too long — try again in a moment.");
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error ?? "The team's read couldn't finish.");
       }
-      if (!r.ok || !j.report) throw new Error(j.error ?? "The team's read couldn't finish.");
+      if (!r.body) throw new Error("The team's read couldn't finish.");
+
+      // Streaming also fixed the old gateway-timeout hazard here: the first
+      // bytes now arrive in seconds, so there is no long silence to time out.
+      let j: { report: { id: string; created_at: string }; analysis: WhyData } | null = null;
+      for await (const ev of readAnalystStream<{ report: { id: string; created_at: string }; analysis: WhyData }>(r.body)) {
+        if (ev.t === "stage") setWhyStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") prose.push(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") j = ev;
+      }
+      prose.flush();
+      if (!j?.report) throw new Error("The team's read stopped before it finished — try again.");
       setWhyReport({ id: j.report.id, created_at: j.report.created_at, data: j.analysis ?? null });
     } catch (e) {
+      setWhyProse("");
       setWhyErr(e instanceof Error ? e.message : "The team's read couldn't finish.");
     } finally {
       setWhyAsking(false);
@@ -229,9 +266,18 @@ export default function WhyDetailPage() {
             </span>
           )}
         </div>
-        {whyReport?.data ? (
+        {whyAsking && !whyReport ? (
+          <div style={{ marginTop: 10 }}>
+            <Working stages={whyStages} />
+            {whyProse && (
+              <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
+                <Md md={whyProse} />
+              </div>
+            )}
+          </div>
+        ) : whyReport?.data ? (
           <div style={{ marginTop: 10, display: "grid", gap: 12 }}>
-            <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6 }}>{whyReport.data.verdict}</p>
+            <Md md={whyReport.data.verdict} />
             <ol style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 8 }}>
               {whyReport.data.reasons.map((r, i) => (
                 <li key={i} style={{ fontSize: 13, lineHeight: 1.55 }}>
@@ -333,11 +379,20 @@ export default function WhyDetailPage() {
           )}
         </div>
 
-        {report ? (
+        {asking && !report ? (
+          <div style={{ marginTop: 10 }}>
+            <Working stages={askStages} />
+            {askProse && (
+              <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
+                <Md md={askProse} />
+              </div>
+            )}
+          </div>
+        ) : report ? (
           <>
             {report.data ? (
               <div style={{ marginTop: 10, display: "grid", gap: 12 }}>
-                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6 }}>{report.data.verdict}</p>
+                <Md md={report.data.verdict} />
                 {report.data.drop_reads.length > 0 && (
                   <div className="grid g3" style={{ alignItems: "stretch" }}>
                     {report.data.drop_reads.map((d, i) => (

@@ -155,7 +155,10 @@ Description: ${video.description.slice(0, 1200) || "(none)"}
       const videos = await fetchPublicVideos(access, ids);
       if (!videos.length) throw new Error("YouTube couldn't return details for those results — try different words.");
       const channels = await fetchPublicChannels(access, videos.map((v) => v.channelId));
-      emit.stage(`Reading ${videos.length} titles across ${channels.size} channels…`);
+      emit.stage(
+        `Reading ${videos.length} ${videos.length === 1 ? "title" : "titles"} across ` +
+          `${channels.size} ${channels.size === 1 ? "channel" : "channels"}…`
+      );
       const phrases = await phrasesPromise!;
       const lines = videos.map((v) => {
         const ch = channels.get(v.channelId);

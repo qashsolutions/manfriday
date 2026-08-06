@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fakeAnthropic, fakeSvc, post, safeJson, TEST_USER } from "../helpers";
+import { doneOf, errorOf, fakeAnthropic, fakeSvc, post, proseOf, safeJson, safeStream, stagesOf, TEST_USER } from "../helpers";
 import { TEAM } from "@/lib/team";
 
 vi.mock("@/lib/server/auth", () => ({ userFromRequest: vi.fn() }));
@@ -46,11 +46,19 @@ const MINED = {
   ],
 };
 
-function happyTables() {
+/** Enough recent uploads that "all at once" is distinguishable from "one
+    after another". */
+const VIDEO_COUNT = 4;
+
+function happyTables(videoCount = 1) {
   return {
     google_oauth_tokens: [{ data: { refresh_token_ciphertext: "\\xdeadbeef" } }],
     channels: [{ data: [{ id: "ch1", yt_channel_id: "UCmine" }] }],
-    videos: [{ data: [{ yt_video_id: "vidAAAAAAA1", title: "Video one" }] }],
+    videos: [{
+      data: Array.from({ length: videoCount }, (_, i) => ({
+        yt_video_id: `vidAAAAAAA${i + 1}`, title: `Video ${i + 1}`,
+      })),
+    }],
     recommendations: [{ data: [] }, { error: null }],
   };
 }
@@ -85,8 +93,37 @@ describe("POST /api/analyst/ideas", () => {
 
     const res = await POST(post());
     expect(res.status).toBe(200);
-    expect(await safeJson(res)).toEqual({ summary: MINED.summary, found: 1, added: 1 });
+    expect(res.headers.get("content-type")).toContain("application/x-ndjson");
+
+    const events = await safeStream(res);
+    const done = doneOf(events);
+    expect(done.summary).toBe(MINED.summary);
+    expect(done.found).toBe(1);
+    expect(done.added).toBe(1);
+    expect(proseOf(events)).toBe(MINED.summary);
     expect(inserts.recommendations).toHaveLength(1);
+  });
+
+  it("opens every video's comments at once, not one after another", async () => {
+    service.mockReturnValue(fakeSvc(happyTables(VIDEO_COUNT)).svc);
+    accessToken.mockResolvedValue("access-token");
+    anthropic.mockReturnValue(fakeAnthropic(MINED).client);
+
+    // Each call resolves only once every call has been made — which can only
+    // happen if they were all in flight together.
+    let started = 0;
+    let release!: () => void;
+    const allStarted = new Promise<void>((r) => { release = r; });
+    comments.mockImplementation(async () => {
+      if (++started === VIDEO_COUNT) release();
+      await allStarted;
+      return [{ text: "Please make a full sharpening video", likes: 3 }];
+    });
+
+    const events = await safeStream(await POST(post()));
+    expect(doneOf(events)).toBeDefined();
+    expect(comments).toHaveBeenCalledTimes(VIDEO_COUNT);
+    expect(stagesOf(events)).toContain(`Opening the comments on your ${VIDEO_COUNT} most recent videos…`);
   });
 
   it("says so honestly when there are no comments to read yet", async () => {
@@ -94,18 +131,21 @@ describe("POST /api/analyst/ideas", () => {
     accessToken.mockResolvedValue("access-token");
     comments.mockResolvedValue([]);
     const res = await POST(post());
-    expect(res.status).toBe(409);
-    expect(await safeJson(res)).toEqual({
+    expect(res.status).toBe(200);
+    const events = await safeStream(res);
+    expect(errorOf(events)).toEqual({
+      t: "error",
       error: `No comments to read yet — ${TEAM.listener.name} needs viewers talking first.`,
     });
+    expect(doneOf(events)).toBeUndefined();
   });
 
   it("surfaces a thrown error as its message only — no stack, no keys", async () => {
     service.mockReturnValue(fakeSvc(happyTables()).svc);
     accessToken.mockRejectedValue(new Error("Couldn't refresh YouTube access — reconnect the channel in Settings."));
-    const res = await POST(post());
-    expect(res.status).toBe(502);
-    expect(await safeJson(res)).toEqual({
+    const events = await safeStream(await POST(post()));
+    expect(errorOf(events)).toEqual({
+      t: "error",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });

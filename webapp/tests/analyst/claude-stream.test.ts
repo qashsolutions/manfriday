@@ -65,4 +65,31 @@ describe("JsonStringFieldStreamer", () => {
     const doc = JSON.stringify({ a: "one", b: { c: "two" }, body_md: "third", d: [1, 2] });
     for (const got of readEveryWhichWay(doc)) expect(got).toBe("third");
   });
+
+  it("takes the top-level key, not a same-named one nested deeper", () => {
+    // Packaging's real shape: `one_line` at the root and again inside
+    // `thumb_read`. Only the root one is the read.
+    const doc = JSON.stringify({
+      grade: "B+",
+      one_line: "the root one",
+      thumb_read: { one_line: "the nested one", works: [] },
+    });
+    for (const got of readEveryWhichWay(doc, "one_line")) expect(got).toBe("the root one");
+  });
+
+  it("ignores a nested key even when it arrives first", () => {
+    const doc = JSON.stringify({
+      thumb_read: { one_line: "the nested one" },
+      one_line: "the root one",
+    });
+    for (const got of readEveryWhichWay(doc, "one_line")) expect(got).toBe("the root one");
+  });
+
+  it("is not fooled by braces inside string values", () => {
+    const doc = JSON.stringify({
+      title: "a { brace } and a [ bracket ] walk in",
+      body_md: "the read",
+    });
+    for (const got of readEveryWhichWay(doc)) expect(got).toBe("the read");
+  });
 });

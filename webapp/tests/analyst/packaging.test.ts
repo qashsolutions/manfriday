@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fakeAnthropic, fakeSvc, post, safeJson, TEST_USER } from "../helpers";
+import { doneOf, errorOf, fakeAnthropic, fakeSvc, post, proseOf, safeJson, safeStream, stagesOf, TEST_USER } from "../helpers";
 
 vi.mock("@/lib/server/auth", () => ({ userFromRequest: vi.fn() }));
 vi.mock("@/lib/server/service", () => ({ serviceClient: vi.fn() }));
@@ -96,8 +96,27 @@ describe("POST /api/analyst/packaging", () => {
 
     const res = await POST(post({ title: "How to sharpen a chisel" }));
     expect(res.status).toBe(200);
-    expect(await safeJson(res)).toEqual({ analysis: GRADE, phrases: ["how to sharpen a chisel"] });
-    expect(fake.create).toHaveBeenCalledTimes(1);
+    expect(res.headers.get("content-type")).toContain("application/x-ndjson");
+
+    const done = doneOf(await safeStream(res));
+    expect(done.analysis).toEqual(GRADE);
+    expect(done.phrases).toEqual(["how to sharpen a chisel"]);
+    expect(fake.stream).toHaveBeenCalledTimes(1);
+  });
+
+  it("streams the grade's reason — the top-level one, not the thumbnail's", async () => {
+    service.mockReturnValue(fakeSvc(happyTables()).svc);
+    phrases.mockResolvedValue(["how to sharpen a chisel"]);
+    // This shape carries `one_line` twice: at the root, and again nested inside
+    // `thumb_read`. Only the root one is the grade's reason.
+    const graded = { ...GRADE, thumb_read: { one_line: "The thumbnail's own read.", works: [], risks: [] } };
+    anthropic.mockReturnValue(fakeAnthropic(graded).client);
+
+    const events = await safeStream(await POST(post({ title: "How to sharpen a chisel" })));
+    expect(proseOf(events)).toBe(GRADE.one_line);
+    expect(proseOf(events)).not.toContain("thumbnail's own read");
+    expect(stagesOf(events)[0]).toBe("The Marketer is lining your draft up against your own winners…");
+    expect(stagesOf(events).at(-1)).toBe("The Marketer is grading it…");
   });
 
   it("turns a model refusal into the friendly analyst message", async () => {
@@ -105,20 +124,21 @@ describe("POST /api/analyst/packaging", () => {
     phrases.mockResolvedValue([]);
     anthropic.mockReturnValue(fakeAnthropic(null, "refusal").client);
 
-    const res = await POST(post({ title: "How to sharpen a chisel" }));
-    expect(res.status).toBe(502);
-    expect(await safeJson(res)).toEqual({ error: "The analyst declined this request. Try again, or contact us if it repeats." });
+    const events = await safeStream(await POST(post({ title: "How to sharpen a chisel" })));
+    expect(errorOf(events)).toEqual({
+      t: "error",
+      error: "The analyst declined this request. Try again, or contact us if it repeats.",
+    });
   });
 
   it("surfaces an analyst-call failure as its message only — no stack, no keys", async () => {
     service.mockReturnValue(fakeSvc(happyTables()).svc);
     phrases.mockResolvedValue([]);
     const fake = fakeAnthropic(GRADE);
-    fake.create.mockRejectedValue(new Error("Connection error."));
+    fake.stream.mockImplementation(() => { throw new Error("Connection error."); });
     anthropic.mockReturnValue(fake.client);
 
-    const res = await POST(post({ title: "How to sharpen a chisel" }));
-    expect(res.status).toBe(502);
-    expect(await safeJson(res)).toEqual({ error: "Connection error." });
+    const events = await safeStream(await POST(post({ title: "How to sharpen a chisel" })));
+    expect(errorOf(events)).toEqual({ t: "error", error: "Connection error." });
   });
 });

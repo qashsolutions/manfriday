@@ -5,9 +5,9 @@ import { accessTokenFromRow, yt } from "@/lib/server/youtube";
 import { fetchRetention, atLabel } from "@/lib/server/retentionData";
 import { fetchTrafficSources, TRAFFIC_LEGEND } from "@/lib/server/trafficData";
 import { fetchVideoComments, typedPhrases, daysAgo } from "@/lib/server/publicYt";
-import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
-import { SEATS, TEAM_ATTRIBUTION } from "@/lib/team";
+import { SEATS, TEAM_ATTRIBUTION, sentenceCase } from "@/lib/team";
 
 export const maxDuration = 120;
 
@@ -39,7 +39,10 @@ const SCHEMA = {
   properties: {
     verdict: {
       type: "string",
-      description: "Two or three sentences: the honest answer to 'why did this video get the views it got'. On thin data, say plainly which parts can't be separated yet.",
+      description:
+        "The answer to 'why did this video get the views it got', opening with '**In short** — ' and then 2-3 " +
+        "plain-English sentences the creator could act on without reading any further. On thin data, say plainly " +
+        "which parts can't be separated yet.",
     },
     reasons: {
       type: "array",
@@ -117,7 +120,12 @@ export async function POST(req: Request) {
   if (!tokenRow || !channel) return NextResponse.json({ error: "Connect your channel first." }, { status: 400 });
   if (!video) return NextResponse.json({ error: "This video isn't in your analysis yet — run the first analysis on the Desk." }, { status: 400 });
 
-  try {
+  const seat = sentenceCase(TEAM_ATTRIBUTION.name);
+
+  return analystStream(async (emit) => {
+    const started = performance.now();
+    emit.stage(`${seat} is gathering everything known about this video…`);
+
     const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
 
     const titleWords = String(video.title ?? "").toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter((w) => w.length > 2);
@@ -178,12 +186,26 @@ WHAT PEOPLE TYPE INTO YOUTUBE (live suggestions from this title's words)
 ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions came back)"}
 `.trim();
 
-    const analysis = await analystJson<WhyAnalysis>({
+    const gatherMs = Math.round(performance.now() - started);
+    emit.stage(
+      `Reading ${traffic.sources.length ? "how viewers found it" : "what little YouTube says about how viewers found it"}, ` +
+        `${comments.length} ${comments.length === 1 ? "comment" : "comments"}, and how long they stayed — arguing it out now…`
+    );
+
+    let firstWordMs: number | null = null;
+    const modelStarted = performance.now();
+    const analysis = await analystJsonStream<WhyAnalysis>({
       system: `You are the team of six at manfriday (${AGENTS.join(", ")}), answering ONE question together: why did this video get the views it got? Rank only reasons the given data supports, attribute each to the right analyst, then argue against yourselves honestly in devils_advocate — the boring explanation (channel size, video age, nobody searched this) often wins, and saying so IS the service. Then give the single next step. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       maxTokens: 6000,
+      proseField: "verdict",
+      onProse: (delta) => {
+        if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
+        emit.prose(delta);
+      },
     });
+    const modelMs = Math.round(performance.now() - modelStarted);
 
     const { data: report, error: rErr } = await svc
       .from("reports")
@@ -200,15 +222,11 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       .single();
     if (rErr) throw new Error(rErr.message);
 
-    return NextResponse.json({
+    return {
       report,
       analysis,
       baseline: snap ? { view_count: snap.view_count, views_per_day: snap.views_per_day } : {},
-    });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "The team's read couldn't finish." },
-      { status: 502 }
-    );
-  }
+      timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
+    };
+  });
 }

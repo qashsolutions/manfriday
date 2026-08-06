@@ -5,6 +5,8 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData } from "@/lib/channelData";
 import { Explain } from "@/components/Explain";
+import { Md } from "@/components/Md";
+import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 import { TEAM, agentNames, sentenceCase } from "@/lib/team";
 
@@ -50,6 +52,8 @@ export default function PackagingPage() {
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<{ draft: string; analysis: Grade } | null>(null);
   const [logged, setLogged] = useState<Set<string>>(new Set());
+  const [stages, setStages] = useState<string[]>([]);
+  const [prose, setProse] = useState("");
 
   useEffect(() => {
     loadChannelData().then((d) => setReady(Boolean(d.baselines.longform || d.baselines.shorts)));
@@ -60,6 +64,10 @@ export default function PackagingPage() {
     setErr(null);
     setGrading(true);
     setLogged(new Set());
+    setResult(null);
+    setProse("");
+    setStages([`${sentenceCase(TEAM.marketer.name)} is picking up your draft…`]);
+    const prose = proseBuffer((add) => setProse((p) => p + add));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/packaging", {
@@ -67,8 +75,22 @@ export default function PackagingPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
         body: JSON.stringify({ title: draft, thumbnail: thumb ?? undefined }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "The grading couldn't finish.");
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error ?? "The grading couldn't finish.");
+      }
+      if (!r.body) throw new Error("The grading couldn't finish.");
+
+      let j: { analysis: Grade } | null = null;
+      for await (const ev of readAnalystStream<{ analysis: Grade }>(r.body)) {
+        if (ev.t === "stage") setStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") prose.push(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") j = ev;
+      }
+      prose.flush();
+      if (!j) throw new Error("The grading stopped before it finished — try again.");
+
       setResult({ draft, analysis: j.analysis });
       // Rewrites already in the Ledger — so "log it" doesn't double up.
       const asRecs = (j.analysis.options as GradeOption[]).map((o) => `Use the title: "${o.title}"`);
@@ -166,6 +188,17 @@ export default function PackagingPage() {
             />
           </div>
 
+          {grading && !result && (
+            <div className="card" style={{ marginTop: 14 }}>
+              <Working stages={stages} />
+              {prose && (
+                <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
+                  <Md md={prose} />
+                </div>
+              )}
+            </div>
+          )}
+
           {result && (
             <div className="card" style={{ marginTop: 14 }}>
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -178,7 +211,7 @@ export default function PackagingPage() {
                 </span>
                 <div>
                   <b style={{ fontSize: 14 }}>&quot;{result.draft}&quot;</b>
-                  <div style={{ color: "var(--ink2)", fontSize: 13 }}>{result.analysis.one_line}</div>
+                  <Md md={result.analysis.one_line} />
                 </div>
               </div>
 

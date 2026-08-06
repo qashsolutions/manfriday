@@ -97,20 +97,23 @@ export async function analystJson<T>({ system, user, schema, maxTokens = 16000 }
 const ESCAPES: Record<string, string> = { n: "\n", t: "\t", r: "\r", b: "\b", f: "\f" };
 const WS = new Set([" ", "\n", "\t", "\r"]);
 
-/** Lifts the decoded value of one named string field out of a JSON document
-    that is still arriving, chunk by arbitrary chunk.
+/** Lifts the decoded value of one named TOP-LEVEL string field out of a JSON
+    document that is still arriving, chunk by arbitrary chunk.
 
     Matching is done with a real (if small) JSON scan rather than a substring
-    search, so a field name that also appears inside some other value — a
-    report titled "how body_md works" — can't be mistaken for the key. Anything
-    it can't yet decode unambiguously, notably an escape sequence split across
-    two chunks, is held back until the next chunk completes it. */
+    search, so neither a field name inside some other value — a report titled
+    "how body_md works" — nor the same key nested deeper — packaging carries
+    both `one_line` and `thumb_read.one_line` — can be mistaken for the one
+    asked for. Anything it can't yet decode unambiguously, notably an escape
+    sequence split across two chunks, is held back until the next chunk
+    completes it. */
 export class JsonStringFieldStreamer {
   private phase: "scan" | "colon" | "quote" | "value" | "done" = "scan";
   private buf = "";
   private inString = false;
   private esc = false;
   private token = "";
+  private depth = 0;
   private readonly field: string;
 
   constructor(field: string) {
@@ -186,7 +189,9 @@ export class JsonStringFieldStreamer {
           this.esc = true;
         } else if (c === '"') {
           this.inString = false;
-          if (this.token === this.field) this.phase = "colon";
+          // Depth 1 is the root object's own keys — a same-named key inside a
+          // nested object is a different field and must not match.
+          if (this.depth === 1 && this.token === this.field) this.phase = "colon";
           this.token = "";
         } else {
           this.token += c;
@@ -196,6 +201,10 @@ export class JsonStringFieldStreamer {
       if (c === '"') {
         this.inString = true;
         this.token = "";
+      } else if (c === "{" || c === "[") {
+        this.depth++;
+      } else if (c === "}" || c === "]") {
+        this.depth--;
       }
     }
 

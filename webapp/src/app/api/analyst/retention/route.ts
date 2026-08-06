@@ -3,9 +3,9 @@ import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
 import { accessTokenFromRow, yt } from "@/lib/server/youtube";
 import { fetchRetention, atLabel } from "@/lib/server/retentionData";
-import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
-import { TEAM } from "@/lib/team";
+import { TEAM, sentenceCase } from "@/lib/team";
 
 export const maxDuration = 120;
 
@@ -36,7 +36,9 @@ const SCHEMA = {
   properties: {
     verdict: {
       type: "string",
-      description: "One or two sentences: the honest overall read of how this video held viewers and why.",
+      description:
+        "The read, opening with '**In short** — ' and then 2-3 plain-English sentences the creator could act on " +
+        "without reading any further: how this video held viewers, and why.",
     },
     drop_reads: {
       type: "array",
@@ -126,15 +128,26 @@ export async function POST(req: Request) {
   if (!tokenRow) return NextResponse.json({ error: "No channel is connected." }, { status: 400 });
   if (!video) return NextResponse.json({ error: "This video isn't in your analysis yet — run the first analysis on the Desk." }, { status: 400 });
 
-  try {
+  const seat = sentenceCase(TEAM.editor.name);
+
+  return analystStream(async (emit) => {
+    const started = performance.now();
+    emit.stage(`${seat} is pulling up how long viewers stayed on this one…`);
+
     const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
+    // Independent of the curve — start it now, read it once the material is built.
+    const groundingPromise = analystGrounding(svc, user.id);
+    void groundingPromise.catch(() => {});
+
     const ret = await fetchRetention(access, ytVideoId);
     if (!ret || ret.points.length < 2) {
-      return NextResponse.json(
-        { error: "YouTube hasn't produced a retention curve for this video yet — the analyst needs it to work." },
-        { status: 409 }
-      );
+      throw new Error("YouTube hasn't produced a retention curve for this video yet — the analyst needs it to work.");
     }
+    emit.stage(
+      ret.drops.length
+        ? `Reading what you were saying at the ${ret.drops.length} ${ret.drops.length === 1 ? "spot" : "spots"} where viewers left fastest…`
+        : "Nobody left at one spot — reading it for the slow drift instead…"
+    );
 
     // The video's own words (live from YouTube) + the channel's normal.
     const [snippetData, { data: baselineRows }, { data: snapRows }] = await Promise.all([
@@ -160,7 +173,7 @@ export async function POST(req: Request) {
       .map((d, i) => `Drop ${i + 1} at ${atLabel(d.x, dur)} (position ${d.x.toFixed(2)}): lost ${Math.round(d.delta * 100)} of every 100 remaining viewers in one step`)
       .join("\n");
 
-    const grounding = await analystGrounding(svc, user.id);
+    const grounding = await groundingPromise;
     const userMsg = `
 ${grounding.audienceBlock}
 
@@ -186,11 +199,22 @@ ${dropsText || "(no sharp drops — the curve declines smoothly)"}
 ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when explaining drops)\n${transcript}` : "No transcript was provided — reason from the title, description, drop positions, and how videos of this kind typically lose viewers. Say when you're inferring."}
 `.trim();
 
-    const analysis = await analystJson<Analysis>({
+    const gatherMs = Math.round(performance.now() - started);
+    emit.stage(`${seat} is writing the read…`);
+
+    let firstWordMs: number | null = null;
+    const modelStarted = performance.now();
+    const analysis = await analystJsonStream<Analysis>({
       system: `You are ${TEAM.editor.name}. Your one job: explain where and why this video lost viewers, and OFFER the creator fixes they can apply to the next upload — they choose which to log, so tag each fix's effort honestly and vary effort levels where the data allows. Use the drop timestamps given — never invent timestamps or quotes. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
+      proseField: "verdict",
+      onProse: (delta) => {
+        if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
+        emit.prose(delta);
+      },
     });
+    const modelMs = Math.round(performance.now() - modelStarted);
 
     const bodyMd = toMarkdown(analysis, video.title ?? ytVideoId);
     const { data: report, error: rErr } = await svc
@@ -215,11 +239,11 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
       ? { view_count: snap.view_count, views_per_day: snap.views_per_day, captured_at: snap.captured_at }
       : {};
 
-    return NextResponse.json({ report, analysis, baseline: baselineForPicks });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "The retention read couldn't finish." },
-      { status: 502 }
-    );
-  }
+    return {
+      report,
+      analysis,
+      baseline: baselineForPicks,
+      timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
+    };
+  });
 }

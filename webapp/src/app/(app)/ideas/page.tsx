@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain } from "@/components/Explain";
+import { Md } from "@/components/Md";
+import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 import { TEAM, sentenceCase } from "@/lib/team";
 
@@ -15,6 +17,8 @@ export default function IdeasPage() {
   const [mining, setMining] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [stages, setStages] = useState<string[]>([]);
+  const [prose, setProse] = useState("");
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -28,25 +32,45 @@ export default function IdeasPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  type Mined = { summary: string; found: number; added: number };
+
   async function mine() {
     setErr(null);
     setNote(null);
     setMining(true);
+    setProse("");
+    setStages([`${sentenceCase(TEAM.listener.name)} is opening your comments…`]);
+    const prose = proseBuffer((add) => setProse((p) => p + add));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/ideas", {
         method: "POST",
         headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "The comment read couldn't finish.");
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error ?? "The comment read couldn't finish.");
+      }
+      if (!r.body) throw new Error("The comment read couldn't finish.");
+
+      let j: Mined | null = null;
+      for await (const ev of readAnalystStream<Mined>(r.body)) {
+        if (ev.t === "stage") setStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") prose.push(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") j = ev;
+      }
+      prose.flush();
+      if (!j) throw new Error("The comment read stopped before it finished — try again.");
+
       setNote(
         j.added > 0
-          ? `${j.added} new idea${j.added === 1 ? "" : "s"} from your comments. ${j.summary ?? ""}`
-          : `Nothing new this time. ${j.summary ?? ""}`
+          ? `${j.added} new idea${j.added === 1 ? "" : "s"} from your comments.`
+          : "Nothing new this time — every ask your viewers made is already on this list."
       );
       await load();
     } catch (e) {
+      setProse(""); // a half-written read next to an error only confuses
       setErr(e instanceof Error ? e.message : "The comment read couldn't finish.");
     } finally {
       setMining(false);
@@ -77,6 +101,16 @@ export default function IdeasPage() {
         </div>
       )}
       {note && <div className="ok-note">{note}</div>}
+      {(mining || prose) && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          {mining && <Working stages={stages} />}
+          {prose && (
+            <div style={mining ? { marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 } : undefined}>
+              <Md md={prose} />
+            </div>
+          )}
+        </div>
+      )}
       {ideas.length === 0 ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Ideas come from your own comments</b>

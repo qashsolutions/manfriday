@@ -152,7 +152,7 @@ describe("POST /api/analyst/research", () => {
 
     expect(stages[0]).toBe("The Researcher is pulling the top results for “garage workshop”…");
     // The counts are the ones actually fetched, not a guess.
-    expect(stages).toContain("Reading 1 titles across 1 channels…");
+    expect(stages).toContain("Reading 1 title across 1 channel…");
     expect(stages.at(-1)).toBe("The Researcher is writing your read…");
     // Every stage precedes the first word of the read.
     expect(events.findIndex((e) => e.t === "stage")).toBeLessThan(events.findIndex((e) => e.t === "prose"));

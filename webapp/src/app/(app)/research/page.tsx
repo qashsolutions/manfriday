@@ -1,40 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
-import { Working } from "@/components/Working";
+import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
 import { TEAM, agentNames, sentenceCase } from "@/lib/team";
 
-type StreamEvent =
-  | { t: "stage"; m: string }
-  | { t: "prose"; d: string }
-  | { t: "error"; error: string }
-  | { t: "done"; report: Report; takeaways: Takeaway[] };
-
-/** The analyst routes answer in newline-delimited JSON so the read can be shown
-    while it is still being written. */
-async function* readEvents(body: ReadableStream<Uint8Array>): AsyncGenerator<StreamEvent> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let buf = "";
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    let nl: number;
-    while ((nl = buf.indexOf("\n")) !== -1) {
-      const line = buf.slice(0, nl).trim();
-      buf = buf.slice(nl + 1);
-      if (line) yield JSON.parse(line) as StreamEvent;
-    }
-  }
-  const tail = buf.trim();
-  if (tail) yield JSON.parse(tail) as StreamEvent;
-}
+type Finished = { report: Report; takeaways: Takeaway[] };
 
 type Report = { id: string; title: string; body_md: string; created_at: string };
 type Takeaway = {
@@ -63,24 +38,6 @@ export default function ResearchPage() {
   const [stages, setStages] = useState<string[]>([]);
   const [prose, setProse] = useState("");
 
-  // Prose lands token by token; repaint on a short beat instead, so a long read
-  // doesn't cost one re-render per word.
-  const pending = useRef("");
-  const beat = useRef<ReturnType<typeof setTimeout> | null>(null);
-  function showProse(delta: string) {
-    pending.current += delta;
-    if (beat.current) return;
-    beat.current = setTimeout(() => {
-      beat.current = null;
-      setProse((p) => p + pending.current);
-      pending.current = "";
-    }, 60);
-  }
-  function flushProse() {
-    if (beat.current) { clearTimeout(beat.current); beat.current = null; }
-    if (pending.current) { setProse((p) => p + pending.current); pending.current = ""; }
-  }
-
   async function research() {
     setErr(null);
     setWorking(true);
@@ -88,8 +45,8 @@ export default function ResearchPage() {
     setReport(null);
     setTakeaways([]);
     setProse("");
-    pending.current = "";
     setStages([`${sentenceCase(TEAM.researcher.name)} is picking up your question…`]);
+    const prose = proseBuffer((add) => setProse((p) => p + add));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/research", {
@@ -105,14 +62,14 @@ export default function ResearchPage() {
       }
       if (!r.body) throw new Error("The research couldn't finish.");
 
-      let finished: Extract<StreamEvent, { t: "done" }> | null = null;
-      for await (const ev of readEvents(r.body)) {
+      let finished: Finished | null = null;
+      for await (const ev of readAnalystStream<Finished>(r.body)) {
         if (ev.t === "stage") setStages((s) => [...s, ev.m]);
-        else if (ev.t === "prose") showProse(ev.d);
+        else if (ev.t === "prose") prose.push(ev.d);
         else if (ev.t === "error") throw new Error(ev.error);
         else if (ev.t === "done") finished = ev;
       }
-      flushProse();
+      prose.flush();
       if (!finished) throw new Error("The read stopped before it finished — try again.");
 
       setReport(finished.report);
