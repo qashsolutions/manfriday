@@ -169,7 +169,7 @@ export default function DeskPage() {
           <div className="tick" style={{ margin: "0 auto 16px" }} />
           <b>{channel.title ?? "Your channel"} is connected. Ready for the first read?</b>
           The team reads your last 30 uploads, works out what&apos;s normal for you, and flags your
-          wins and misses. Takes under a minute.
+          wins and misses. Takes about two minutes.
           {runErr && <div className="err" style={{ marginTop: 14, textAlign: "left" }}>{runErr}</div>}
           <div style={{ marginTop: 18 }}>
             <button className="btn btn-acc btn-lg" onClick={runFirstAnalysis} disabled={running}>

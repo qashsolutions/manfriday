@@ -93,17 +93,17 @@ export default function LandingPage() {
 
         <section className="site-section" id="how">
           <span className="eyebrow">How it works</span>
-          <h2>Two clicks to your first real answer.</h2>
+          <h2>Three steps to your first real answer.</h2>
           <div className="flow">
             <div className="f">
               <div className="viz"><VizConnect /></div>
               <b>Connect</b>
-              <p>One click. Read-only — we can look, never touch.</p>
+              <p>Sign in with Google. Read-only — we can look, never touch.</p>
             </div>
             <div className="f">
               <div className="viz"><VizBaseline /></div>
               <b>See your normal</b>
-              <p>Wins and misses flagged against your own bar, in ~2 minutes.</p>
+              <p>Wins and misses flagged against your own bar, in about two minutes.</p>
             </div>
             <div className="f">
               <div className="viz"><VizOptions /></div>
