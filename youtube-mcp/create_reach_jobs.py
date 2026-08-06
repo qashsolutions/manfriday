@@ -14,6 +14,9 @@ Usage (from youtube-mcp/, under the MCP venv):
   .venv/bin/python create_reach_jobs.py spike    # read-only Analytics API probe:
                                                  # do targeted queries serve the
                                                  # thumbnail metrics for past dates?
+  .venv/bin/python create_reach_jobs.py reports  # read-only: list available
+                                                 # reports per job and print the
+                                                 # earliest report date
 
 Reuses the local MCP server's OAuth token (.oauth-token.json), refreshing
 and writing it back the same way server.py's _oauth_creds() does. Honors
@@ -162,6 +165,48 @@ def spike(creds):
         run_query(analytics, f"{label} — thumbnail metrics", metrics=metrics, **common)
 
 
+def list_reports(creds):
+    reporting = build("youtubereporting", "v1", credentials=creds, cache_discovery=False)
+    jobs = reporting.jobs().list().execute().get("jobs", [])
+    print(f"jobs.list: {len(jobs)} job(s)")
+
+    earliest_overall = None
+    for job in jobs:
+        print_job(job)
+        reports = []
+        page_token = None
+        while True:
+            resp = (
+                reporting.jobs()
+                .reports()
+                .list(jobId=job["id"], pageToken=page_token)
+                .execute()
+            )
+            reports.extend(resp.get("reports", []))
+            page_token = resp.get("nextPageToken")
+            if not page_token:
+                break
+        if not reports:
+            print("    no reports available yet")
+            continue
+        reports.sort(key=lambda r: r.get("startTime", ""))
+        for report in reports:
+            print(
+                f"    report id={masked(report.get('id'))}  "
+                f"window {report.get('startTime')} → {report.get('endTime')}  "
+                f"createTime={report.get('createTime')}"
+            )
+        earliest = reports[0].get("startTime")
+        print(f"    earliest report date for {job.get('reportTypeId')}: {earliest}")
+        if earliest and (earliest_overall is None or earliest < earliest_overall):
+            earliest_overall = earliest
+
+    if earliest_overall:
+        print(f"\nEarliest report date across all jobs: {earliest_overall}")
+    else:
+        print("\nNo reports available on any job yet.")
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "create"
     credentials = creds_or_die()
@@ -169,5 +214,7 @@ if __name__ == "__main__":
         create_jobs(credentials)
     elif mode == "spike":
         spike(credentials)
+    elif mode == "reports":
+        list_reports(credentials)
     else:
-        sys.exit(f"Unknown mode {mode!r} — use 'create' (default) or 'spike'.")
+        sys.exit(f"Unknown mode {mode!r} — use 'create' (default), 'spike', or 'reports'.")

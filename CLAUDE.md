@@ -137,6 +137,10 @@ accrues only from job creation, so create reach jobs at channel connect
 best-time-to-publish, search-volume trends — status_aug2.md §12 lists the
 verified substitutions.
 
+Client-side idle logout is deliberately absent (removed 2026-08-05);
+real session timeboxing, if ever needed, belongs in Supabase's
+server-side auth settings.
+
 ## Session discipline (2026-08-05 — every session, every task)
 
 1. **Plan-gate.** Before any edit: list the files you will touch and what

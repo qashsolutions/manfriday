@@ -32,11 +32,6 @@ export function AuthCard() {
 
   // A session that still owes an authenticator code resumes at the MFA step.
   useEffect(() => {
-    try {
-      if (new URLSearchParams(window.location.search).get("timeout") === "1") {
-        setNote("You were signed out after 30 minutes of inactivity. Sign in again to continue.");
-      }
-    } catch {}
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;

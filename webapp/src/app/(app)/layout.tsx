@@ -40,38 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
     evaluate();
     const { data: sub } = supabase.auth.onAuthStateChange(() => { evaluate(); });
-
-    // 30 minutes of inactivity signs the user out (timestamp shared across tabs).
-    const KEY = "mf-last-active";
-    const LIMIT = 30 * 60_000;
-    const bump = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch {} };
-    const expired = () => {
-      try {
-        const last = Number(localStorage.getItem(KEY) ?? 0);
-        return last > 0 && Date.now() - last > LIMIT;
-      } catch { return false; }
-    };
-    const signOutIdle = async () => {
-      try { localStorage.removeItem(KEY); } catch {}
-      await supabase.auth.signOut();
-      router.replace("/settings?timeout=1");
-    };
-    if (expired()) { signOutIdle(); return; }
-    bump();
-    let lastBump = Date.now();
-    const onActivity = () => {
-      const now = Date.now();
-      if (now - lastBump > 15_000) { lastBump = now; bump(); }
-    };
-    const events = ["pointerdown", "keydown", "scroll", "visibilitychange"] as const;
-    events.forEach((e) => window.addEventListener(e, onActivity, { passive: true }));
-    const idleCheck = setInterval(() => { if (expired()) signOutIdle(); }, 60_000);
-
-    return () => {
-      sub.subscription.unsubscribe();
-      events.forEach((e) => window.removeEventListener(e, onActivity));
-      clearInterval(idleCheck);
-    };
+    return () => { sub.subscription.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
