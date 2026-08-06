@@ -92,8 +92,49 @@ export async function GET(req: NextRequest) {
   );
   if (error) return fail("store_failed");
 
+  // Reach jobs are best-effort like the channel lookup: the connect must
+  // succeed even if provisioning fails, but failures go to the server log.
+  try {
+    await ensureReachJobs(tokens.access_token);
+  } catch (e) {
+    console.error("reach jobs: unexpected failure", e);
+  }
+
   const res = NextResponse.redirect(`${origin}/settings?connected=1`);
   res.headers.append("Set-Cookie", "mf_yt_state=; Path=/; Max-Age=0");
   res.headers.append("Set-Cookie", "mf_yt_uid=; Path=/; Max-Age=0");
   return res;
+}
+
+/** Thumbnail impressions/CTR exist only as Reporting API reach reports, and
+    a channel's data accrues from job creation — so every connect (including
+    re-connects) ensures the jobs exist. jobs.create is not idempotent (409
+    on repeat), hence list-then-create with 409 treated as already done. */
+const REACH_REPORT_TYPES = ["channel_reach_basic_a1", "channel_reach_combined_a1"];
+
+async function ensureReachJobs(accessToken: string) {
+  const jobsUrl = "https://youtubereporting.googleapis.com/v1/jobs";
+  const auth = { Authorization: `Bearer ${accessToken}` };
+
+  const listRes = await fetch(jobsUrl, { headers: auth });
+  if (!listRes.ok) {
+    console.error(`reach jobs: jobs.list failed (${listRes.status}): ${await listRes.text()}`);
+    return;
+  }
+  const listing: { jobs?: { reportTypeId?: string }[] } = await listRes.json();
+  const have = new Set((listing.jobs ?? []).map((j) => j.reportTypeId));
+
+  for (const reportTypeId of REACH_REPORT_TYPES) {
+    if (have.has(reportTypeId)) continue;
+    const createRes = await fetch(jobsUrl, {
+      method: "POST",
+      headers: { ...auth, "Content-Type": "application/json" },
+      body: JSON.stringify({ reportTypeId, name: `manfriday ${reportTypeId}` }),
+    });
+    if (!createRes.ok && createRes.status !== 409) {
+      console.error(
+        `reach jobs: jobs.create ${reportTypeId} failed (${createRes.status}): ${await createRes.text()}`
+      );
+    }
+  }
 }

@@ -335,8 +335,12 @@ session JWT (details in sqlstatus_aug3.md).
   internals; fix is `youtube-mcp/.venv/bin/pip install -U yt-dlp`.
 - **"Subscribers who watched" is not a public metric**; the public proxy is
   views÷subscribers. With OAuth, real per-viewer analytics exist only for the
-  authorized channel. Impressions/CTR are not exposed by the Analytics API at
-  all (YouTube Studio UI only).
+  authorized channel. Impressions/CTR are not served by the Analytics API,
+  but ARE available (since Jan 15, 2026) via YouTube Reporting API reach
+  jobs — `channel_reach_basic_a1` / `channel_reach_combined_a1` with
+  `video_thumbnail_impressions` and `video_thumbnail_impressions_ctr`
+  (developers.google.com/youtube/reporting/revision_history) — with data
+  accruing only from job creation.
 - **OAuth is single-user, local-file token** — correct for a personal tool;
   a public manfriday.app requires per-user token storage plus Google app
   verification to leave Testing mode (100-user cap until then).
@@ -560,11 +564,17 @@ first results" is literally true).
   `deck/mockup-eval.md`). Applied: apply-loop closed everywhere (Copy /
   Open in YouTube Studio / Mark applied), price+proof before the connect
   wall, "Today's one thing" Desk strip, day-1 empty-state specs, honesty
-  fixes. **API-truth substitutions verified against Google's docs**:
-  thumbnail impressions/CTR do NOT exist in the Analytics API (Studio-only)
-  → replaced with Browse-reach collapse from traffic-source data;
-  "audience overlap" → content-gap from public data; best-time-to-publish
-  and search-trend claims deleted (no API source).
+  fixes. **API-truth substitutions verified against Google's docs**
+  (first item corrected Aug 5, 2026): thumbnail impressions/CTR ARE
+  available (since Jan 15, 2026) via YouTube Reporting API reach jobs —
+  `channel_reach_basic_a1` / `channel_reach_combined_a1` with
+  `video_thumbnail_impressions` and `video_thumbnail_impressions_ctr`
+  (developers.google.com/youtube/reporting/revision_history) — but data
+  accrues only from job creation, so reach jobs are created at channel
+  connect; until reach data lands, Browse-reach collapse from
+  traffic-source data stays the stand-in; "audience overlap" →
+  content-gap from public data; best-time-to-publish and search-trend
+  claims deleted (no API source).
 
 **Decisions locked:** light theme, premium-flagship bar · responsive web +
 installable PWA, no native apps at launch · team-of-six as the interface
@@ -609,9 +619,12 @@ The judgment layer shipped: four server-side analysts in `webapp/`, all
 calling **Claude Opus 5** (`claude-opus-5`, Anthropic TS SDK, structured
 JSON outputs, server-side refusal fallback to Opus 4.8). Shared helper:
 `src/lib/server/claude.ts` — one entry point (`analystJson`), a common
-`TEAM_RULES` system preamble enforcing plain English and the verified
-API-truth limits (no thumbnail impressions/CTR, no audience overlap, no
-publish-timing, no search volumes — "many people type this" only).
+`TEAM_RULES` system preamble enforcing plain English and grounded limits
+(no audience overlap, no publish-timing, no search volumes — "many people
+type this" only). Thumbnail impressions/CTR ARE available since Jan 15,
+2026 via YouTube Reporting API reach jobs
+(developers.google.com/youtube/reporting/revision_history), but stay
+banned in analyst copy until reach-data consumption ships.
 
 | Analyst | Route | Reads | Writes |
 |---|---|---|---|
