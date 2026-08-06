@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain } from "@/components/Explain";
 import { BeforeAfter, ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
+import { TEAM, sentenceCase } from "@/lib/team";
 
 type Rec = {
   id: string;
@@ -155,7 +156,7 @@ export default function LedgerPage() {
                     </>
                   )}
                   {r.status === "applied" && (
-                    <span className="pill acc" title={`The Scorekeeper judges after ${JUDGE_AFTER_DAYS} days of fresh numbers`}>
+                    <span className="pill acc" title={`${sentenceCase(TEAM.scorekeeper.name)} judges after ${JUDGE_AFTER_DAYS} days of fresh numbers`}>
                       ⏳ checking — day {Math.min(appliedDay(r), JUDGE_AFTER_DAYS)} of {JUDGE_AFTER_DAYS}
                     </span>
                   )}

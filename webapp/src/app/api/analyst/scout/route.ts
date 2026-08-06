@@ -8,6 +8,7 @@ import {
   type ChannelNormal,
 } from "@/lib/server/publicYt";
 import { cachedJson } from "@/lib/server/cache";
+import { TEAM, sentenceCase } from "@/lib/team";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 
@@ -72,7 +73,7 @@ const SCHEMA = {
       type: "object",
       additionalProperties: false,
       required: ["their_title", "your_title", "note"],
-      description: "The Packaging Analyst's side-by-side title read.",
+      description: `${sentenceCase(TEAM.marketer.name)}'s side-by-side title read.`,
       properties: {
         their_title: { type: "array", items: { type: "string" }, description: "1-3 observations about what their title does (structure, searched words, promise)." },
         your_title: { type: "array", items: { type: "string" }, description: "1-3 observations about the creator's title — empty when no own video was chosen." },
@@ -83,7 +84,7 @@ const SCHEMA = {
       type: "object",
       additionalProperties: false,
       required: ["summary", "receipts", "asks", "your_side"],
-      description: "The Audience Analyst's read of the OUTSIDE video's public comments.",
+      description: `${sentenceCase(TEAM.listener.name)}'s read of the OUTSIDE video's public comments.`,
       properties: {
         summary: { type: "string", description: "One or two sentences on what their commenters respond to. If no comments were given, say so." },
         receipts: {
@@ -102,7 +103,7 @@ const SCHEMA = {
     },
     retention_note: {
       type: "string",
-      description: "The Retention Analyst's honest one-liner: outside videos' retention curves are private, so say what CAN'T be known here and what public signals (length, engagement) can and can't hint at. Never invent watch-time claims.",
+      description: `${sentenceCase(TEAM.editor.name)}'s honest one-liner: outside videos' retention curves are private, so say what CAN'T be known here and what public signals (length, engagement) can and can't hint at. Never invent watch-time claims.`,
     },
     you_can_act_on: {
       type: "array",
@@ -282,7 +283,7 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
       .from("reports")
       .insert({
         user_id: user.id,
-        agent: "The Scout",
+        agent: TEAM.scout.name,
         title: `"${video.title.slice(0, 60)}" vs ${mine?.title ? `"${String(mine.title).slice(0, 40)}"` : "your normal"}`,
         body_md: toMarkdown(analysis, video.title, mine?.title ?? null),
         data: analysis,
@@ -309,7 +310,7 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
     });
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "The Scout couldn't finish the comparison." },
+      { error: e instanceof Error ? e.message : `${sentenceCase(TEAM.scout.name)} couldn't finish the comparison.` },
       { status: 502 }
     );
   }

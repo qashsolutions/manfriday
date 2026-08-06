@@ -5,10 +5,11 @@ import { accessTokenFromRow, yt } from "@/lib/server/youtube";
 import { fetchRetention, atLabel } from "@/lib/server/retentionData";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
+import { TEAM } from "@/lib/team";
 
 export const maxDuration = 120;
 
-/** The Retention Analyst: reads the real retention curve (plus the video's own
+/** The Editor: reads the real retention curve (plus the video's own
     words and the channel's normal) and turns the marked drops into "here's why,
     here's the fix" — saved as a report. Fixes are OFFERED with effort tags;
     the creator picks which to log (guide stance: choices, never orders). */
@@ -186,7 +187,7 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
 `.trim();
 
     const analysis = await analystJson<Analysis>({
-      system: `You are the Retention Analyst. Your one job: explain where and why this video lost viewers, and OFFER the creator fixes they can apply to the next upload — they choose which to log, so tag each fix's effort honestly and vary effort levels where the data allows. Use the drop timestamps given — never invent timestamps or quotes. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
+      system: `You are ${TEAM.editor.name}. Your one job: explain where and why this video lost viewers, and OFFER the creator fixes they can apply to the next upload — they choose which to log, so tag each fix's effort honestly and vary effort levels where the data allows. Use the drop timestamps given — never invent timestamps or quotes. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
@@ -196,7 +197,7 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
       .from("reports")
       .insert({
         user_id: user.id,
-        agent: "Retention Analyst",
+        agent: TEAM.editor.name,
         title: `Why "${(video.title ?? ytVideoId).slice(0, 80)}" held or lost viewers`,
         body_md: bodyMd,
         data: analysis,

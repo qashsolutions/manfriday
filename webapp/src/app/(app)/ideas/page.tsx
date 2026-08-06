@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain } from "@/components/Explain";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
+import { TEAM, sentenceCase } from "@/lib/team";
 
 type Idea = { id: string; created_at: string; recommendation: string; notes: string | null; status: string; confidence: number | null; evidence: EvidenceItem[] | null };
 
@@ -79,7 +80,7 @@ export default function IdeasPage() {
       {ideas.length === 0 ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Ideas come from your own comments</b>
-          The Audience Analyst reads what your viewers write and pulls out what they&apos;re literally
+          {sentenceCase(TEAM.listener.name)} reads what your viewers write and pulls out what they&apos;re literally
           asking you to make — every idea with a receipt: how many asked, and the actual comment.
           <div style={{ marginTop: 16 }}>
             <button className="btn btn-acc btn-lg" onClick={mine} disabled={mining}>
@@ -127,7 +128,7 @@ export default function IdeasPage() {
           ))}
           <Explain
             why="These aren't guesses — each one is something your viewers asked for in writing."
-            how="The Audience Analyst counts requests across your real comments; the receipt rides along."
+            how={`${sentenceCase(TEAM.listener.name)} counts requests across your real comments; the receipt rides along.`}
             what="Make the top one next — mark it applied and the Scorekeeper checks the outcome."
           />
         </div>

@@ -4,10 +4,11 @@ import { serviceClient } from "@/lib/server/service";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 import { typedPhrases } from "@/lib/server/publicYt";
+import { TEAM } from "@/lib/team";
 
 export const maxDuration = 120;
 
-/** The Packaging Analyst: grades a draft title against the creator's OWN
+/** The Marketer: grades a draft title against the creator's OWN
     winners and losers (from their baselines) plus what people really type
     into YouTube (autocomplete phrases — phrases only, never volumes). */
 
@@ -212,7 +213,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
     }
 
     const analysis = await analystJson<Grade>({
-      system: `You are the Packaging Analyst. Grade the draft title honestly against this creator's own winners and misses — patterns in THEIR titles, not generic YouTube advice. Rewrites must sound like this creator, promise something concrete, and avoid clickbait they'd regret. Grade craft, not luck.${thumb ? " A draft thumbnail image is attached: fill thumb_read with an honest read of it (title and thumbnail are one promise — judge them together)." : " No thumbnail was provided: thumb_read must be null."}\n\n${OPTIONS_RULES}`,
+      system: `You are ${TEAM.marketer.name}. Grade the draft title honestly against this creator's own winners and misses — patterns in THEIR titles, not generic YouTube advice. Rewrites must sound like this creator, promise something concrete, and avoid clickbait they'd regret. Grade craft, not luck.${thumb ? " A draft thumbnail image is attached: fill thumb_read with an honest read of it (title and thumbnail are one promise — judge them together)." : " No thumbnail was provided: thumb_read must be null."}\n\n${OPTIONS_RULES}`,
       user: userContent as never,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });

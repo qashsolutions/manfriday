@@ -8,6 +8,7 @@ import {
 } from "@/lib/server/publicYt";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
+import { TEAM } from "@/lib/team";
 import { cachedJson } from "@/lib/server/cache";
 
 export const maxDuration = 120;
@@ -176,7 +177,7 @@ ${material}
       .from("reports")
       .insert({
         user_id: user.id,
-        agent: "The Researcher",
+        agent: TEAM.researcher.name,
         title: research.title.slice(0, 120),
         body_md: research.body_md,
         data: { takeaways: research.takeaways },

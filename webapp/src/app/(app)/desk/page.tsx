@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, daysAgo, type ChannelData, type VideoPerf } from "@/lib/channelData";
 import { Thumb } from "@/components/Explain";
-import { TEAM_LINES } from "@/lib/team";
+import { TEAM, TEAM_ATTRIBUTION, agentNames } from "@/lib/team";
 
 export default function DeskPage() {
   const supabase = supabaseBrowser();
@@ -31,7 +31,7 @@ export default function DeskPage() {
       loadChannelData(),
       supabase.from("recommendations").select("status,verdict,target_type,target_yt_id"),
       supabase.from("reports").select("video_id,data,created_at")
-        .eq("agent", "Retention Analyst").not("video_id", "is", null)
+        .in("agent", agentNames(TEAM.editor)).not("video_id", "is", null)
         .order("created_at", { ascending: false }).limit(50),
     ]);
     setPaused(Boolean(prof.data?.paused_at));
@@ -84,23 +84,23 @@ export default function DeskPage() {
   /** One line per video — the most useful thing the team can say about it,
       linking straight to the analyst behind it. Priority: an action you can
       take now > a lesson to study > this week's movement > start the read. */
-  function teamBlurb(v: VideoPerf): { text: string; who: string } {
+  function teamBlurb(v: VideoPerf): { text: string; who: { name: string; job: string } } {
     const fixes = openFixes.get(v.yt_video_id) ?? 0;
     if (fixes > 0) {
-      return { text: `${fixes} fix${fixes === 1 ? "" : "es"} waiting — apply one to your next upload`, who: "Retention Analyst" };
+      return { text: `${fixes} fix${fixes === 1 ? "" : "es"} waiting — apply one to your next upload`, who: TEAM.editor };
     }
-    if (v.flag === "underperformer") return { text: "fell short — find out why", who: "Retention Analyst" };
-    if (v.flag === "outperformer") return { text: "did something right — study it", who: "Retention Analyst" };
+    if (v.flag === "underperformer") return { text: "fell short — find out why", who: TEAM.editor };
+    if (v.flag === "outperformer") return { text: "did something right — study it", who: TEAM.editor };
     const verdict = readVerdicts.get(v.id);
     if (verdict) {
       const firstSentence = verdict.split(/(?<=[.!?])\s/)[0] ?? verdict;
       const trimmed = firstSentence.length > 90 ? `${firstSentence.slice(0, 87)}…` : firstSentence;
-      return { text: trimmed, who: "Retention Analyst" };
+      return { text: trimmed, who: TEAM.editor };
     }
     if (v.views_week_delta !== null && v.views_week_delta > 0) {
-      return { text: `+${v.views_week_delta} view${v.views_week_delta === 1 ? "" : "s"} this week — see what's pulling people in`, who: "The Team" };
+      return { text: `+${v.views_week_delta} view${v.views_week_delta === 1 ? "" : "s"} this week — see what's pulling people in`, who: TEAM_ATTRIBUTION };
     }
-    return { text: "not read yet — get the team's take", who: "The Team" };
+    return { text: "not read yet — get the team's take", who: TEAM_ATTRIBUTION };
   }
 
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
@@ -287,7 +287,7 @@ export default function DeskPage() {
                           <Link href={`/why/${v.id}`} style={{ color: "var(--acc)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
                             {blurb.text}
                           </Link>
-                          <div className="sub" title={TEAM_LINES[blurb.who]}>{blurb.who}</div>
+                          <div className="sub" title={blurb.who.job}>{blurb.who.name}</div>
                         </td>
                       </tr>
                     );
@@ -339,11 +339,11 @@ export default function DeskPage() {
             <span className="k">What your team can do for you right now</span>
             <div style={{ display: "grid", gap: 9, marginTop: 10 }}>
               {[
-                { href: "/why", text: "Find the exact second viewers quit your last video", who: "Retention Analyst" },
-                { href: "/packaging", text: "Know which title wins — before you publish", who: "Packaging Analyst" },
-                { href: "/ideas", text: "Get video ideas your viewers have already asked for", who: "Audience Analyst" },
-                { href: "/scout", text: "See why a video like yours got more views — and what's yours to take", who: "The Scout" },
-                { href: "/reports", text: "Your week in two minutes, with the one decision it needs", who: "The Team" },
+                { href: "/why", text: "Find the exact second viewers quit your last video", who: TEAM.editor.name },
+                { href: "/packaging", text: "Know which title wins — before you publish", who: TEAM.marketer.name },
+                { href: "/ideas", text: "Get video ideas your viewers have already asked for", who: TEAM.listener.name },
+                { href: "/scout", text: "See why a video like yours got more views — and what's yours to take", who: TEAM.scout.name },
+                { href: "/reports", text: "Your week in two minutes, with the one decision it needs", who: TEAM_ATTRIBUTION.name },
               ].map((r) => (
                 <div key={r.href} style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
                   <Link href={r.href} style={{ color: "var(--acc)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>

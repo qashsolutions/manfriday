@@ -52,11 +52,10 @@ function mmss(s: number | null): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-import { TEAM_LINES } from "@/lib/team";
+import { TEAM, agentNames, sentenceCase } from "@/lib/team";
 
-function Byline({ name }: { name: string }) {
-  const who = name.split(" — ")[0];
-  return <span className="k" title={TEAM_LINES[who]} style={{ display: "block", marginBottom: 8 }}>{name}</span>;
+function Byline({ who, part }: { who: { name: string; job: string }; part: string }) {
+  return <span className="k" title={who.job} style={{ display: "block", marginBottom: 8 }}>{sentenceCase(who.name)} — {part}</span>;
 }
 
 export default function ScoutPage() {
@@ -89,7 +88,7 @@ export default function ScoutPage() {
       const takeaways = (j.analysis.options as ScoutOption[]).map((o) => o.takeaway);
       const { data: existing } = await supabase
         .from("recommendations").select("recommendation")
-        .eq("agent", "The Scout").in("recommendation", takeaways);
+        .in("agent", agentNames(TEAM.scout)).in("recommendation", takeaways);
       if (existing?.length) {
         setLogged(new Set((existing as { recommendation: string }[]).map((x) => x.recommendation)));
       }
@@ -106,7 +105,7 @@ export default function ScoutPage() {
     if (!user || !result) return;
     const { error } = await supabase.from("recommendations").insert({
       user_id: user.id,
-      agent: "The Scout",
+      agent: TEAM.scout.name,
       category: o.category || "content",
       recommendation: o.takeaway,
       target_type: "channel",
@@ -198,7 +197,7 @@ export default function ScoutPage() {
 
           {/* The Scout's read + factors */}
           <div style={{ marginTop: 16 }}>
-            <Byline name="The Scout — the read" />
+            <Byline who={TEAM.scout} part="the read" />
             <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6 }}>{a.read}</p>
           </div>
           {a.factors.length > 0 && (
@@ -221,9 +220,9 @@ export default function ScoutPage() {
             </div>
           )}
 
-          {/* Packaging Analyst — titles */}
+          {/* The Marketer — titles */}
           <div style={{ marginTop: 16 }}>
-            <Byline name="Packaging Analyst — the titles" />
+            <Byline who={TEAM.marketer} part="the titles" />
             <div className="grid g2">
               {a.title_read.their_title.length > 0 && (
                 <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "var(--ink2)", lineHeight: 1.6 }}>
@@ -239,9 +238,9 @@ export default function ScoutPage() {
             <p style={{ margin: "8px 0 0", fontSize: 13 }}>{a.title_read.note}</p>
           </div>
 
-          {/* Audience Analyst — comments */}
+          {/* The Listener — comments */}
           <div style={{ marginTop: 16 }}>
-            <Byline name="Audience Analyst — what their viewers say" />
+            <Byline who={TEAM.listener} part="what their viewers say" />
             <p style={{ margin: 0, fontSize: 13, color: "var(--ink2)" }}>{a.viewers_say.summary}</p>
             {a.viewers_say.receipts.length > 0 && (
               <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
@@ -260,9 +259,9 @@ export default function ScoutPage() {
             <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--ink3)" }}>{a.viewers_say.your_side}</p>
           </div>
 
-          {/* Retention Analyst — honest note */}
+          {/* The Editor — honest note */}
           <div style={{ marginTop: 16 }}>
-            <Byline name="Retention Analyst — on watch time" />
+            <Byline who={TEAM.editor} part="on watch time" />
             <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink2)" }}>{a.retention_note}</p>
           </div>
 
@@ -302,7 +301,7 @@ export default function ScoutPage() {
                       <EvidenceChips items={o.evidence} />
                       <div style={{ marginTop: "auto" }}>
                         {logged.has(o.takeaway) ? (
-                          <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                          <span className="pill good">✓ in your Ledger — {TEAM.scorekeeper.name} will check it</span>
                         ) : (
                           <button className="btn btn-ghost btn-sm" onClick={() => logPick(o)}>
                             I&apos;ll take this — log it

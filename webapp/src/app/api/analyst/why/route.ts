@@ -7,6 +7,7 @@ import { fetchTrafficSources, TRAFFIC_LEGEND } from "@/lib/server/trafficData";
 import { fetchVideoComments, typedPhrases, daysAgo } from "@/lib/server/publicYt";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
+import { SEATS, TEAM_ATTRIBUTION } from "@/lib/team";
 
 export const maxDuration = 120;
 
@@ -29,7 +30,7 @@ type WhyAnalysis = {
   };
 };
 
-const AGENTS = ["Retention Analyst", "Packaging Analyst", "Audience Analyst", "The Scout", "The Researcher", "The Scorekeeper"] as const;
+const AGENTS = SEATS.map((s) => s.name);
 
 const SCHEMA = {
   type: "object",
@@ -188,7 +189,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       .from("reports")
       .insert({
         user_id: user.id,
-        agent: "The Team",
+        agent: TEAM_ATTRIBUTION.name,
         title: `Why "${String(video.title ?? ytVideoId).slice(0, 70)}" did what it did`,
         body_md: toMarkdown(analysis, String(video.title ?? ytVideoId)),
         data: analysis,

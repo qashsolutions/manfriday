@@ -5,6 +5,7 @@ import { refreshChannelData } from "@/lib/server/refresh";
 import { checkAppliedTips } from "@/lib/server/scorekeeper";
 import { claudeConfigured } from "@/lib/server/claude";
 import { writeWeeklyReport } from "@/lib/server/weeklyReport";
+import { TEAM_ATTRIBUTION, agentNames } from "@/lib/team";
 
 export const maxDuration = 300;
 
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
       if (isMonday && claudeConfigured()) {
         const sixDaysAgo = new Date(Date.now() - 6 * 86_400_000).toISOString();
         const { data: recent } = await svc
-          .from("reports").select("id").eq("user_id", uid).eq("agent", "The Team")
+          .from("reports").select("id").eq("user_id", uid).in("agent", agentNames(TEAM_ATTRIBUTION))
           .gte("created_at", sixDaysAgo).limit(1);
         if (!recent?.length) {
           const wrote = await writeWeeklyReport(svc, uid);

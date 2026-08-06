@@ -6,6 +6,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData } from "@/lib/channelData";
 import { Explain } from "@/components/Explain";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
+import { TEAM, agentNames, sentenceCase } from "@/lib/team";
 
 type GradeOption = {
   type: "safe" | "reach" | "bold";
@@ -73,7 +74,7 @@ export default function PackagingPage() {
       const asRecs = (j.analysis.options as GradeOption[]).map((o) => `Use the title: "${o.title}"`);
       const { data: existing } = await supabase
         .from("recommendations").select("recommendation")
-        .eq("agent", "Packaging Analyst").in("recommendation", asRecs);
+        .in("agent", agentNames(TEAM.marketer)).in("recommendation", asRecs);
       if (existing?.length) {
         const found = new Set((existing as { recommendation: string }[]).map((x) => x.recommendation));
         setLogged(new Set((j.analysis.options as GradeOption[])
@@ -93,7 +94,7 @@ export default function PackagingPage() {
     if (!user) return;
     const { error } = await supabase.from("recommendations").insert({
       user_id: user.id,
-      agent: "Packaging Analyst",
+      agent: TEAM.marketer.name,
       category: "packaging",
       recommendation: `Use the title: "${o.title}"`,
       target_type: "channel",
@@ -160,7 +161,7 @@ export default function PackagingPage() {
             </button>
             <Explain
               why="A weak title kills a good video before anyone watches it."
-              how="The Packaging Analyst grades your draft against your own past winners and what people really type into YouTube — with the reason attached, never a bare score."
+              how={`${sentenceCase(TEAM.marketer.name)} grades your draft against your own past winners and what people really type into YouTube — with the reason attached, never a bare score.`}
               what="Pick a rewrite you like and log it — the Scorekeeper checks the result after you publish."
             />
           </div>
@@ -253,7 +254,7 @@ export default function PackagingPage() {
                         )}
                         <div style={{ marginTop: "auto" }}>
                           {logged.has(a.title) ? (
-                            <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                            <span className="pill good">✓ in your Ledger — {TEAM.scorekeeper.name} will check it</span>
                           ) : (
                             <button className="btn btn-ghost btn-sm" onClick={() => logPick(a)}>
                               I&apos;ll use this — log it

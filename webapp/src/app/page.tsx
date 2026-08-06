@@ -7,10 +7,8 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/Site";
 import { HeroPreview } from "@/components/HeroPreview";
 import { VizConnect, VizBaseline, VizOptions } from "@/components/HowVisuals";
-import {
-  IconRetention, IconPackaging, IconAudience,
-  IconScorekeeper, IconScout, IconResearcher,
-} from "@/components/TeamIcons";
+import { SEATS } from "@/lib/team";
+import { SEAT_ICONS } from "@/components/TeamIcons";
 
 /** Public landing page. Signed-in visitors skip straight to Settings —
     their home base — the marketing is for people who don't have a team yet. */
@@ -22,14 +20,10 @@ const STATS: [string, string][] = [
   ["#1", "business threat: the algorithm changing — not rivals"],
 ];
 
-const TEAM: { icon: React.ReactNode; name: string; says: string }[] = [
-  { icon: <IconRetention />, name: "Retention Analyst", says: "I find the exact second viewers bail — and tell you what to change so they don't next time." },
-  { icon: <IconPackaging />, name: "Packaging Analyst", says: "Before you publish, I grade your title against your own winners — and hand you three rewrites to choose from." },
-  { icon: <IconAudience />, name: "Audience Analyst", says: "I read your comments and bring you what your audience is already asking for — receipts attached." },
-  { icon: <IconScorekeeper />, name: "Scorekeeper", says: "I write every tip down and check it against your numbers. When one doesn't work, I say so." },
-  { icon: <IconScout />, name: "Scout", says: "Bring me any video that caught your eye — I'll show you, factor by factor, what explains its views and what's yours to take." },
-  { icon: <IconResearcher />, name: "Researcher", says: "Point me at any topic or video — I'll come back with the read, in plain English." },
-];
+const TEAM: { icon: React.ReactNode; name: string; says: string }[] = SEATS.map((s) => {
+  const Icon = SEAT_ICONS[s.key];
+  return { icon: <Icon />, name: s.name, says: s.job };
+});
 
 export default function LandingPage() {
   const router = useRouter();

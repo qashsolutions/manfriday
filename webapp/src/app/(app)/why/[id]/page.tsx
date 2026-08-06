@@ -9,7 +9,7 @@ import { RetentionChart, type RetentionPoint, type RetentionDrop } from "@/compo
 import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
-import { TEAM_LINES } from "@/lib/team";
+import { TEAM, TEAM_ATTRIBUTION, agentNames, jobFor, sentenceCase } from "@/lib/team";
 
 type Retention =
   | { state: "loading" }
@@ -74,7 +74,7 @@ export default function WhyDetailPage() {
     })();
     // Latest saved analyst read for this video (RLS: own rows only).
     supabase.from("reports").select("id,title,body_md,created_at,data")
-      .eq("video_id", v.id).eq("agent", "Retention Analyst")
+      .eq("video_id", v.id).in("agent", agentNames(TEAM.editor))
       .order("created_at", { ascending: false }).limit(1)
       .then(({ data: reps }: { data: AnalystReport[] | null }) => {
         setReport(reps?.[0] ?? null);
@@ -82,13 +82,13 @@ export default function WhyDetailPage() {
       });
     // Fixes already in the Ledger for this video — so "log it" doesn't double up.
     supabase.from("recommendations").select("recommendation")
-      .in("agent", ["Retention Analyst", "The Team"]).eq("target_yt_id", v.yt_video_id)
+      .in("agent", [...agentNames(TEAM.editor), ...agentNames(TEAM_ATTRIBUTION)]).eq("target_yt_id", v.yt_video_id)
       .then(({ data: recs }: { data: { recommendation: string }[] | null }) => {
         if (recs?.length) setLogged(new Set(recs.map((r) => r.recommendation)));
       });
     // The team's latest "why did it do this" verdict for this video.
     supabase.from("reports").select("id,created_at,data")
-      .eq("video_id", v.id).eq("agent", "The Team").not("data", "is", null)
+      .eq("video_id", v.id).in("agent", agentNames(TEAM_ATTRIBUTION)).not("data", "is", null)
       .order("created_at", { ascending: false }).limit(1)
       .then(({ data: reps }: { data: WhyReport[] | null }) => {
         const rep = reps?.[0];
@@ -146,7 +146,7 @@ export default function WhyDetailPage() {
   async function logFix(
     video: VideoPerf,
     f: { recommendation: string; category: string; expected: string; confidence: number; evidence: EvidenceItem[] },
-    agent: string = "Retention Analyst"
+    agent: string = TEAM.editor.name
   ) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -237,7 +237,7 @@ export default function WhyDetailPage() {
                 <li key={i} style={{ fontSize: 13, lineHeight: 1.55 }}>
                   <b>{r.reason}</b>{" "}
                   <span style={{ color: "var(--ink2)" }}>— {r.evidence}</span>{" "}
-                  <span className="sub" title={TEAM_LINES[r.agent]} style={{ whiteSpace: "nowrap" }}>{r.agent}</span>
+                  <span className="sub" title={jobFor(r.agent)} style={{ whiteSpace: "nowrap" }}>{r.agent}</span>
                 </li>
               ))}
             </ol>
@@ -253,7 +253,7 @@ export default function WhyDetailPage() {
               <EvidenceChips items={whyReport.data.action.evidence} />
               <div>
                 {logged.has(whyReport.data.action.text) ? (
-                  <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                  <span className="pill good">✓ in your Ledger — {TEAM.scorekeeper.name} will check it</span>
                 ) : (
                   <button
                     className="btn btn-ghost btn-sm"
@@ -263,7 +263,7 @@ export default function WhyDetailPage() {
                       expected: whyReport.data.action.why,
                       confidence: whyReport.data.action.confidence,
                       evidence: whyReport.data.action.evidence,
-                    }, "The Team")}
+                    }, TEAM_ATTRIBUTION.name)}
                   >
                     I&apos;ll do this — log it
                   </button>
@@ -325,7 +325,7 @@ export default function WhyDetailPage() {
 
       <div className="card" style={{ marginTop: 14 }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-          <span className="k" title={TEAM_LINES["Retention Analyst"]}>The Retention Analyst&apos;s read — where viewers stop watching, and the fixes</span>
+          <span className="k" title={TEAM.editor.job}>{sentenceCase(TEAM.editor.name)}&apos;s read — where viewers stop watching, and the fixes</span>
           {report && (
             <span style={{ fontSize: 11.5, color: "var(--ink3)" }}>
               written {new Date(report.created_at).toLocaleDateString()}
@@ -367,7 +367,7 @@ export default function WhyDetailPage() {
                           <EvidenceChips items={f.evidence} />
                           <div>
                             {logged.has(f.recommendation) ? (
-                              <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                              <span className="pill good">✓ in your Ledger — {TEAM.scorekeeper.name} will check it</span>
                             ) : (
                               <button className="btn btn-ghost btn-sm" onClick={() => v && logFix(v, f)}>
                                 I&apos;ll do this — log it
@@ -426,7 +426,7 @@ export default function WhyDetailPage() {
                   disabled={asking || !reportLoaded || ret.state !== "ready"}
                   title={ret.state !== "ready" ? "The analyst needs the retention curve above first" : undefined}
                 >
-                  {asking ? "Reading the drops…" : "Ask the Retention Analyst"}
+                  {asking ? "Reading the drops…" : `Ask ${TEAM.editor.name}`}
                 </button>
                 {ret.state !== "ready" && ret.state !== "loading" && (
                   <span style={{ marginLeft: 10, fontSize: 12, color: "var(--ink3)" }}>

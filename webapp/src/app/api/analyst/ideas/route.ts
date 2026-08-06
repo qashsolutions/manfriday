@@ -5,10 +5,11 @@ import { accessTokenFromRow } from "@/lib/server/youtube";
 import { fetchVideoComments } from "@/lib/server/publicYt";
 import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
+import { TEAM } from "@/lib/team";
 
 export const maxDuration = 120;
 
-/** The Audience Analyst: reads the channel's real comments and turns what
+/** The Listener: reads the channel's real comments and turns what
     viewers literally ask for into a ranked idea list — every idea with a
     receipt (the actual comment). Ideas land in the Ledger as target_type=idea. */
 
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
     }
     if (comments.length === 0) {
       return NextResponse.json(
-        { error: "No comments to read yet — the Audience Analyst needs viewers talking first." },
+        { error: `No comments to read yet — ${TEAM.listener.name} needs viewers talking first.` },
         { status: 409 }
       );
     }
@@ -112,7 +113,7 @@ export async function POST(req: Request) {
 
     const grounding = await analystGrounding(svc, user.id);
     const mined = await analystJson<Mined>({
-      system: `You are the Audience Analyst. Read the creator's real comments and pull out what viewers are literally asking to see next — requests, repeated questions, "please make a video on…". Only count real asks; praise and small talk are not ideas. Quotes must be copied verbatim from the given comments. If there are no genuine requests, return an empty ideas list and say so in the summary — never pad.\n\n${OPTIONS_RULES}`,
+      system: `You are ${TEAM.listener.name}. Read the creator's real comments and pull out what viewers are literally asking to see next — requests, repeated questions, "please make a video on…". Only count real asks; praise and small talk are not ideas. Quotes must be copied verbatim from the given comments. If there are no genuine requests, return an empty ideas list and say so in the summary — never pad.\n\n${OPTIONS_RULES}`,
       user: `${grounding.audienceBlock}\n\n${grounding.trackBlock}\n\nTHE CHANNEL'S COMMENTS (${comments.length} most relevant, with like counts)\n${commentBlock}`,
       schema: SCHEMA as unknown as Record<string, unknown>,
     });
@@ -126,7 +127,7 @@ export async function POST(req: Request) {
       const { error: iErr } = await svc.from("recommendations").insert(
         fresh.map((i) => ({
           user_id: user.id,
-          agent: "Audience Analyst",
+          agent: TEAM.listener.name,
           category: "content",
           recommendation: i.title,
           target_type: "idea",

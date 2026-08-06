@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { TEAM_LINES } from "@/lib/team";
+import { SEATS } from "@/lib/team";
 
 const NAV = [
   { href: "/desk", label: "The Desk" },
@@ -15,15 +15,6 @@ const NAV = [
   { href: "/research", label: "Research a topic" },
   { href: "/ledger", label: "The Ledger" },
   { href: "/reports", label: "Reports" },
-];
-
-const TEAM = [
-  "Retention Analyst",
-  "Packaging Analyst",
-  "Audience Analyst",
-  "The Scout",
-  "The Researcher",
-  "The Scorekeeper",
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -128,13 +119,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="sect">Your team of six</div>
         <div className="team">
-          {TEAM.map((name) => (
-            <div className="an" key={name} style={{ alignItems: "flex-start" }}>
+          {SEATS.map((s) => (
+            <div className="an" key={s.key} style={{ alignItems: "flex-start" }}>
               <span className="st idle" style={{ marginTop: 5 }} />
               <div>
-                {name}
+                {s.name}
                 <div style={{ fontSize: 10.5, color: "var(--ink3)", lineHeight: 1.35, marginTop: 1 }}>
-                  {TEAM_LINES[name]}
+                  {s.job}
                 </div>
               </div>
             </div>

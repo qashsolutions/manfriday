@@ -6,6 +6,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
+import { TEAM, agentNames, sentenceCase } from "@/lib/team";
 
 type Report = { id: string; title: string; body_md: string; created_at: string };
 type Takeaway = {
@@ -51,7 +52,7 @@ export default function ResearchPage() {
       if (t.length) {
         const { data: existing } = await supabase
           .from("recommendations").select("recommendation")
-          .eq("agent", "The Researcher").in("recommendation", t.map((x) => x.takeaway));
+          .in("agent", agentNames(TEAM.researcher)).in("recommendation", t.map((x) => x.takeaway));
         if (existing?.length) {
           setLogged(new Set((existing as { recommendation: string }[]).map((x) => x.recommendation)));
         }
@@ -69,7 +70,7 @@ export default function ResearchPage() {
     if (!user || !report) return;
     const { error } = await supabase.from("recommendations").insert({
       user_id: user.id,
-      agent: "The Researcher",
+      agent: TEAM.researcher.name,
       category: t.category || "content",
       recommendation: t.takeaway,
       target_type: "channel",
@@ -116,7 +117,7 @@ export default function ResearchPage() {
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
             <b style={{ fontSize: 14 }}>{report.title}</b>
             <span style={{ color: "var(--ink3)", fontSize: 12 }}>
-              The Researcher · {new Date(report.created_at).toLocaleDateString()}
+              {sentenceCase(TEAM.researcher.name)} · {new Date(report.created_at).toLocaleDateString()}
             </span>
             <Link href="/reports" style={{ marginLeft: "auto", color: "var(--acc)", fontSize: 12 }}>
               saved with your reports →
@@ -144,7 +145,7 @@ export default function ResearchPage() {
                       <EvidenceChips items={t.evidence} />
                       <div style={{ marginTop: "auto" }}>
                         {logged.has(t.takeaway) ? (
-                          <span className="pill good">✓ in your Ledger — Scorekeeper will check it</span>
+                          <span className="pill good">✓ in your Ledger — {TEAM.scorekeeper.name} will check it</span>
                         ) : (
                           <button className="btn btn-ghost btn-sm" onClick={() => logPick(t)}>
                             I&apos;ll take this — log it

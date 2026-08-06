@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { analystJson } from "./claude";
+import { TEAM_ATTRIBUTION } from "@/lib/team";
 
 /** The team's weekly report, written from stored data only — no YouTube
     calls. Shared by the on-demand route and the Monday cron, so the report
@@ -134,7 +135,7 @@ ${ideaLines || "- none mined yet"}
     .from("reports")
     .insert({
       user_id: userId,
-      agent: "The Team",
+      agent: TEAM_ATTRIBUTION.name,
       title: weekly.title.slice(0, 120),
       body_md: weekly.body_md,
       channel_id: channel.id,
