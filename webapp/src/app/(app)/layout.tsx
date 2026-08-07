@@ -25,6 +25,7 @@ const NAV: { step: string | null; items: { href: string; label: string; sub?: bo
       { href: "/ideas", label: "What to make next" },
       { href: "/research", label: "Research a topic", sub: true },
       { href: "/packaging", label: "Titles & thumbnails" },
+      { href: "/hook", label: "Fix your opening" },
     ],
   },
   {
@@ -53,15 +54,26 @@ const CYCLE = [
 
 /** Desktop-tier screens (DESIGN.md §17): built for a big screen because the
     work is side-by-side, readable on a phone anyway. They get one quiet note
-    there — never a gate. Phone-tier screens get nothing extra. */
-const DESKTOP_TIER = ["/packaging", "/scout"];
+    there — never a gate. Phone-tier screens get nothing extra.
+
+    The note names what the big screen is actually for on that screen: a note
+    about comparing images would be untrue above a page where the work is
+    writing. */
+const DESKTOP_TIER: Record<string, string> = {
+  "/packaging":
+    "Best on a bigger screen — comparing images and titles side by side is how you spot what makes people click. It all still works here, just stacked.",
+  "/scout":
+    "Best on a bigger screen — comparing images and titles side by side is how you spot what makes people click. It all still works here, just stacked.",
+  "/hook":
+    "Best on a bigger screen — writing an opening goes quicker with your draft and the seconds viewers left both in view. It all still works here, just stacked.",
+};
 
 /** Which step a path belongs to. Settings and tuning sit outside the cycle,
     so nothing is highlighted there. */
 function stepFor(pathname: string): string | null {
   if (pathname.startsWith("/desk")) return "today";
   if (pathname.startsWith("/why") || pathname.startsWith("/scout")) return "why";
-  if (pathname.startsWith("/ideas") || pathname.startsWith("/research") || pathname.startsWith("/packaging")) return "next";
+  if (pathname.startsWith("/ideas") || pathname.startsWith("/research") || pathname.startsWith("/packaging") || pathname.startsWith("/hook")) return "next";
   if (pathname.startsWith("/ledger") || pathname.startsWith("/reports")) return "score";
   return null;
 }
@@ -214,11 +226,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <button className="iconbtn" onClick={toggleTheme} title="Switch light/dark" aria-label="Switch theme"><IconTheme /></button>
             <Link href="/settings" className="iconbtn" title="Settings" aria-label="Settings"><IconSettings /></Link>
           </div>
-          {DESKTOP_TIER.includes(pathname) && (
-            <div className="aside-note bigscreen">
-              Best on a bigger screen — comparing images and titles side by side is how you spot
-              what makes people click. It all still works here, just stacked.
-            </div>
+          {DESKTOP_TIER[pathname] && (
+            <div className="aside-note bigscreen">{DESKTOP_TIER[pathname]}</div>
           )}
           {children}
         </div>
