@@ -46,7 +46,9 @@ export function AuthCard() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/settings` },
+      // "/" routes signed-in visitors by connection state: Desk if a channel
+      // is connected, Settings if not.
+      options: { redirectTo: `${window.location.origin}/` },
     });
     if (error) { setError(error.message); setBusy(false); }
   }

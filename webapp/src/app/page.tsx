@@ -10,8 +10,9 @@ import { VizConnect, VizBaseline, VizOptions } from "@/components/HowVisuals";
 import { SEATS } from "@/lib/team";
 import { SEAT_ICONS } from "@/components/TeamIcons";
 
-/** Public landing page. Signed-in visitors skip straight to Settings —
-    their home base — the marketing is for people who don't have a team yet. */
+/** Public landing page. Signed-in visitors skip the marketing: straight to
+    their Desk if a channel is connected, to Settings (the first-run front
+    door) if not. */
 
 const STATS: [string, string][] = [
   ["52%", "of creators report burnout — money strain is the top driver"],
@@ -29,8 +30,18 @@ export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    supabaseBrowser().auth.getSession().then(({ data }) => {
-      if (data.session) router.replace("/settings");
+    supabaseBrowser().auth.getSession().then(async ({ data }) => {
+      if (!data.session) return;
+      // Any failure of the status check falls back to /settings, where the
+      // connection state is shown and fixable.
+      let connected = false;
+      try {
+        const r = await fetch("/api/connections/status", {
+          headers: { Authorization: `Bearer ${data.session.access_token}` },
+        });
+        if (r.ok) connected = (await r.json()).connected === true;
+      } catch {}
+      router.replace(connected ? "/desk" : "/settings");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

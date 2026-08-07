@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { AuthCard } from "@/components/AuthCard";
@@ -11,6 +12,22 @@ type YtStatus =
   | { configured: false }
   | { configured: true; connected: false }
   | { configured: true; connected: true; channelTitle: string | null; connectedAt: string | null };
+
+/** Plain-English copy for the ?yt_error reasons the connect callback emits. */
+const YT_ERROR_COPY: Record<string, string> = {
+  access_denied:
+    "You stopped before granting access, so your channel isn't connected. Hit Connect below to try again.",
+  state_mismatch:
+    "That connection attempt expired or didn't start from this page, so nothing was linked. Hit Connect below to start a fresh one.",
+  not_configured:
+    "Connections aren't set up on this deployment yet, so your channel can't be linked here.",
+  token_exchange_failed:
+    "Google didn't complete the hand-off, so your channel isn't connected. Hit Connect below to try again.",
+  store_failed:
+    "Google authorized the connection but we couldn't finish saving it on our side. Hit Connect below to try again.",
+};
+const YT_ERROR_FALLBACK =
+  "The connection didn't complete, so your channel isn't linked. Hit Connect below to try again.";
 
 async function authedFetch(path: string, init?: RequestInit) {
   const supabase = supabaseBrowser();
@@ -42,6 +59,8 @@ export default function SettingsPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteText, setDeleteText] = useState("");
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [justConnected, setJustConnected] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -65,6 +84,15 @@ export default function SettingsPage() {
       const t = localStorage.getItem("mf-theme");
       setTheme(t === "dark" || t === "light" ? t : "system");
     } catch {}
+    // The connect callback returns here with ?connected=1 or ?yt_error=…;
+    // consume the param into a banner, then strip it so a refresh is quiet.
+    const params = new URLSearchParams(window.location.search);
+    const ytError = params.get("yt_error");
+    if (params.get("connected") === "1") setJustConnected(true);
+    if (ytError) setConnectError(YT_ERROR_COPY[ytError] ?? YT_ERROR_FALLBACK);
+    if (params.get("connected") || ytError) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     // Signed out (or MFA pending): the Account section hosts the sign-in and
     // the rest of the page waits, dimmed. Auth events unlock it in place.
     const evaluate = async () => {
@@ -213,6 +241,21 @@ export default function SettingsPage() {
   return (
     <>
       <div className="pagehead"><h1>{signedIn ? "Settings" : "Sign in to start your team"}</h1></div>
+      {justConnected && (
+        <div
+          className="ok-note"
+          style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", justifyContent: "space-between" }}
+        >
+          <span>
+            <b style={{ display: "inline" }}>Your channel is connected.</b>{" "}
+            The team can read your numbers now — your Desk has the first look.
+          </span>
+          <Link href="/desk" className="btn btn-acc btn-sm" style={{ flexShrink: 0 }}>
+            Go to your Desk
+          </Link>
+        </div>
+      )}
+      {connectError && <div className="err">{connectError}</div>}
       {msg && <div className="ok-note">{msg}</div>}
       {signedIn && err && <div className="err">{err}</div>}
 
