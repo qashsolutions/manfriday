@@ -13,21 +13,24 @@ export const maxDuration = 120;
 
 /** The team's verdict on ONE question: why did this video get the views it
     got? Ranked likely reasons with evidence and the analyst behind each, a
-    devil's-advocate counter-read, and one next step the creator may log.
-    Works even before a retention curve exists. */
+    devil's-advocate counter-read, and 2-3 typed next steps the creator picks
+    between. Works even before a retention curve exists. */
 
 type Evidence = { kind: "ledger" | "library" | "search" | "audience" | "caution"; label: string };
+type WhyAction = {
+  type: "safe" | "reach" | "bold";
+  effort: "minimal edit" | "re-cut" | "format change" | "next upload" | "new video";
+  text: string;
+  category: "packaging" | "content" | "retention";
+  why: string;
+  confidence: number;
+  evidence: Evidence[];
+};
 type WhyAnalysis = {
   verdict: string;
   reasons: { reason: string; evidence: string; agent: string }[];
   devils_advocate: string;
-  action: {
-    text: string;
-    category: "packaging" | "content" | "retention";
-    why: string;
-    confidence: number;
-    evidence: Evidence[];
-  };
+  actions: WhyAction[];
 };
 
 const AGENTS = SEATS.map((s) => s.name);
@@ -35,7 +38,7 @@ const AGENTS = SEATS.map((s) => s.name);
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["verdict", "reasons", "devils_advocate", "action"],
+  required: ["verdict", "reasons", "devils_advocate", "actions"],
   properties: {
     verdict: {
       type: "string",
@@ -62,25 +65,45 @@ const SCHEMA = {
       type: "string",
       description: "The deliberately counter-intuitive read: the boring or opposite explanation that could also be true, and what would prove it either way. 2-3 sentences, honest.",
     },
-    action: {
-      type: "object",
-      additionalProperties: false,
-      required: ["text", "category", "why", "confidence", "evidence"],
-      description: "The ONE next step most likely to get the next upload more views, applicable this week.",
-      properties: {
-        text: { type: "string", description: "One sentence, imperative." },
-        category: { type: "string", enum: ["packaging", "content", "retention"] },
-        why: { type: "string" },
-        confidence: { type: "integer", description: "0-100, derived per the confidence rules from citable evidence only." },
-        evidence: {
-          type: "array",
-          items: {
-            type: "object",
-            additionalProperties: false,
-            required: ["kind", "label"],
-            properties: {
-              kind: { type: "string", enum: ["ledger", "library", "search", "audience", "caution"] },
-              label: { type: "string" },
+    actions: {
+      type: "array",
+      description:
+        "2 or 3 typed next steps the creator picks between — one 'safe', one 'reach', and a 'bold' only where " +
+        "the data supports a third. Never one order, and never three for the sake of three. Each must be " +
+        "applicable this week and be the cheapest testable version of itself.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["type", "effort", "text", "category", "why", "confidence", "evidence"],
+        properties: {
+          type: { type: "string", enum: ["safe", "reach", "bold"] },
+          effort: {
+            type: "string",
+            enum: ["minimal edit", "re-cut", "format change", "next upload", "new video"],
+            description:
+              "What it honestly costs them. A live video's title and description can be changed today — that is " +
+              "a 'minimal edit'. Only use 'next upload' or 'new video' when the change genuinely can't be made " +
+              "to this video.",
+          },
+          text: { type: "string", description: "One sentence, imperative." },
+          category: { type: "string", enum: ["packaging", "content", "retention"] },
+          why: {
+            type: "string",
+            description:
+              "What this video's own numbers show that points at this move — the revelation and the action in " +
+              "one sentence, never generic advice.",
+          },
+          confidence: { type: "integer", description: "0-100, derived per the confidence rules from citable evidence only." },
+          evidence: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["kind", "label"],
+              properties: {
+                kind: { type: "string", enum: ["ledger", "library", "search", "audience", "caution"] },
+                label: { type: "string" },
+              },
             },
           },
         },
@@ -95,7 +118,8 @@ function toMarkdown(a: WhyAnalysis, title: string): string {
     `## The likely reasons`,
     a.reasons.map((r, i) => `${i + 1}. **${r.reason}** — ${r.evidence} *(${r.agent})*`).join("\n"),
     `## Playing devil's advocate`, a.devils_advocate,
-    `## The one thing to do next`, `${a.action.text} — ${a.action.why}`,
+    `## What to do next — pick what you'll actually do`,
+    a.actions.map((x) => `- ${x.text} (${x.effort}) — ${x.why}`).join("\n"),
     `*Video: "${title}"*`,
   ].join("\n\n");
 }
@@ -195,7 +219,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
     let firstWordMs: number | null = null;
     const modelStarted = performance.now();
     const analysis = await analystJsonStream<WhyAnalysis>({
-      system: `You are the team of six at manfriday (${AGENTS.join(", ")}), answering ONE question together: why did this video get the views it got? Rank only reasons the given data supports, attribute each to the right analyst, then argue against yourselves honestly in devils_advocate — the boring explanation (channel size, video age, nobody searched this) often wins, and saying so IS the service. Then give the single next step. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
+      system: `You are the team of six at manfriday (${AGENTS.join(", ")}), answering ONE question together: why did this video get the views it got? Rank only reasons the given data supports, attribute each to the right analyst, then argue against yourselves honestly in devils_advocate — the boring explanation (channel size, video age, nobody searched this) often wins, and saying so IS the service. Then put 2 or 3 typed next steps to the creator and let them choose — that count overrides the "exactly three" in the shared option rules below, because two honest options beat three with one invented. Prefer the cheapest testable version of each: a live video's title and description can be changed today, which beats "on your next upload" whenever the data supports it. Keep every field short enough to read on a phone.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       maxTokens: 6000,

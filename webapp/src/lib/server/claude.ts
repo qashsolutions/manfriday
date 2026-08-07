@@ -29,6 +29,22 @@ Writing rules:
 - Be honest about thin data. If the numbers are too small to judge, say so plainly
   and frame observations as context, not verdicts.
 - Be specific and useful. A fix the creator can act on this week beats a theory.
+
+Words that never reach the creator — write the plain thing instead:
+- Never write any of these: median, baseline, ratio, quartile, delta, metric, KPI,
+  dashboard, optimize, insight, insights, leverage, AI-powered, CTR, impressions,
+  artifact, anomaly.
+- Write instead: "your normal" or "your usual video" (not baseline or median);
+  "how long viewers stay" (not retention); "how viewers found it" (not traffic
+  source); "what people type into YouTube" (not search volume).
+- The data you are handed uses some of those words. Never echo one back —
+  translate it. "Their usual for this format: 120 views (median of last 8)"
+  reaches the creator as "your usual video gets about 120 views".
+- Never explain a number away as a counting artifact, an anomaly, or noise in the
+  data. Either say what it means for their views, or say the numbers are too small
+  to tell a real change from ordinary week-to-week wobble.
+- Every number you write is welded to the move it points at. A number with no
+  action attached is meaningless — delete it or attach the action.
 `.trim();
 
 /** How options and confidence work, wherever a schema asks for them. The score

@@ -11,6 +11,11 @@ import { ReadFailed, readFailed } from "@/components/ReadFailed";
 import { Md } from "@/components/Md";
 import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
+import { OptionCard, type OptionType } from "@/components/OptionCard";
+import {
+  DistributionSection, fmtDay,
+  type DistributionOption, type DistributionRead,
+} from "./DistributionSection";
 import { TEAM, TEAM_ATTRIBUTION, agentNames, jobFor, sentenceCase } from "@/lib/team";
 
 type Retention =
@@ -27,13 +32,69 @@ type AnalystData = {
 };
 type AnalystReport = { id: string; title: string; body_md: string; created_at: string; data: AnalystData | null };
 
+type WhyAction = {
+  type?: OptionType | null;
+  effort?: string | null;
+  text: string;
+  category: string;
+  why: string;
+  confidence: number;
+  evidence: EvidenceItem[];
+};
 type WhyData = {
   verdict: string;
   reasons: { reason: string; evidence: string; agent: string }[];
   devils_advocate: string;
-  action: { text: string; category: string; why: string; confidence: number; evidence: EvidenceItem[] };
+  actions?: WhyAction[];
+  /** Verdicts written before 2026-08-07 carry ONE action instead of typed
+      options. Stored rows are never rewritten (DESIGN.md §12), so they still
+      have to render — as the single choice they were. */
+  action?: WhyAction;
 };
 type WhyReport = { id: string; created_at: string; data: WhyData | null };
+
+/** The team's next steps, whichever shape the row was written in. */
+export function whyActions(d: WhyData): WhyAction[] {
+  if (d.actions?.length) return d.actions;
+  return d.action ? [d.action] : [];
+}
+
+/** Both the why-verdict and the distribution read are signed by the team (the
+    roster is six — DESIGN.md §12), so the two are told apart by their shape. */
+type TeamReport = { id: string; created_at: string; data: Record<string, unknown> | null };
+
+/** Which of the team's rows belongs to which read. Taking the newest row alone
+    would let whichever read was asked last hide the other from the screen. */
+export function pickTeamReports(rows: TeamReport[]): { why: TeamReport | null; distribution: TeamReport | null } {
+  return {
+    why: rows.find((r) => r.data && "reasons" in r.data) ?? null,
+    distribution: rows.find((r) => (r.data as { kind?: string } | null)?.kind === "distribution") ?? null,
+  };
+}
+
+function storedDistribution(rep: TeamReport): DistributionRead {
+  const d = (rep.data ?? {}) as Record<string, any>;
+  return {
+    state: d.state,
+    reason: null,
+    reasonKind: null,
+    found: d.found ?? [],
+    foundTotal: d.foundTotal ?? 0,
+    change: d.change ?? null,
+    windows: d.windows ?? null,
+    checkBy: d.checkBy ?? null,
+    analysis: {
+      state: d.state,
+      verdict: d.verdict ?? "",
+      where_from: d.where_from ?? "",
+      what_changed: d.what_changed ?? null,
+      control_test: d.control_test ?? null,
+      steady_note: d.steady_note ?? null,
+      options: d.options ?? [],
+    },
+    createdAt: rep.created_at,
+  };
+}
 
 export default function WhyDetailPage() {
   const params = useParams<{ id: string }>();
@@ -54,6 +115,11 @@ export default function WhyDetailPage() {
   const [askProse, setAskProse] = useState("");
   const [whyStages, setWhyStages] = useState<string[]>([]);
   const [whyProse, setWhyProse] = useState("");
+  const [distRead, setDistRead] = useState<DistributionRead | null>(null);
+  const [distAsking, setDistAsking] = useState(false);
+  const [distErr, setDistErr] = useState<string | null>(null);
+  const [distStages, setDistStages] = useState<string[]>([]);
+  const [distProse, setDistProse] = useState("");
 
   useEffect(() => { loadChannelData().then(setData); }, []);
 
@@ -92,13 +158,17 @@ export default function WhyDetailPage() {
       .then(({ data: recs }: { data: { recommendation: string }[] | null }) => {
         if (recs?.length) setLogged(new Set(recs.map((r) => r.recommendation)));
       });
-    // The team's latest "why did it do this" verdict for this video.
+    // The team signs two different reads on this page — the "why did it do
+    // this" verdict and the distribution read — so one query fetches the
+    // team's recent rows and each read claims its own by shape. Taking only
+    // the newest row would let whichever was asked last hide the other.
     supabase.from("reports").select("id,created_at,data")
       .eq("video_id", v.id).in("agent", agentNames(TEAM_ATTRIBUTION)).not("data", "is", null)
-      .order("created_at", { ascending: false }).limit(1)
-      .then(({ data: reps }: { data: WhyReport[] | null }) => {
-        const rep = reps?.[0];
-        if (rep?.data && "reasons" in (rep.data as object)) setWhyReport(rep);
+      .order("created_at", { ascending: false }).limit(8)
+      .then(({ data: reps }: { data: TeamReport[] | null }) => {
+        const { why, distribution } = pickTeamReports(reps ?? []);
+        if (why) setWhyReport(why as unknown as WhyReport);
+        if (distribution) setDistRead(storedDistribution(distribution));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, params.id]);
@@ -179,11 +249,69 @@ export default function WhyDetailPage() {
     }
   }
 
+  /** The distribution read: how viewers found this video, and — when the way in
+      changed — whether that was the video or how YouTube spread it. */
+  async function askDistribution(ytVideoId: string) {
+    setDistErr(null);
+    setDistAsking(true);
+    setDistProse("");
+    setDistStages([`${sentenceCase(TEAM_ATTRIBUTION.name)} is pulling up how viewers found this one…`]);
+    const prose = proseBuffer((add) => setDistProse((p) => p + add));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const r = await fetch("/api/analyst/distribution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body: JSON.stringify({ video: ytVideoId }),
+      });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error ?? "The team's read couldn't finish.");
+      }
+      if (!r.body) throw new Error("The team's read couldn't finish.");
+
+      type Done = DistributionRead & { report: { id: string; created_at: string } | null };
+      let j: Done | null = null;
+      for await (const ev of readAnalystStream<Done>(r.body)) {
+        if (ev.t === "stage") setDistStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") prose.push(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") j = ev;
+      }
+      prose.flush();
+      if (!j) throw new Error("The read stopped before it finished — try again.");
+      setDistRead({
+        state: j.state,
+        reason: j.reason,
+        reasonKind: j.reasonKind,
+        found: j.found,
+        foundTotal: j.foundTotal,
+        change: j.change,
+        windows: j.windows,
+        checkBy: j.checkBy,
+        analysis: j.analysis,
+        createdAt: j.report?.created_at ?? null,
+      });
+    } catch (e) {
+      setDistProse("");
+      setDistErr(e instanceof Error ? e.message : "The team's read couldn't finish.");
+    } finally {
+      setDistAsking(false);
+    }
+  }
+
   /** "I'll do this" → the pick lands in the Ledger with a before-number attached
       so the Scorekeeper can call the result later. */
   async function logFix(
     video: VideoPerf,
-    f: { recommendation: string; category: string; expected: string; confidence: number; evidence: EvidenceItem[] },
+    f: {
+      recommendation: string; category: string; expected: string; confidence: number; evidence: EvidenceItem[];
+      /** Which typed choice they took — revealed preference every analyst reads back. */
+      optionType?: OptionType | null;
+      /** The day this pick is worth checking back on. The Ledger has no column
+          for it, so it rides in the note where the creator already reads it. */
+      checkBy?: string | null;
+    },
     agent: string = TEAM.editor.name
   ) {
     const { data: { user } } = await supabase.auth.getUser();
@@ -200,11 +328,28 @@ export default function WhyDetailPage() {
         views_per_day: video.views_per_day,
         captured_at: new Date().toISOString(),
       },
-      notes: f.expected,
+      notes: f.checkBy
+        ? `${f.expected} · check back on ${fmtDay(f.checkBy)} — that's when YouTube's numbers on a change like this have settled`
+        : f.expected,
       confidence: Math.max(0, Math.min(100, Math.round(f.confidence))),
       evidence: f.evidence ?? [],
+      option_type: f.optionType ?? null,
     });
     if (!error) setLogged((s) => new Set(s).add(f.recommendation));
+  }
+
+  /** A pick off the distribution read — same Ledger row shape as every other
+      pick, so the Scorekeeper's arithmetic sees nothing new. */
+  async function logDistributionPick(video: VideoPerf, o: DistributionOption, checkBy: string | null) {
+    await logFix(video, {
+      recommendation: o.text,
+      category: o.category || "content",
+      expected: o.why,
+      confidence: o.confidence,
+      evidence: o.evidence,
+      optionType: o.type,
+      checkBy,
+    }, TEAM_ATTRIBUTION.name);
   }
 
   if (!data) return <div className="quiet">Loading…</div>;
@@ -294,31 +439,44 @@ export default function WhyDetailPage() {
               <b>Playing devil&apos;s advocate</b>
               {whyReport.data.devils_advocate}
             </div>
-            <div style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 13, display: "grid", gap: 7, maxWidth: 560 }}>
-              <span className="k">The one thing to do next</span>
-              <b style={{ fontSize: 13 }}>{whyReport.data.action.text}</b>
-              <div className="sub">{whyReport.data.action.why}</div>
-              <ConfidenceBar value={whyReport.data.action.confidence} />
-              <EvidenceChips items={whyReport.data.action.evidence} />
-              <div>
-                {logged.has(whyReport.data.action.text) ? (
-                  <span className="pill good">✓ in your Ledger — {TEAM.scorekeeper.name} will check it</span>
-                ) : (
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => v && whyReport.data && logFix(v, {
-                      recommendation: whyReport.data.action.text,
-                      category: whyReport.data.action.category,
-                      expected: whyReport.data.action.why,
-                      confidence: whyReport.data.action.confidence,
-                      evidence: whyReport.data.action.evidence,
-                    }, TEAM_ATTRIBUTION.name)}
-                  >
-                    I&apos;ll do this — log it
-                  </button>
-                )}
+            {whyActions(whyReport.data).length > 0 && (
+              <div style={{ display: "grid", gap: 8 }}>
+                <span className="k">What to do next — you pick what lands in your Ledger</span>
+                <div style={{ display: "grid", gap: 10, maxWidth: 620 }}>
+                  {whyActions(whyReport.data).map((a, i) => (
+                    <OptionCard
+                      key={i}
+                      type={a.type ?? null}
+                      effort={a.effort ?? null}
+                      choice={a.text}
+                      why={a.why}
+                      confidence={a.confidence}
+                      evidence={a.evidence}
+                    >
+                      <div>
+                        {logged.has(a.text) ? (
+                          <span className="pill good">✓ in your Ledger — {TEAM.scorekeeper.name} will check it</span>
+                        ) : (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => v && logFix(v, {
+                              recommendation: a.text,
+                              category: a.category,
+                              expected: a.why,
+                              confidence: a.confidence,
+                              evidence: a.evidence,
+                              optionType: a.type ?? null,
+                            }, TEAM_ATTRIBUTION.name)}
+                          >
+                            I&apos;ll do this — log it
+                          </button>
+                        )}
+                      </div>
+                    </OptionCard>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <div>
               <button className="btn btn-ghost btn-sm" onClick={() => v && askWhy(v.yt_video_id)} disabled={whyAsking}>
                 {whyAsking ? "The team is arguing it out…" : "Ask again"}
@@ -342,6 +500,17 @@ export default function WhyDetailPage() {
           </div>
         )}
       </div>
+
+      <DistributionSection
+        read={distRead}
+        asking={distAsking}
+        stages={distStages}
+        prose={distProse}
+        error={distErr}
+        logged={logged}
+        onAsk={() => v && askDistribution(v.yt_video_id)}
+        onLog={(o, checkBy) => { if (v) void logDistributionPick(v, o, checkBy); }}
+      />
 
       <div className="card" style={{ marginTop: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>

@@ -52,13 +52,26 @@ const ANALYSIS = {
     { reason: "The views came from shared links, not YouTube itself.", evidence: "12 of 15 views arrived from outside links.", agent: TEAM.scout.name },
   ],
   devils_advocate: "The boring read: the channel is new and small, and fifteen views is what new channels get. One more upload would tell.",
-  action: {
-    text: "Retitle this video with the phrase people actually type.",
-    category: "packaging",
-    why: "Zero search views despite a searchable topic.",
-    confidence: 40,
-    evidence: [{ kind: "search", label: "people type this" }],
-  },
+  actions: [
+    {
+      type: "safe",
+      effort: "minimal edit",
+      text: "Retitle this video with the phrase people actually type.",
+      category: "packaging",
+      why: "Zero search views despite a searchable topic.",
+      confidence: 40,
+      evidence: [{ kind: "search", label: "people type this" }],
+    },
+    {
+      type: "reach",
+      effort: "next upload",
+      text: "Open the next one on the question your commenters keep asking.",
+      category: "content",
+      why: "The only comment you got was a question, and nothing in the video answers it.",
+      confidence: 35,
+      evidence: [{ kind: "audience", label: "asked in your comments" }],
+    },
+  ],
 };
 
 const VIDEO_ROW = {
@@ -83,6 +96,8 @@ function happyTables() {
   };
 }
 
+let fake: ReturnType<typeof fakeAnthropic>;
+
 function happyMocks() {
   accessToken.mockResolvedValue("access-token");
   ytApi.mockResolvedValue({ items: [{ snippet: { description: "My own description" } }] });
@@ -90,7 +105,8 @@ function happyMocks() {
   comments.mockResolvedValue([{ text: "Nice one", likes: 1 }]);
   retention.mockResolvedValue({ points: [], drops: [] });
   phrases.mockResolvedValue(["workshop video tour"]);
-  anthropic.mockReturnValue(fakeAnthropic(ANALYSIS).client);
+  fake = fakeAnthropic(ANALYSIS);
+  anthropic.mockReturnValue(fake.client);
 }
 
 beforeEach(() => {
@@ -135,6 +151,25 @@ describe("POST /api/analyst/why", () => {
     expect(proseOf(events)).toBe(ANALYSIS.verdict);
     expect(stagesOf(events)[0]).toBe("The team is gathering everything known about this video…");
     expect(events.findIndex((e) => e.t === "prose")).toBeLessThan(events.findIndex((e) => e.t === "done"));
+  });
+
+  it("asks the team for 2-3 typed options with effort tags, never one order", async () => {
+    service.mockReturnValue(fakeSvc(happyTables()).svc);
+    happyMocks();
+    await safeStream(await POST(post({ video: "vidAAAAAAA1" })));
+
+    const schema = (fake.stream.mock.calls[0][0] as any).output_config.format.schema;
+    expect(schema.required).toContain("actions");
+    // the single-action shape the review found is gone, not merely unused
+    expect(schema.properties.action).toBeUndefined();
+    const option = schema.properties.actions.items;
+    expect(option.required).toEqual(expect.arrayContaining(["type", "effort"]));
+    expect(option.properties.type.enum).toEqual(["safe", "reach", "bold"]);
+    // the effort vocabulary is DESIGN.md §8's, not a per-route invention
+    expect(option.properties.effort.enum).toEqual([
+      "minimal edit", "re-cut", "format change", "next upload", "new video",
+    ]);
+    expect(schema.properties.actions.description).toMatch(/2 or 3/);
   });
 
   it("surfaces a thrown error as its message only — no stack, no keys", async () => {
