@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fakeAnthropic, fakeSvc, post, safeJson, TEST_USER } from "../helpers";
+import { doneOf, errorOf, fakeAnthropic, fakeSvc, post, proseOf, safeJson, safeStream, stagesOf, TEST_USER } from "../helpers";
 import { TEAM } from "@/lib/team";
 
 vi.mock("@/lib/server/auth", () => ({ userFromRequest: vi.fn() }));
@@ -119,20 +119,31 @@ describe("POST /api/analyst/why", () => {
 
     const res = await POST(post({ video: "vidAAAAAAA1" }));
     expect(res.status).toBe(200);
-    expect(await safeJson(res)).toEqual({
-      report: REPORT_ROW,
-      analysis: ANALYSIS,
-      baseline: { view_count: 15, views_per_day: 2 },
-    });
+    expect(res.headers.get("content-type")).toContain("application/x-ndjson");
+
+    const done = doneOf(await safeStream(res));
+    expect(done.report).toEqual(REPORT_ROW);
+    expect(done.analysis).toEqual(ANALYSIS);
+    expect(done.baseline).toEqual({ view_count: 15, views_per_day: 2 });
+  });
+
+  it("streams the team's verdict before the report lands", async () => {
+    service.mockReturnValue(fakeSvc(happyTables()).svc);
+    happyMocks();
+
+    const events = await safeStream(await POST(post({ video: "vidAAAAAAA1" })));
+    expect(proseOf(events)).toBe(ANALYSIS.verdict);
+    expect(stagesOf(events)[0]).toBe("The team is gathering everything known about this video…");
+    expect(events.findIndex((e) => e.t === "prose")).toBeLessThan(events.findIndex((e) => e.t === "done"));
   });
 
   it("surfaces a thrown error as its message only — no stack, no keys", async () => {
     service.mockReturnValue(fakeSvc(happyTables()).svc);
     happyMocks();
     accessToken.mockRejectedValue(new Error("Couldn't refresh YouTube access — reconnect the channel in Settings."));
-    const res = await POST(post({ video: "vidAAAAAAA1" }));
-    expect(res.status).toBe(502);
-    expect(await safeJson(res)).toEqual({
+    const events = await safeStream(await POST(post({ video: "vidAAAAAAA1" })));
+    expect(errorOf(events)).toEqual({
+      t: "error",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });

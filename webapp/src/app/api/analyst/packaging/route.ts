@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
-import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 import { typedPhrases } from "@/lib/server/publicYt";
-import { TEAM } from "@/lib/team";
+import { TEAM, sentenceCase } from "@/lib/team";
 
 export const maxDuration = 120;
 
@@ -38,7 +38,12 @@ const SCHEMA = {
   required: ["grade", "one_line", "strengths", "risks", "options", "search_note", "thin_data_note", "thumb_read"],
   properties: {
     grade: { type: "string", enum: ["A", "A-", "B+", "B", "B-", "C+", "C", "D"] },
-    one_line: { type: "string", description: "The grade's reason in one sentence — never a bare score." },
+    one_line: {
+      type: "string",
+      description:
+        "The grade's reason, opening with '**In short** — ' and then 2-3 plain-English sentences the creator " +
+        "could act on without reading any further — never a bare score.",
+    },
     strengths: { type: "array", items: { type: "string" }, description: "0-3 things this draft does right." },
     risks: { type: "array", items: { type: "string" }, description: "0-3 ways this draft loses viewers before the click." },
     options: {
@@ -146,14 +151,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Run the first analysis on the Desk first — grading needs your baseline." }, { status: 400 });
   }
 
-  // What people actually type — two seeds from the draft's own words.
-  const words = draft.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter((w) => w.length > 2);
-  const seeds = [words.slice(0, 3).join(" "), words.slice(0, 5).join(" ")].filter((s, i, a) => s && a.indexOf(s) === i);
-  const phraseLists = await Promise.all(seeds.map(typedPhrases));
-  const phrases = [...new Set(phraseLists.flat())].slice(0, 12);
-
   const thin = [...latestByFormat.values()].every((b) => b.median_views < 100 || b.sample_size < 5);
-  const grounding = await analystGrounding(svc, user.id);
 
   const titleLines = (label: string, vids: BaselineDetail[]) =>
     vids.length
@@ -174,7 +172,28 @@ export async function POST(req: Request) {
     );
   }
 
-  const userMsg = `
+  const seat = sentenceCase(TEAM.marketer.name);
+
+  return analystStream(async (emit) => {
+    const started = performance.now();
+    emit.stage(`${seat} is lining your draft up against your own winners…`);
+
+    // What people actually type — two seeds from the draft's own words. Neither
+    // this nor the grounding depends on the other, so run them together.
+    const words = draft.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter((w) => w.length > 2);
+    const seeds = [words.slice(0, 3).join(" "), words.slice(0, 5).join(" ")].filter((s, i, a) => s && a.indexOf(s) === i);
+    const [phraseLists, grounding] = await Promise.all([
+      Promise.all(seeds.map(typedPhrases)),
+      analystGrounding(svc, user.id),
+    ]);
+    const phrases = [...new Set(phraseLists.flat())].slice(0, 12);
+    emit.stage(
+      phrases.length
+        ? `Reading the ${phrases.length} ${phrases.length === 1 ? "phrase" : "phrases"} people really type around this topic…`
+        : "YouTube offered no typed phrases for this one — grading on title craft alone…"
+    );
+
+    const userMsg = `
 ${grounding.audienceBlock}
 
 ${grounding.trackBlock}
@@ -190,7 +209,6 @@ WHAT PEOPLE REALLY TYPE INTO YOUTUBE (live suggestions seeded from the draft's o
 ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions came back — grade without them and leave search_note null)"}
 `.trim();
 
-  try {
     // With a draft thumbnail: attach it, plus up to 3 of their own recent
     // thumbnails for style context (public i.ytimg.com URLs).
     type Block = { type: "text"; text: string } | { type: "image"; source: { type: "base64"; media_type: string; data: string } | { type: "url"; url: string } };
@@ -210,18 +228,35 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
         blocks.push({ type: "image", source: { type: "url", url: t.thumbnail_url } });
       }
       userContent = blocks;
+      emit.stage(`${seat} is looking at your thumbnail next to your recent ones…`);
     }
 
-    const analysis = await analystJson<Grade>({
+    const gatherMs = Math.round(performance.now() - started);
+    emit.stage(`${seat} is grading it…`);
+
+    let firstWordMs: number | null = null;
+    const modelStarted = performance.now();
+    const analysis = await analystJsonStream<Grade>({
       system: `You are ${TEAM.marketer.name}. Grade the draft title honestly against this creator's own winners and misses — patterns in THEIR titles, not generic YouTube advice. Rewrites must sound like this creator, promise something concrete, and avoid clickbait they'd regret. Grade craft, not luck.${thumb ? " A draft thumbnail image is attached: fill thumb_read with an honest read of it (title and thumbnail are one promise — judge them together)." : " No thumbnail was provided: thumb_read must be null."}\n\n${OPTIONS_RULES}`,
       user: userContent as never,
       schema: SCHEMA as unknown as Record<string, unknown>,
+      proseField: "one_line",
+      signal: emit.signal,
+      onProse: (delta) => {
+        if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
+        emit.prose(delta);
+      },
     });
-    return NextResponse.json({ analysis, phrases });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "The grading couldn't finish." },
-      { status: 502 }
-    );
-  }
+
+    return {
+      analysis,
+      phrases,
+      timing: {
+        gatherMs,
+        modelMs: Math.round(performance.now() - modelStarted),
+        firstWordMs,
+        totalMs: Math.round(performance.now() - started),
+      },
+    };
+  }, req.signal);
 }

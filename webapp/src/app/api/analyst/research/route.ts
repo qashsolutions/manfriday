@@ -6,9 +6,9 @@ import {
   parseVideoId, fetchPublicVideos, fetchPublicChannels, fetchChannelNormal,
   searchPublicVideos, typedPhrases, daysAgo, fmtDuration, engagementPer1000,
 } from "@/lib/server/publicYt";
-import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
-import { TEAM } from "@/lib/team";
+import { TEAM, sentenceCase } from "@/lib/team";
 import { cachedJson } from "@/lib/server/cache";
 
 export const maxDuration = 120;
@@ -41,7 +41,9 @@ const SCHEMA = {
     body_md: {
       type: "string",
       description:
-        "Markdown. For a TOPIC: '## The lay of the land', '## What's working (and for whom)', '## What people type'. " +
+        "Markdown. OPEN with a line starting '**In short** — ' and 2-3 plain-English sentences the creator could act on " +
+        "without reading any further; then the detail below it. " +
+        "For a TOPIC: '## The lay of the land', '## What's working (and for whom)', '## What people type'. " +
         "For a SINGLE VIDEO: '## What this video is', '## How it's doing'. " +
         "Every number copied from the given data; a video from a big channel is not 'working' just because its views are big — compare against that channel's own size or normal where given. " +
         "End with one honest line about what this public data can NOT tell (no earnings, no click-through, no watch time of other channels). " +
@@ -96,16 +98,33 @@ export async function POST(req: Request) {
   const myChannel = chans?.[0];
   if (!tokenRow || !myChannel) return NextResponse.json({ error: "Connect your channel first." }, { status: 400 });
 
-  try {
-    const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
-    const grounding = await analystGrounding(svc, user.id);
+  const seat = sentenceCase(TEAM.researcher.name);
+
+  return analystStream(async (emit) => {
+    const started = performance.now();
     const videoId = parseVideoId(query);
+    emit.stage(
+      videoId
+        ? `${seat} is looking that video up…`
+        : `${seat} is pulling the top results for “${query}”…`
+    );
+
+    const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
+    // Neither of these depends on the YouTube chain below, so start them here
+    // and read them once the material is built. Marking them handled up front
+    // keeps a failure here from landing as an unhandled rejection when the
+    // chain below throws first — the awaits further down still see it.
+    const groundingPromise = analystGrounding(svc, user.id);
+    const phrasesPromise = videoId ? null : typedPhrases(query);
+    void groundingPromise.catch(() => {});
+    void phrasesPromise?.catch(() => {});
 
     let material: string;
     if (videoId) {
       // Single-video read.
       const [video] = await fetchPublicVideos(access, [videoId]);
-      if (!video) return NextResponse.json({ error: "YouTube couldn't find that video — check the link." }, { status: 404 });
+      if (!video) throw new Error("YouTube couldn't find that video — check the link.");
+      emit.stage("Checking how it did against its own channel's normal…");
       const ch = (await fetchPublicChannels(access, [video.channelId])).get(video.channelId) ?? null;
       const normal = ch?.uploadsPlaylistId
         ? await cachedJson(svc, `chnormal:v1:${ch.uploadsPlaylistId}`, 24 * 3600,
@@ -132,10 +151,15 @@ Description: ${video.description.slice(0, 1200) || "(none)"}
       // shared across users, so repeat topics are free.
       const ids = await cachedJson(svc, `search:v1:${query.toLowerCase()}`, 24 * 3600,
         () => searchPublicVideos(access, query, 15));
-      if (!ids.length) return NextResponse.json({ error: "YouTube returned nothing for that — try different words." }, { status: 404 });
+      if (!ids.length) throw new Error("YouTube returned nothing for that — try different words.");
       const videos = await fetchPublicVideos(access, ids);
+      if (!videos.length) throw new Error("YouTube couldn't return details for those results — try different words.");
       const channels = await fetchPublicChannels(access, videos.map((v) => v.channelId));
-      const phrases = await typedPhrases(query);
+      emit.stage(
+        `Reading ${videos.length} ${videos.length === 1 ? "title" : "titles"} across ` +
+          `${channels.size} ${channels.size === 1 ? "channel" : "channels"}…`
+      );
+      const phrases = await phrasesPromise!;
       const lines = videos.map((v) => {
         const ch = channels.get(v.channelId);
         const subs = ch && ch.subscriberCount !== null ? ch.subscriberCount : null;
@@ -156,6 +180,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
 `.trim();
     }
 
+    const grounding = await groundingPromise;
     const userMsg = `
 ${grounding.audienceBlock}
 
@@ -167,11 +192,23 @@ Channel: ${myChannel.title ?? "their channel"} — ${myChannel.subscriber_count 
 ${material}
 `.trim();
 
-    const research = await analystJson<Research>({
+    const gatherMs = Math.round(performance.now() - started);
+    emit.stage(`${seat} is writing your read…`);
+
+    let firstWordMs: number | null = null;
+    const modelStarted = performance.now();
+    const research = await analystJsonStream<Research>({
       system: `You are the Researcher. The creator pointed you at something; come back with the read in plain English — grounded ONLY in the material given, sized to THIS creator's situation. The takeaways field carries exactly three typed angles (safe/reach/bold) they may log — choices, never orders. A five-minute read at most.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
+      proseField: "body_md",
+      signal: emit.signal,
+      onProse: (delta) => {
+        if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
+        emit.prose(delta);
+      },
     });
+    const modelMs = Math.round(performance.now() - modelStarted);
 
     const { data: report, error: rErr } = await svc
       .from("reports")
@@ -187,11 +224,10 @@ ${material}
       .single();
     if (rErr) throw new Error(rErr.message);
 
-    return NextResponse.json({ report, takeaways: research.takeaways });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "The research couldn't finish." },
-      { status: 502 }
-    );
-  }
+    return {
+      report,
+      takeaways: research.takeaways,
+      timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
+    };
+  }, req.signal);
 }

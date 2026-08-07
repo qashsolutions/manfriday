@@ -9,7 +9,7 @@ import {
 } from "@/lib/server/publicYt";
 import { cachedJson } from "@/lib/server/cache";
 import { TEAM, sentenceCase } from "@/lib/team";
-import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 
 export const maxDuration = 120;
@@ -52,7 +52,10 @@ const SCHEMA = {
   properties: {
     read: {
       type: "string",
-      description: "Two or three sentences: the honest overall read of why the two videos' views differ — neutral, no envy, no hype. Say plainly when the gap is mostly channel size or age.",
+      description:
+        "The honest overall read of why the two videos' views differ, opening with '**In short** — ' and then 2-3 " +
+        "plain-English sentences the creator could act on without reading any further — neutral, no envy, no hype. " +
+        "Say plainly when the gap is mostly channel size or age.",
     },
     factors: {
       type: "array",
@@ -182,14 +185,20 @@ export async function POST(req: Request) {
   const myChannel = chans?.[0];
   if (!tokenRow || !myChannel) return NextResponse.json({ error: "Connect your channel first." }, { status: 400 });
 
-  try {
+  const seat = sentenceCase(TEAM.scout.name);
+
+  return analystStream(async (emit) => {
+    const started = performance.now();
+    emit.stage(`${seat} is looking up the video you pasted…`);
+
     const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
 
     const [video] = await fetchPublicVideos(access, [videoId]);
-    if (!video) return NextResponse.json({ error: "YouTube couldn't find that video — check the link." }, { status: 404 });
+    if (!video) throw new Error("YouTube couldn't find that video — check the link.");
     if (video.channelId === myChannel.yt_channel_id) {
-      return NextResponse.json({ error: "That's one of your own videos — pick it in the 'compare with' box instead, and paste an outside video here." }, { status: 400 });
+      throw new Error("That's one of your own videos — pick it in the 'compare with' box instead, and paste an outside video here.");
     }
+    emit.stage(`Checking how “${video.title.slice(0, 60)}” did against its own channel's normal…`);
 
     // Their side: channel, their-own-normal (shared cache, 24h), comments.
     const theirChannel = (await fetchPublicChannels(access, [video.channelId])).get(video.channelId) ?? null;
@@ -201,6 +210,11 @@ export async function POST(req: Request) {
       ? Math.round((video.viewCount / theirNormal.medianViews) * 100) / 100
       : null;
     const theirComments = await fetchVideoComments(access, videoId, 40);
+    emit.stage(
+      theirComments.length
+        ? `Reading ${theirComments.length} of their viewers' comments…`
+        : "Their comments are off or empty — reading the numbers and the title instead…"
+    );
 
     // The creator's side: chosen video (or channel normal), plus its comments.
     const { data: blRows } = await svc
@@ -219,7 +233,7 @@ export async function POST(req: Request) {
       const { data: mv } = await svc
         .from("videos").select("id,title,published_at,duration_seconds,is_short")
         .eq("user_id", user.id).eq("yt_video_id", mineYtId).maybeSingle();
-      if (!mv) return NextResponse.json({ error: "That video of yours isn't in the analysis yet — run the first analysis on the Desk." }, { status: 400 });
+      if (!mv) throw new Error("That video of yours isn't in the analysis yet — run the first analysis on the Desk.");
       mine = mv;
       const { data: snaps } = await svc
         .from("video_snapshots").select("view_count,views_per_day")
@@ -273,11 +287,23 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
 Remember: never speculate about anyone's earnings; explain the view gap with the observable factors above only. Where the gap is mostly channel size or recency, say so plainly — that is a useful, honest answer.
 `.trim();
 
-    const analysis = await analystJson<ScoutAnalysis>({
+    const gatherMs = Math.round(performance.now() - started);
+    emit.stage(`${seat} is reading both sides…`);
+
+    let firstWordMs: number | null = null;
+    const modelStarted = performance.now();
+    const analysis = await analystJsonStream<ScoutAnalysis>({
       system: `You are the Scout, coordinating the team's side-by-side read: the creator's video (or channel normal) against an outside video on a similar topic. The team covers four things — views, viewer comments/asks, titles, and account owner. Copy every number and quote from the given data. You are guides: the creator makes the call.\n\n${OPTIONS_RULES}`,
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
+      proseField: "read",
+      signal: emit.signal,
+      onProse: (delta) => {
+        if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
+        emit.prose(delta);
+      },
     });
+    const modelMs = Math.round(performance.now() - modelStarted);
 
     const { data: report, error: rErr } = await svc
       .from("reports")
@@ -293,9 +319,10 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
       .single();
     if (rErr) throw new Error(rErr.message);
 
-    return NextResponse.json({
+    return {
       report,
       analysis,
+      timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
       video: {
         id: video.id, title: video.title, channelTitle: video.channelTitle,
         viewCount: video.viewCount, likeCount: video.likeCount, commentCount: video.commentCount,
@@ -307,11 +334,6 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
         title: mine.title, viewCount: mineSnap?.view_count ?? null,
         publishedAt: mine.published_at, durationSeconds: mine.duration_seconds, myRatio,
       } : null,
-    });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : `${sentenceCase(TEAM.scout.name)} couldn't finish the comparison.` },
-      { status: 502 }
-    );
-  }
+    };
+  }, req.signal);
 }

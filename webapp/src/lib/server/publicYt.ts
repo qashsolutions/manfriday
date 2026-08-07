@@ -78,9 +78,14 @@ export async function fetchPublicVideos(access: string, ids: string[]): Promise<
 
 export async function fetchPublicChannels(access: string, ids: string[]): Promise<Map<string, PublicChannel>> {
   const out = new Map<string, PublicChannel>();
-  if (!ids.length) return out;
-  for (let i = 0; i < ids.length; i += 50) {
-    const batch = [...new Set(ids)].slice(i, i + 50);
+  // Dedupe ONCE, then page over what's left. Paging over the raw ids while
+  // slicing the deduped list walks off the end as soon as there are repeats —
+  // a batch of 15 videos from 3 channels is one request, not three, and the
+  // two extra ones would have gone out with an empty id list and thrown.
+  // Blank ids come from videos whose snippet didn't carry a channel.
+  const unique = [...new Set(ids)].filter(Boolean);
+  for (let i = 0; i < unique.length; i += 50) {
+    const batch = unique.slice(i, i + 50);
     const data = await yt(
       `channels?part=snippet,statistics,contentDetails&id=${batch.map(encodeURIComponent).join(",")}`,
       access

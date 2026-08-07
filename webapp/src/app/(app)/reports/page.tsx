@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Explain, WrongClaim } from "@/components/Explain";
 import { Md } from "@/components/Md";
+import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
+import { TEAM_ATTRIBUTION, sentenceCase } from "@/lib/team";
 
 type Report = { id: string; created_at: string; agent: string; title: string; body_md: string };
 
@@ -13,6 +15,8 @@ export default function ReportsPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [writing, setWriting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [stages, setStages] = useState<string[]>([]);
+  const [prose, setProse] = useState("");
 
   async function load() {
     const { data } = await supabase
@@ -31,17 +35,36 @@ export default function ReportsPage() {
   async function writeReport() {
     setErr(null);
     setWriting(true);
+    setProse("");
+    setStages([`${sentenceCase(TEAM_ATTRIBUTION.name)} is pulling your week together…`]);
+    const prose = proseBuffer((add) => setProse((p) => p + add));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const r = await fetch("/api/analyst/weekly", {
         method: "POST",
         headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? "The report couldn't be written.");
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error ?? "The report couldn't be written.");
+      }
+      if (!r.body) throw new Error("The report couldn't be written.");
+
+      let j: { report: Report } | null = null;
+      for await (const ev of readAnalystStream<{ report: Report }>(r.body)) {
+        if (ev.t === "stage") setStages((s) => [...s, ev.m]);
+        else if (ev.t === "prose") prose.push(ev.d);
+        else if (ev.t === "error") throw new Error(ev.error);
+        else if (ev.t === "done") j = ev;
+      }
+      prose.flush();
+      if (!j) throw new Error("The report stopped before it was finished — try again.");
+
       await load();
+      setProse(""); // the saved report is on the page now — this was the preview
       setOpenId(j.report?.id ?? null);
     } catch (e) {
+      setProse("");
       setErr(e instanceof Error ? e.message : "The report couldn't be written.");
     } finally {
       setWriting(false);
@@ -61,6 +84,16 @@ export default function ReportsPage() {
         )}
       </div>
       {err && <div className="err">{err}</div>}
+      {writing && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          <Working stages={stages} />
+          {prose && (
+            <div style={{ marginTop: 10, borderTop: "1px solid var(--line2)", paddingTop: 10 }}>
+              <Md md={prose} />
+            </div>
+          )}
+        </div>
+      )}
       {reports.length === 0 ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Your week in review, on demand</b>

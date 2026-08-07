@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fakeAnthropic, fakeSvc, post, safeJson, TEST_USER } from "../helpers";
+import { doneOf, errorOf, fakeAnthropic, fakeSvc, post, proseOf, safeJson, safeStream, stagesOf, TEST_USER } from "../helpers";
 
 vi.mock("@/lib/server/auth", () => ({ userFromRequest: vi.fn() }));
 vi.mock("@/lib/server/service", () => ({ serviceClient: vi.fn() }));
@@ -105,10 +105,14 @@ describe("POST /api/analyst/retention", () => {
     accessToken.mockResolvedValue("access-token");
     retention.mockResolvedValue(null);
     const res = await POST(post({ video: "vidAAAAAAA1" }));
-    expect(res.status).toBe(409);
-    expect(await safeJson(res)).toEqual({
+    // The read had already begun, so the status is spent — it arrives in-band.
+    expect(res.status).toBe(200);
+    const events = await safeStream(res);
+    expect(errorOf(events)).toEqual({
+      t: "error",
       error: "YouTube hasn't produced a retention curve for this video yet — the analyst needs it to work.",
     });
+    expect(doneOf(events)).toBeUndefined();
   });
 
   it("reads the curve and returns report, analysis, and the before-numbers", async () => {
@@ -120,15 +124,35 @@ describe("POST /api/analyst/retention", () => {
 
     const res = await POST(post({ video: "vidAAAAAAA1" }));
     expect(res.status).toBe(200);
-    expect(await safeJson(res)).toEqual({ report: REPORT_ROW, analysis: ANALYSIS, baseline: SNAP });
+    expect(res.headers.get("content-type")).toContain("application/x-ndjson");
+
+    const events = await safeStream(res);
+    const done = doneOf(events);
+    expect(done.report).toEqual(REPORT_ROW);
+    expect(done.analysis).toEqual(ANALYSIS);
+    expect(done.baseline).toEqual(SNAP);
+  });
+
+  it("streams the Editor's verdict before the report lands", async () => {
+    service.mockReturnValue(fakeSvc(happyTables()).svc);
+    accessToken.mockResolvedValue("access-token");
+    retention.mockResolvedValue(CURVE);
+    ytApi.mockResolvedValue({ items: [{ snippet: { description: "My own description" } }] });
+    anthropic.mockReturnValue(fakeAnthropic(ANALYSIS).client);
+
+    const events = await safeStream(await POST(post({ video: "vidAAAAAAA1" })));
+    expect(proseOf(events)).toBe(ANALYSIS.verdict);
+    expect(stagesOf(events)[0]).toBe("The Editor is pulling up how long viewers stayed on this one…");
+    expect(stagesOf(events).at(-1)).toBe("The Editor is writing the read…");
+    expect(events.findIndex((e) => e.t === "prose")).toBeLessThan(events.findIndex((e) => e.t === "done"));
   });
 
   it("surfaces a thrown error as its message only — no stack, no keys", async () => {
     service.mockReturnValue(fakeSvc(happyTables()).svc);
     accessToken.mockRejectedValue(new Error("Couldn't refresh YouTube access — reconnect the channel in Settings."));
-    const res = await POST(post({ video: "vidAAAAAAA1" }));
-    expect(res.status).toBe(502);
-    expect(await safeJson(res)).toEqual({
+    const events = await safeStream(await POST(post({ video: "vidAAAAAAA1" })));
+    expect(errorOf(events)).toEqual({
+      t: "error",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });

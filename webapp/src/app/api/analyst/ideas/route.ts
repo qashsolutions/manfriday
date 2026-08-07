@@ -3,9 +3,9 @@ import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
 import { accessTokenFromRow } from "@/lib/server/youtube";
 import { fetchVideoComments } from "@/lib/server/publicYt";
-import { analystJson, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
-import { TEAM } from "@/lib/team";
+import { TEAM, sentenceCase } from "@/lib/team";
 
 export const maxDuration = 120;
 
@@ -32,7 +32,12 @@ const SCHEMA = {
   additionalProperties: false,
   required: ["summary", "ideas"],
   properties: {
-    summary: { type: "string", description: "One or two sentences: what the comments as a whole are asking for." },
+    summary: {
+      type: "string",
+      description:
+        "What the comments as a whole are asking for, opening with '**In short** — ' and then 2-3 plain-English " +
+        "sentences the creator could act on without reading any further.",
+    },
     ideas: {
       type: "array",
       description: "Up to 7 video ideas viewers are actually asking for, strongest demand first. Empty if the comments contain no real requests.",
@@ -81,8 +86,15 @@ export async function POST(req: Request) {
   const channel = chans?.[0];
   if (!tokenRow || !channel) return NextResponse.json({ error: "Connect your channel first." }, { status: 400 });
 
-  try {
+  const seat = sentenceCase(TEAM.listener.name);
+
+  return analystStream(async (emit) => {
+    const started = performance.now();
+    emit.stage(`${seat} is finding your most recent videos…`);
+
     const access = await accessTokenFromRow(tokenRow.refresh_token_ciphertext as unknown as string);
+    const groundingPromise = analystGrounding(svc, user.id);
+    void groundingPromise.catch(() => {});
 
     // Comments are fetched per-video: YouTube's channel-wide comment listing
     // has grown unreliable (returns processingFailure), so we sweep the most
@@ -92,31 +104,48 @@ export async function POST(req: Request) {
       .eq("channel_id", channel.id)
       .order("published_at", { ascending: false })
       .limit(15);
-    const comments: CommentRow[] = [];
-    for (const v of (vids ?? []) as { yt_video_id: string; title: string | null }[]) {
-      if (comments.length >= 200) break;
-      const found = await fetchVideoComments(access, v.yt_video_id, 100);
-      for (const c of found) {
-        comments.push({ text: c.text, likes: c.likes, videoTitle: v.title });
-      }
-    }
+    const rows = (vids ?? []) as { yt_video_id: string; title: string | null }[];
+    emit.stage(`Opening the comments on your ${rows.length} most recent ${rows.length === 1 ? "video" : "videos"}…`);
+
+    // One request per video, but all of them at once — this used to be fifteen
+    // round-trips end to end. fetchVideoComments answers [] rather than
+    // throwing, so a video with comments off just contributes nothing.
+    const perVideo = await Promise.all(
+      rows.map(async (v) =>
+        (await fetchVideoComments(access, v.yt_video_id, 100))
+          .map((c) => ({ text: c.text, likes: c.likes, videoTitle: v.title }) satisfies CommentRow)
+      )
+    );
+    const comments: CommentRow[] = perVideo.flat().slice(0, 200);
     if (comments.length === 0) {
-      return NextResponse.json(
-        { error: `No comments to read yet — ${TEAM.listener.name} needs viewers talking first.` },
-        { status: 409 }
-      );
+      throw new Error(`No comments to read yet — ${TEAM.listener.name} needs viewers talking first.`);
     }
+    emit.stage(
+      `Reading ${comments.length} ${comments.length === 1 ? "comment" : "comments"} ` +
+        "for what viewers actually asked you to make…"
+    );
 
     const commentBlock = comments
       .map((c, i) => `#${i + 1} (${c.likes} likes${c.videoTitle ? `, on "${c.videoTitle}"` : ""}): ${c.text.replace(/\s+/g, " ")}`)
       .join("\n");
 
-    const grounding = await analystGrounding(svc, user.id);
-    const mined = await analystJson<Mined>({
+    const grounding = await groundingPromise;
+    const gatherMs = Math.round(performance.now() - started);
+
+    let firstWordMs: number | null = null;
+    const modelStarted = performance.now();
+    const mined = await analystJsonStream<Mined>({
       system: `You are ${TEAM.listener.name}. Read the creator's real comments and pull out what viewers are literally asking to see next — requests, repeated questions, "please make a video on…". Only count real asks; praise and small talk are not ideas. Quotes must be copied verbatim from the given comments. If there are no genuine requests, return an empty ideas list and say so in the summary — never pad.\n\n${OPTIONS_RULES}`,
       user: `${grounding.audienceBlock}\n\n${grounding.trackBlock}\n\nTHE CHANNEL'S COMMENTS (${comments.length} most relevant, with like counts)\n${commentBlock}`,
       schema: SCHEMA as unknown as Record<string, unknown>,
+      proseField: "summary",
+      signal: emit.signal,
+      onProse: (delta) => {
+        if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
+        emit.prose(delta);
+      },
     });
+    const modelMs = Math.round(performance.now() - modelStarted);
 
     // Land new ideas in the ledger; skip ones already there.
     const { data: existing } = await svc
@@ -139,11 +168,11 @@ export async function POST(req: Request) {
       if (iErr) throw new Error(iErr.message);
     }
 
-    return NextResponse.json({ summary: mined.summary, found: mined.ideas.length, added: fresh.length });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "The comment read couldn't finish." },
-      { status: 502 }
-    );
-  }
+    return {
+      summary: mined.summary,
+      found: mined.ideas.length,
+      added: fresh.length,
+      timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
+    };
+  }, req.signal);
 }

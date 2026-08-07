@@ -87,3 +87,255 @@ export async function analystJson<T>({ system, user, schema, maxTokens = 16000 }
   if (!text || !("text" in text)) throw new Error("The analyst didn't return a readable answer. Try again.");
   return JSON.parse(text.text) as T;
 }
+
+/* ── The streaming path ───────────────────────────────────────────────────
+   A read takes the analyst tens of seconds to write, and that length is the
+   product — so instead of shortening it we hand it over as it is written. The
+   pieces: a scanner that lifts one field's prose out of half-arrived JSON, the
+   streaming call itself, and the wire format the pages read. */
+
+const ESCAPES: Record<string, string> = { n: "\n", t: "\t", r: "\r", b: "\b", f: "\f" };
+const WS = new Set([" ", "\n", "\t", "\r"]);
+
+/** Lifts the decoded value of one named TOP-LEVEL string field out of a JSON
+    document that is still arriving, chunk by arbitrary chunk.
+
+    Matching is done with a real (if small) JSON scan rather than a substring
+    search, so neither a field name inside some other value — a report titled
+    "how body_md works" — nor the same key nested deeper — packaging carries
+    both `one_line` and `thumb_read.one_line` — can be mistaken for the one
+    asked for. Anything it can't yet decode unambiguously, notably an escape
+    sequence split across two chunks, is held back until the next chunk
+    completes it. */
+export class JsonStringFieldStreamer {
+  private phase: "scan" | "colon" | "quote" | "value" | "done" = "scan";
+  private buf = "";
+  private inString = false;
+  private esc = false;
+  private token = "";
+  private depth = 0;
+  private readonly field: string;
+
+  constructor(field: string) {
+    this.field = field;
+  }
+
+  get done(): boolean {
+    return this.phase === "done";
+  }
+
+  /** Feeds the next raw chunk; returns whatever new decoded text that made
+      readable (often ""). */
+  push(chunk: string): string {
+    this.buf += chunk;
+    let out = "";
+
+    while (this.buf.length) {
+      if (this.phase === "done") break;
+
+      if (this.phase === "value") {
+        const c = this.buf[0];
+        if (this.esc) {
+          if (c === "u") {
+            if (this.buf.length < 5) break; // need all four hex digits
+            out += String.fromCharCode(parseInt(this.buf.slice(1, 5), 16));
+            this.buf = this.buf.slice(5);
+          } else {
+            out += ESCAPES[c] ?? c;
+            this.buf = this.buf.slice(1);
+          }
+          this.esc = false;
+          continue;
+        }
+        if (c === "\\") {
+          if (this.buf.length < 2) break; // hold: the escaped char is next chunk
+          this.esc = true;
+          this.buf = this.buf.slice(1);
+          continue;
+        }
+        if (c === '"') {
+          this.phase = "done";
+          break;
+        }
+        out += c;
+        this.buf = this.buf.slice(1);
+        continue;
+      }
+
+      const c = this.buf[0];
+      this.buf = this.buf.slice(1);
+
+      if (this.phase === "quote") {
+        if (WS.has(c)) continue;
+        // A non-string value where we expected prose: nothing to stream.
+        this.phase = c === '"' ? "value" : "done";
+        continue;
+      }
+
+      if (this.phase === "colon") {
+        if (WS.has(c)) continue;
+        if (c === ":") {
+          this.phase = "quote";
+          continue;
+        }
+        this.phase = "scan"; // not a key after all — re-read c below
+      }
+
+      if (this.inString) {
+        if (this.esc) {
+          this.esc = false;
+          this.token += c;
+        } else if (c === "\\") {
+          this.esc = true;
+        } else if (c === '"') {
+          this.inString = false;
+          // Depth 1 is the root object's own keys — a same-named key inside a
+          // nested object is a different field and must not match.
+          if (this.depth === 1 && this.token === this.field) this.phase = "colon";
+          this.token = "";
+        } else {
+          this.token += c;
+        }
+        continue;
+      }
+      if (c === '"') {
+        this.inString = true;
+        this.token = "";
+      } else if (c === "{" || c === "[") {
+        this.depth++;
+      } else if (c === "}" || c === "]") {
+        this.depth--;
+      }
+    }
+
+    if (this.phase === "done") this.buf = "";
+    return out;
+  }
+}
+
+type AnalystStreamArgs = AnalystArgs & {
+  /** The schema field whose prose to hand over as it is written — the one the
+      read opens with, so the first seconds carry the summary. */
+  proseField: string;
+  onProse: (delta: string) => void;
+  /** The request's own signal. A read costs about forty seconds of generation,
+      so when the reader closes the tab or navigates away we stop paying for
+      words nobody will see. */
+  signal?: AbortSignal;
+};
+
+/** The same structured-output call as `analystJson` — same model, same betas,
+    same fallbacks, same validated JSON at the end — except the analyst's prose
+    is handed to `onProse` while it is still being written. */
+export async function analystJsonStream<T>({
+  system, user, schema, maxTokens = 16000, proseField, onProse, signal,
+}: AnalystStreamArgs): Promise<T> {
+  if (!claudeConfigured()) throw new Error("The analyst service isn't configured on this deployment yet.");
+  const client = anthropicClient();
+
+  const stream = client.beta.messages.stream({
+    model: "claude-opus-5",
+    max_tokens: maxTokens,
+    betas: ["server-side-fallback-2026-06-01"],
+    fallbacks: [{ model: "claude-opus-4-8" }],
+    system: `${TEAM_RULES}\n\n${system}`,
+    output_config: { format: { type: "json_schema", schema } },
+    messages: [{ role: "user", content: user }],
+    // maxRetries 0: the SDK's default of 2 silently re-runs the whole request
+    // on a transient failure. On a forty-second streamed generation that means
+    // regenerating from scratch and paying twice for one user action, with the
+    // first attempt's output thrown away. One action, one generation.
+  }, { signal, maxRetries: 0 });
+
+  const prose = new JsonStringFieldStreamer(proseField);
+  for await (const event of stream) {
+    if (event.type !== "content_block_delta" || event.delta.type !== "text_delta") continue;
+    if (prose.done) continue;
+    const text = prose.push(event.delta.text);
+    if (text) onProse(text);
+  }
+
+  const response = await stream.finalMessage();
+  if (response.stop_reason === "refusal") {
+    throw new Error("The analyst declined this request. Try again, or contact us if it repeats.");
+  }
+  const text = response.content.find((b) => b.type === "text");
+  if (!text || !("text" in text)) throw new Error("The analyst didn't return a readable answer. Try again.");
+  return JSON.parse(text.text) as T;
+}
+
+/** What a page hands the analyst back: named, present-tense progress while the
+    team gathers, then the prose as it lands. */
+export type AnalystEmit = {
+  /** One truthful line about the step now running — never a fake tick. */
+  stage: (message: string) => void;
+  prose: (delta: string) => void;
+  /** Aborts when the request is aborted OR when the reader stops reading.
+      Hand this to the model call — not the raw request signal — so a read
+      nobody is waiting for stops generating instead of billing on quietly. */
+  signal: AbortSignal;
+};
+
+/** Runs an analyst and returns its whole progress as newline-delimited JSON:
+    `stage` lines while the team gathers, `prose` deltas while it writes, and a
+    final `done` line carrying exactly the payload the route used to return in
+    one piece.
+
+    The split on failures is deliberate. A route's own guards — not signed in,
+    no channel connected, nothing asked — run BEFORE this and still answer with
+    a status code, because nothing has been sent yet. Once the stream opens the
+    status is already on the wire, so anything that breaks after arrives in-band
+    as an `error` line and the page shows it the same way. */
+export function analystStream(
+  run: (emit: AnalystEmit) => Promise<Record<string, unknown>>,
+  signal?: AbortSignal
+): Response {
+  const encoder = new TextEncoder();
+
+  // One signal for the whole read, aborting on either way a reader can leave:
+  // the request itself being aborted, or the response body being cancelled
+  // because nobody is pulling from it any more.
+  const gone = new AbortController();
+  if (signal) {
+    if (signal.aborted) gone.abort();
+    else signal.addEventListener("abort", () => gone.abort(), { once: true });
+  }
+
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const write = (event: Record<string, unknown>) => {
+        if (gone.signal.aborted) return; // nobody is holding the other end
+        controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      };
+      try {
+        const done = await run({
+          stage: (message) => write({ t: "stage", m: message }),
+          prose: (delta) => write({ t: "prose", d: delta }),
+          signal: gone.signal,
+        });
+        write({ t: "done", ...done });
+      } catch (e) {
+        // A reader who walked away hasn't hit an error, and there is nobody
+        // left to read one — let the abort be quiet.
+        if (!gone.signal.aborted) {
+          write({ t: "error", error: e instanceof Error ? e.message : "The read couldn't finish." });
+        }
+      } finally {
+        try { controller.close(); } catch { /* already closed by a cancel */ }
+      }
+    },
+    cancel() {
+      // The reader stopped reading. Stop generating.
+      gone.abort();
+    },
+  });
+
+  return new Response(body, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-store, no-transform",
+      // Keep proxies from buffering the read back into one lump.
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
