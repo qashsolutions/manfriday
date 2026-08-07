@@ -209,6 +209,7 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "verdict",
+      signal: req.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);
@@ -245,5 +246,5 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
       baseline: baselineForPicks,
       timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
     };
-  });
+  }, req.signal);
 }

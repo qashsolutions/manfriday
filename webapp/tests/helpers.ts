@@ -48,22 +48,31 @@ export function fakeAnthropic(payload: unknown, stopReason = "end_turn") {
     content: stopReason === "refusal" ? [] : [{ type: "text", text: json }],
   };
   const create = vi.fn().mockResolvedValue(final);
-  const stream = vi.fn(() => ({
+  // Second arg is the SDK's RequestOptions — that's where the abort signal
+  // rides. The fake honours it the way the real transport does: generation
+  // stops mid-flight and the call rejects.
+  const stream = vi.fn((_params?: unknown, opts?: { signal?: AbortSignal }) => ({
     async *[Symbol.asyncIterator]() {
       if (stopReason === "refusal") return;
       for (let i = 0; i < json.length; i += 7) {
+        if (opts?.signal?.aborted) throw new Error("Request was aborted.");
         yield { type: "content_block_delta", delta: { type: "text_delta", text: json.slice(i, i + 7) } };
       }
     },
-    finalMessage: async () => final,
+    finalMessage: async () => {
+      if (opts?.signal?.aborted) throw new Error("Request was aborted.");
+      return final;
+    },
   }));
   return { client: { beta: { messages: { create, stream } } } as any, create, stream };
 }
 
-/** POST request to a route handler; omit body for an empty request. */
-export function post(body?: unknown): Request {
+/** POST request to a route handler; omit body for an empty request. Pass a
+    signal to model a reader who closes the tab mid-read. */
+export function post(body?: unknown, signal?: AbortSignal): Request {
   return new Request("http://test.local/api", {
     method: "POST",
+    ...(signal ? { signal } : {}),
     ...(body === undefined
       ? {}
       : { headers: { "content-type": "application/json" }, body: JSON.stringify(body) }),

@@ -202,6 +202,7 @@ ${material}
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "body_md",
+      signal: req.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);
@@ -228,5 +229,5 @@ ${material}
       takeaways: research.takeaways,
       timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
     };
-  });
+  }, req.signal);
 }

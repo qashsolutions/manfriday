@@ -200,6 +200,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       schema: SCHEMA as unknown as Record<string, unknown>,
       maxTokens: 6000,
       proseField: "verdict",
+      signal: req.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);
@@ -228,5 +229,5 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       baseline: snap ? { view_count: snap.view_count, views_per_day: snap.views_per_day } : {},
       timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
     };
-  });
+  }, req.signal);
 }

@@ -37,7 +37,8 @@ export type WeeklyReportRow = { id: string; title: string; body_md: string; crea
 export async function writeWeeklyReport(
   svc: SupabaseClient,
   userId: string,
-  onProse?: (delta: string) => void
+  onProse?: (delta: string) => void,
+  signal?: AbortSignal
 ): Promise<WeeklyReportRow | null> {
   const { data: chans } = await svc
     .from("channels")
@@ -142,7 +143,7 @@ ${ideaLines || "- none mined yet"}
     schema: SCHEMA as unknown as Record<string, unknown>,
   };
   const weekly = onProse
-    ? await analystJsonStream<Weekly>({ ...call, proseField: "body_md", onProse })
+    ? await analystJsonStream<Weekly>({ ...call, proseField: "body_md", onProse, signal })
     : await analystJson<Weekly>(call);
 
   const { data: report, error: rErr } = await svc

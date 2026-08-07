@@ -29,12 +29,12 @@ export async function POST(req: Request) {
     const report = await writeWeeklyReport(svc, user.id, (delta) => {
       if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
       emit.prose(delta);
-    });
+    }, req.signal);
     if (!report) throw new Error("Connect your channel and run the first analysis first.");
 
     return {
       report,
       timing: { firstWordMs, totalMs: Math.round(performance.now() - started) },
     };
-  });
+  }, req.signal);
 }

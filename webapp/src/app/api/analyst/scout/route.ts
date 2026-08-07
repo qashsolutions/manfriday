@@ -297,6 +297,7 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "read",
+      signal: req.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);
@@ -334,5 +335,5 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
         publishedAt: mine.published_at, durationSeconds: mine.duration_seconds, myRatio,
       } : null,
     };
-  });
+  }, req.signal);
 }

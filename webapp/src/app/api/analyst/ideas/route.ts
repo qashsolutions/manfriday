@@ -139,6 +139,7 @@ export async function POST(req: Request) {
       user: `${grounding.audienceBlock}\n\n${grounding.trackBlock}\n\nTHE CHANNEL'S COMMENTS (${comments.length} most relevant, with like counts)\n${commentBlock}`,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "summary",
+      signal: req.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);
@@ -173,5 +174,5 @@ export async function POST(req: Request) {
       added: fresh.length,
       timing: { gatherMs, modelMs, firstWordMs, totalMs: Math.round(performance.now() - started) },
     };
-  });
+  }, req.signal);
 }

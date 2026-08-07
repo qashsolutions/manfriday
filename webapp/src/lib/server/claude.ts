@@ -218,13 +218,17 @@ type AnalystStreamArgs = AnalystArgs & {
       read opens with, so the first seconds carry the summary. */
   proseField: string;
   onProse: (delta: string) => void;
+  /** The request's own signal. A read costs about forty seconds of generation,
+      so when the reader closes the tab or navigates away we stop paying for
+      words nobody will see. */
+  signal?: AbortSignal;
 };
 
 /** The same structured-output call as `analystJson` — same model, same betas,
     same fallbacks, same validated JSON at the end — except the analyst's prose
     is handed to `onProse` while it is still being written. */
 export async function analystJsonStream<T>({
-  system, user, schema, maxTokens = 16000, proseField, onProse,
+  system, user, schema, maxTokens = 16000, proseField, onProse, signal,
 }: AnalystStreamArgs): Promise<T> {
   if (!claudeConfigured()) throw new Error("The analyst service isn't configured on this deployment yet.");
   const client = anthropicClient();
@@ -237,7 +241,7 @@ export async function analystJsonStream<T>({
     system: `${TEAM_RULES}\n\n${system}`,
     output_config: { format: { type: "json_schema", schema } },
     messages: [{ role: "user", content: user }],
-  });
+  }, { signal });
 
   const prose = new JsonStringFieldStreamer(proseField);
   for await (const event of stream) {
@@ -275,13 +279,16 @@ export type AnalystEmit = {
     status is already on the wire, so anything that breaks after arrives in-band
     as an `error` line and the page shows it the same way. */
 export function analystStream(
-  run: (emit: AnalystEmit) => Promise<Record<string, unknown>>
+  run: (emit: AnalystEmit) => Promise<Record<string, unknown>>,
+  signal?: AbortSignal
 ): Response {
   const encoder = new TextEncoder();
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const write = (event: Record<string, unknown>) =>
+      const write = (event: Record<string, unknown>) => {
+        if (signal?.aborted) return; // nobody is holding the other end
         controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      };
       try {
         const done = await run({
           stage: (message) => write({ t: "stage", m: message }),
@@ -289,7 +296,11 @@ export function analystStream(
         });
         write({ t: "done", ...done });
       } catch (e) {
-        write({ t: "error", error: e instanceof Error ? e.message : "The read couldn't finish." });
+        // A reader who walked away hasn't hit an error, and there is nobody
+        // left to read one — let the abort be quiet.
+        if (!signal?.aborted) {
+          write({ t: "error", error: e instanceof Error ? e.message : "The read couldn't finish." });
+        }
       } finally {
         controller.close();
       }

@@ -115,8 +115,48 @@ describe("POST /api/analyst/research", () => {
     videos.mockResolvedValue([PUBLIC_VIDEO]);
     channels.mockResolvedValue(new Map([["UCother", PUBLIC_CHANNEL]]));
     phrases.mockResolvedValue(["garage workshop ideas"]);
-    anthropic.mockReturnValue(fakeAnthropic(RESEARCH).client);
+    const fake = fakeAnthropic(RESEARCH);
+    anthropic.mockReturnValue(fake.client);
+    return fake;
   }
+
+  it("reaches the model exactly once for one request", async () => {
+    const fake = happyPath();
+    await safeStream(await POST(post({ query: "garage workshop" })));
+    expect(fake.stream).toHaveBeenCalledTimes(1);
+    expect(fake.create).not.toHaveBeenCalled();
+  });
+
+  it("hands the request's abort signal to the model call", async () => {
+    const fake = happyPath();
+    const ac = new AbortController();
+    await safeStream(await POST(post({ query: "garage workshop" }, ac.signal)));
+
+    // Second argument is the SDK's RequestOptions. Request builds its own
+    // signal that follows the one it was given, so identity won't match —
+    // what matters is that aborting the caller aborts what the model got.
+    const opts = fake.stream.mock.calls[0][1] as { signal?: AbortSignal };
+    expect(opts.signal).toBeInstanceOf(AbortSignal);
+    expect(opts.signal!.aborted).toBe(false);
+    ac.abort();
+    expect(opts.signal!.aborted).toBe(true);
+  });
+
+  it("stops generating when the reader walks away", async () => {
+    const fake = happyPath();
+    const ac = new AbortController();
+    ac.abort(); // the tab is already gone by the time the model would run
+
+    const res = await POST(post({ query: "garage workshop" }, ac.signal));
+    const events = await safeStream(res);
+
+    // The generation was cut off, so no read was produced…
+    expect(doneOf(events)).toBeUndefined();
+    // …and an abandoned request is not dressed up as an error nobody can read.
+    expect(errorOf(events)).toBeUndefined();
+    expect(events).toEqual([]);
+    expect(fake.stream).toHaveBeenCalledTimes(1);
+  });
 
   it("researches a topic and saves the report", async () => {
     happyPath();
