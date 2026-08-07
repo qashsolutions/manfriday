@@ -2,12 +2,17 @@
     watches while the team works, and the two helpers every consuming page uses
     to read the wire format `analystStream` writes (src/lib/server/claude.ts). */
 
+/** Why a read stopped — the server's own words for it (src/lib/server/claude.ts).
+    "expected" means show the screen's designed empty state; "failure" earns the
+    red banner. Routes that haven't adopted the distinction yet report failure. */
+export type AnalystErrorKind = "failure" | "expected";
+
 /** One line off an analyst stream. `done` carries whatever payload that route
     used to return in one piece. */
 export type AnalystStreamEvent<T> =
   | { t: "stage"; m: string }
   | { t: "prose"; d: string }
-  | { t: "error"; error: string }
+  | { t: "error"; error: string; kind: AnalystErrorKind }
   | ({ t: "done" } & T);
 
 /** Reads the newline-delimited events off a response body as they land. */

@@ -144,6 +144,7 @@ describe("POST /api/analyst/why", () => {
     const events = await safeStream(await POST(post({ video: "vidAAAAAAA1" })));
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });

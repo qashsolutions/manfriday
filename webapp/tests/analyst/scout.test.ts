@@ -132,6 +132,7 @@ describe("POST /api/analyst/scout", () => {
     const events = await safeStream(res);
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "That's one of your own videos — pick it in the 'compare with' box instead, and paste an outside video here.",
     });
     expect(doneOf(events)).toBeUndefined();
@@ -181,6 +182,7 @@ describe("POST /api/analyst/scout", () => {
     const events = await safeStream(await POST(post({ url: "https://www.youtube.com/watch?v=vidAAAAAAA1" })));
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });

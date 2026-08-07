@@ -19,6 +19,8 @@ export default function IdeasPage() {
   const [note, setNote] = useState<string | null>(null);
   const [stages, setStages] = useState<string[]>([]);
   const [prose, setProse] = useState("");
+  /** An expected "nothing to read yet" outcome, shown in plain ink. */
+  const [quiet, setQuiet] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -37,6 +39,7 @@ export default function IdeasPage() {
   async function mine() {
     setErr(null);
     setNote(null);
+    setQuiet(null);
     setMining(true);
     setProse("");
     setStages([`${sentenceCase(TEAM.listener.name)} is opening your comments…`]);
@@ -57,8 +60,13 @@ export default function IdeasPage() {
       for await (const ev of readAnalystStream<Mined>(r.body)) {
         if (ev.t === "stage") setStages((s) => [...s, ev.m]);
         else if (ev.t === "prose") prose.push(ev.d);
-        else if (ev.t === "error") throw new Error(ev.error);
         else if (ev.t === "done") j = ev;
+        else if (ev.t === "error") {
+          // The server says whether this is a state we planned for or a thing
+          // that broke; red is only ever for the latter.
+          if (ev.kind === "expected") { setProse(""); setQuiet(ev.error); return; }
+          throw new Error(ev.error);
+        }
       }
       prose.flush();
       if (!j) throw new Error("The comment read stopped before it finished — try again.");
@@ -85,22 +93,22 @@ export default function IdeasPage() {
         <h1>Your idea list</h1>
         {ideas.length > 0 && (
           <button className="btn btn-ghost btn-sm" style={{ marginLeft: "auto" }} onClick={mine} disabled={mining}>
-            {mining ? "Reading your comments…" : "Read my comments again"}
+            {mining ? "Reading your comments…" : "Read my channel's comments again"}
           </button>
         )}
       </div>
-      {err && (
-        <div className="err">
-          {err}
-          {err.includes("No comments") && (
-            <>
-              {" "}Meanwhile, <Link href="/scout" style={{ color: "inherit", textDecoration: "underline" }}>Compare with any video</Link>{" "}
-              reads the comments on any public video — asks and all.
-            </>
-          )}
+      {err && <div className="err">{err}</div>}
+      {note && <div className="ok-note">{note}</div>}
+      {/* Nothing to read yet, but ideas already on the list — the empty state
+          below won't render, so say it here in plain ink rather than red. */}
+      {quiet && ideas.length > 0 && (
+        <div className="aside-note">
+          <b>No comments to read yet</b>
+          There are no comments on your videos at the moment, so there was nothing to pull
+          from. {sentenceCase(TEAM.listener.name)} will have something to work with as
+          viewers start replying.
         </div>
       )}
-      {note && <div className="ok-note">{note}</div>}
       {(mining || prose) && (
         <div className="card" style={{ marginBottom: 12 }}>
           {mining && <Working stages={stages} />}
@@ -115,11 +123,20 @@ export default function IdeasPage() {
         <div className="empty" style={{ padding: 40 }}>
           <b>Ideas come from your own comments</b>
           {sentenceCase(TEAM.listener.name)}{" "}
-          reads what your viewers write and pulls out what they&apos;re literally
-          asking you to make — every idea with a receipt: how many asked, and the actual comment.
+          reads every comment across your channel&apos;s videos — you don&apos;t paste
+          anything — and pulls out what viewers are literally asking you to make, every
+          idea with a receipt: how many asked, and the actual comment.
+          {quiet && (
+            <>
+              {" "}Right now there are no comments to read yet, so there is nothing to pull from.
+              Meanwhile,{" "}
+              <Link href="/scout" style={{ color: "var(--acc)" }}>Compare with any video</Link>{" "}
+              reads the comments on any public video — asks and all.
+            </>
+          )}
           <div style={{ marginTop: 16 }}>
             <button className="btn btn-acc btn-lg" onClick={mine} disabled={mining}>
-              {mining ? "Reading your comments…" : "Read my comments"}
+              {mining ? "Reading your comments…" : "Read my channel's comments"}
             </button>
           </div>
           <div style={{ maxWidth: 520, margin: "18px auto 0", textAlign: "left" }}>

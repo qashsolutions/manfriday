@@ -3,7 +3,7 @@ import { userFromRequest } from "@/lib/server/auth";
 import { serviceClient } from "@/lib/server/service";
 import { accessTokenFromRow } from "@/lib/server/youtube";
 import { fetchVideoComments } from "@/lib/server/publicYt";
-import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
+import { AnalystExpected, analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 import { TEAM, sentenceCase } from "@/lib/team";
 
@@ -118,7 +118,9 @@ export async function POST(req: Request) {
     );
     const comments: CommentRow[] = perVideo.flat().slice(0, 200);
     if (comments.length === 0) {
-      throw new Error(`No comments to read yet — ${TEAM.listener.name} needs viewers talking first.`);
+      // A channel nobody has commented on yet is a stage every creator starts
+      // at, not a fault — the screen shows its empty state, not a red banner.
+      throw new AnalystExpected(`No comments to read yet — ${TEAM.listener.name} needs viewers talking first.`);
     }
     emit.stage(
       `Reading ${comments.length} ${comments.length === 1 ? "comment" : "comments"} ` +

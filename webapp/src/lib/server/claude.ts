@@ -264,6 +264,23 @@ export async function analystJsonStream<T>({
   return JSON.parse(text.text) as T;
 }
 
+/** Why a read stopped. "expected" is a state this product plans for — the
+    channel has no comments yet, there is nothing to compare against — and the
+    screen should show its designed empty state. "failure" is something that
+    actually went wrong, and earns the red banner. Anything a route throws is a
+    failure unless it says otherwise, so routes adopt this one at a time. */
+export type AnalystErrorKind = "failure" | "expected";
+
+/** Throw this from a route's run() for the states the product expects rather
+    than the ones it fears. Everything else stays a failure. */
+export class AnalystExpected extends Error {
+  readonly kind: AnalystErrorKind = "expected";
+  constructor(message: string) {
+    super(message);
+    this.name = "AnalystExpected";
+  }
+}
+
 /** What a page hands the analyst back: named, present-tense progress while the
     team gathers, then the prose as it lands. */
 export type AnalystEmit = {
@@ -318,7 +335,11 @@ export function analystStream(
         // A reader who walked away hasn't hit an error, and there is nobody
         // left to read one — let the abort be quiet.
         if (!gone.signal.aborted) {
-          write({ t: "error", error: e instanceof Error ? e.message : "The read couldn't finish." });
+          write({
+            t: "error",
+            kind: e instanceof AnalystExpected ? "expected" : "failure",
+            error: e instanceof Error ? e.message : "The read couldn't finish.",
+          });
         }
       } finally {
         try { controller.close(); } catch { /* already closed by a cancel */ }

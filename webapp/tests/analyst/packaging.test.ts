@@ -127,6 +127,7 @@ describe("POST /api/analyst/packaging", () => {
     const events = await safeStream(await POST(post({ title: "How to sharpen a chisel" })));
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "The analyst declined this request. Try again, or contact us if it repeats.",
     });
   });
@@ -139,6 +140,6 @@ describe("POST /api/analyst/packaging", () => {
     anthropic.mockReturnValue(fake.client);
 
     const events = await safeStream(await POST(post({ title: "How to sharpen a chisel" })));
-    expect(errorOf(events)).toEqual({ t: "error", error: "Connection error." });
+    expect(errorOf(events)).toEqual({ t: "error", kind: "failure", error: "Connection error." });
   });
 });

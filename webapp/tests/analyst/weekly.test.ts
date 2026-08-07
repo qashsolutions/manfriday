@@ -74,6 +74,7 @@ describe("POST /api/analyst/weekly", () => {
     const events = await safeStream(res);
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "Connect your channel and run the first analysis first.",
     });
     expect(doneOf(events)).toBeUndefined();
@@ -82,12 +83,12 @@ describe("POST /api/analyst/weekly", () => {
   it("surfaces a thrown error as its message only — no stack, no keys", async () => {
     weekly.mockRejectedValue(new Error("The analyst service hiccuped."));
     const events = await safeStream(await POST(post()));
-    expect(errorOf(events)).toEqual({ t: "error", error: "The analyst service hiccuped." });
+    expect(errorOf(events)).toEqual({ t: "error", kind: "failure", error: "The analyst service hiccuped." });
   });
 
   it("hides non-Error throws behind the generic message", async () => {
     weekly.mockRejectedValue("raw internal detail that must not surface");
     const events = await safeStream(await POST(post()));
-    expect(errorOf(events)).toEqual({ t: "error", error: "The read couldn't finish." });
+    expect(errorOf(events)).toEqual({ t: "error", kind: "failure", error: "The read couldn't finish." });
   });
 });

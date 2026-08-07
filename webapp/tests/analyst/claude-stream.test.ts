@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { analystStream, JsonStringFieldStreamer } from "@/lib/server/claude";
+import { AnalystExpected, analystStream, JsonStringFieldStreamer } from "@/lib/server/claude";
+
+/** Drains a stream into its parsed events. */
+async function eventsOf(res: Response) {
+  const text = await new Response(res.body).text();
+  return text.split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+}
 
 /** Feeds a document through the reader in fixed-size chunks and returns
     everything it decoded. Chunk size 1 is the cruellest case: every escape,
@@ -157,6 +163,46 @@ describe("analystStream — abandoning a read stops it", () => {
     }, ac.signal);
 
     expect(await new Response(res.body).text()).toBe("");
+  });
+});
+
+/** Red is expensive: it tells a creator something is broken. The stream says
+    which kind of stop this was so the screen doesn't have to guess. */
+describe("analystStream — expected states vs failures", () => {
+  it("reports an ordinary throw as a failure", async () => {
+    const res = analystStream(async () => { throw new Error("Couldn't reach YouTube."); });
+    expect(await eventsOf(res)).toEqual([
+      { t: "error", kind: "failure", error: "Couldn't reach YouTube." },
+    ]);
+  });
+
+  it("reports an AnalystExpected as expected, keeping its wording", async () => {
+    const res = analystStream(async () => {
+      throw new AnalystExpected("No comments to read yet — the Listener needs viewers talking first.");
+    });
+    expect(await eventsOf(res)).toEqual([
+      {
+        t: "error",
+        kind: "expected",
+        error: "No comments to read yet — the Listener needs viewers talking first.",
+      },
+    ]);
+  });
+
+  it("treats a non-Error throw as a failure with the generic message", async () => {
+    const res = analystStream(async () => { throw "raw internal detail"; });
+    expect(await eventsOf(res)).toEqual([
+      { t: "error", kind: "failure", error: "The read couldn't finish." },
+    ]);
+  });
+
+  it("carries a kind on every error, so a page never has to read the message", async () => {
+    for (const thrown of [new Error("x"), new AnalystExpected("y"), "z"]) {
+      const res = analystStream(async () => { throw thrown; });
+      const [event] = await eventsOf(res);
+      expect(event.t).toBe("error");
+      expect(["failure", "expected"]).toContain(event.kind);
+    }
   });
 });
 
