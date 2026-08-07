@@ -18,7 +18,7 @@ export function fakeSvc(tables: Record<string, QueryResult[]> = {}) {
       const queued = tables[table]?.shift() ?? {};
       const result = { data: null, error: null, ...queued };
       const chain: any = {};
-      for (const m of ["select", "eq", "is", "not", "gt", "in", "order", "limit", "maybeSingle", "single", "upsert"]) {
+      for (const m of ["select", "eq", "is", "not", "gt", "gte", "in", "order", "limit", "maybeSingle", "single", "upsert"]) {
         chain[m] = () => chain;
       }
       chain.insert = (rows: unknown) => {
