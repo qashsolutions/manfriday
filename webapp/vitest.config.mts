@@ -10,7 +10,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["tests/**/*.test.ts"],
+    // .tsx too: the designed empty/thin states are proved by rendering the
+    // components, which a signed-in production account can never show.
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     setupFiles: ["tests/setup.ts"],
   },
 });

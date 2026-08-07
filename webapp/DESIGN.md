@@ -139,14 +139,20 @@ Decisions ship as **2–3 typed choices — never one order** (CLAUDE.md,
 locked). The shared option-card molecule:
 
 - Type badge: the safe bet / the smart reach / the bold swing.
-- **Effort tag: minimal edit / re-cut / format change.**
+- **Effort tag: minimal edit / re-cut / format change / next upload / new video**
+  (the last two added 2026-08-07 for the Desk's next-move cards; the tag is
+  read off what the tip targets — a live title can be changed now, a video
+  that doesn't exist yet can't).
 - The choice in one bold plain-English sentence, then why, then the
   confidence bar and evidence chips.
 - One action: "I'll do this — log it" → the pick lands in the Ledger with
-  its before-numbers; the logged state names the Scorekeeper.
+  its before-numbers; the logged state names the Scorekeeper. On the Desk,
+  where the pick is already in the Ledger, the action row is the apply loop
+  instead: Copy · Open YouTube Studio · Mark applied.
 
-This molecule is currently re-implemented inline on four screens; it gets
-extracted once into `src/components/` and every screen uses the shared one.
+The molecule now exists as `src/components/OptionCard.tsx` (the Desk uses
+it). The four inline copies — why-detail, packaging, scout, research —
+migrate to it as those screens are touched.
 
 ## 9. The evidence line
 
@@ -181,12 +187,14 @@ auth (`.authpage/.authcard/.fine/.hr`), settings rows (`.setsect/.setrow`),
 
 From `src/components/`: `Md`, `Explain` (+ `WrongClaim`, `Thumb`,
 `RatioBar`), `RetentionChart`, `Verdict` (`BeforeAfter`, `ConfidenceBar`,
-`EvidenceChips`), `TeamIcons`, `AuthCard`, `Site` (header/footer),
-`HeroPreview`, `HowVisuals`.
+`EvidenceChips`), `OptionCard` (§8), `Receipt` (§6), `Working` (§13),
+`TeamIcons`, `AuthCard`, `Site` (header/footer), `HeroPreview`,
+`HowVisuals`.
 
-To be extracted as shared molecules (they exist today only as inline
-copies): the option card (§8), the receipt (§6), the stat card, `Byline`
-(currently private to one page), and the loading narration (§13).
+Still to extract (they exist today only as inline copies): the stat card and
+`Byline` (currently private to one page). `OptionCard` and `Receipt` exist
+but are used by the Desk only so far — the four inline option-card copies
+and every hand-rolled receipt migrate as their screens are touched.
 
 **Rule:** if a primitive exists, new work uses it. Re-implementing one
 inline — or adding an inline style where a token or class exists — is a
