@@ -184,3 +184,6 @@ server-side auth settings.
    items and open questions. Describe outputs plainly; no self-praise.
 8. **Uncertain → stop and ask.** A question costs a minute; a wrong
    guess costs a session.
+9. **Hotfix lane:** a confirmed bug that burns money, loses data, or
+   breaks correctness gets fixed immediately in the narrowest scope —
+   report after; plan-gates are for scope questions, not for bleeding.

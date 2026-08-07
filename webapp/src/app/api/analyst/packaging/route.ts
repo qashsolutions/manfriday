@@ -241,7 +241,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       user: userContent as never,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "one_line",
-      signal: req.signal,
+      signal: emit.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);

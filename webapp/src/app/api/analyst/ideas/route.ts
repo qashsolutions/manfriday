@@ -139,7 +139,7 @@ export async function POST(req: Request) {
       user: `${grounding.audienceBlock}\n\n${grounding.trackBlock}\n\nTHE CHANNEL'S COMMENTS (${comments.length} most relevant, with like counts)\n${commentBlock}`,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "summary",
-      signal: req.signal,
+      signal: emit.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);

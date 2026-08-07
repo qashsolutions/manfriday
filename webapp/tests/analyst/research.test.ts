@@ -127,7 +127,7 @@ describe("POST /api/analyst/research", () => {
     expect(fake.create).not.toHaveBeenCalled();
   });
 
-  it("hands the request's abort signal to the model call", async () => {
+  it("hands the request's abort signal to the model call, and never retries", async () => {
     const fake = happyPath();
     const ac = new AbortController();
     await safeStream(await POST(post({ query: "garage workshop" }, ac.signal)));
@@ -135,12 +135,16 @@ describe("POST /api/analyst/research", () => {
     // Second argument is the SDK's RequestOptions. Request builds its own
     // signal that follows the one it was given, so identity won't match —
     // what matters is that aborting the caller aborts what the model got.
-    const opts = fake.stream.mock.calls[0][1] as { signal?: AbortSignal };
+    const opts = fake.stream.mock.calls[0][1] as { signal?: AbortSignal; maxRetries?: number };
     expect(opts.signal).toBeInstanceOf(AbortSignal);
     expect(opts.signal!.aborted).toBe(false);
     ac.abort();
     expect(opts.signal!.aborted).toBe(true);
+
+    // The SDK would otherwise re-run the whole generation up to twice more.
+    expect(opts.maxRetries).toBe(0);
   });
+
 
   it("stops generating when the reader walks away", async () => {
     const fake = happyPath();

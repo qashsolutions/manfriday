@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JsonStringFieldStreamer } from "@/lib/server/claude";
+import { analystStream, JsonStringFieldStreamer } from "@/lib/server/claude";
 
 /** Feeds a document through the reader in fixed-size chunks and returns
     everything it decoded. Chunk size 1 is the cruellest case: every escape,
@@ -86,6 +86,82 @@ describe("JsonStringFieldStreamer", () => {
   });
 
   it("is not fooled by braces inside string values", () => {
+    const doc = JSON.stringify({
+      title: "a { brace } and a [ bracket ] walk in",
+      body_md: "the read",
+    });
+    for (const got of readEveryWhichWay(doc)) expect(got).toBe("the read");
+  });
+});
+
+/** A read costs ~40s of generation. Both ways a reader can leave must stop it,
+    or the bill keeps running for words nobody will ever see. */
+describe("analystStream — abandoning a read stops it", () => {
+  it("aborts when the request itself is aborted", async () => {
+    const ac = new AbortController();
+    let seen: AbortSignal | undefined;
+
+    const res = analystStream(async (emit) => {
+      seen = emit.signal;
+      emit.stage("working…");
+      await new Promise((r) => setTimeout(r, 30));
+      return { ok: true };
+    }, ac.signal);
+
+    const reader = res.body!.getReader();
+    await reader.read();
+    ac.abort();
+
+    expect(seen!.aborted).toBe(true);
+  });
+
+  it("aborts when the reader stops reading, even with no request abort", async () => {
+    let seen: AbortSignal | undefined;
+
+    const res = analystStream(async (emit) => {
+      seen = emit.signal;
+      emit.stage("working…");
+      await new Promise((r) => setTimeout(r, 30));
+      return { ok: true };
+    });
+
+    const reader = res.body!.getReader();
+    await reader.read();      // took the first line…
+    await reader.cancel();    // …then walked away
+
+    expect(seen).toBeDefined();
+    expect(seen!.aborted).toBe(true);
+  });
+
+  it("starts already-aborted when the request was abandoned before it began", async () => {
+    const ac = new AbortController();
+    ac.abort();
+    let seen: AbortSignal | undefined;
+
+    const res = analystStream(async (emit) => {
+      seen = emit.signal;
+      return { ok: true };
+    }, ac.signal);
+
+    await new Response(res.body).text();
+    expect(seen!.aborted).toBe(true);
+  });
+
+  it("writes nothing to a stream whose reader has gone", async () => {
+    const ac = new AbortController();
+    ac.abort();
+    const res = analystStream(async (emit) => {
+      emit.stage("nobody will read this");
+      emit.prose("nor this");
+      return { ok: true };
+    }, ac.signal);
+
+    expect(await new Response(res.body).text()).toBe("");
+  });
+});
+
+describe("JsonStringFieldStreamer — brace handling", () => {
+  it("is not fooled by braces inside string values (regression)", () => {
     const doc = JSON.stringify({
       title: "a { brace } and a [ bracket ] walk in",
       body_md: "the read",

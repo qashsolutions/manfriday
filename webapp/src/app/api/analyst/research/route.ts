@@ -202,7 +202,7 @@ ${material}
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "body_md",
-      signal: req.signal,
+      signal: emit.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);

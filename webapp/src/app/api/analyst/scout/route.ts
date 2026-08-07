@@ -297,7 +297,7 @@ Remember: never speculate about anyone's earnings; explain the view gap with the
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "read",
-      signal: req.signal,
+      signal: emit.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);

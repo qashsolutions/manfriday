@@ -200,7 +200,7 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       schema: SCHEMA as unknown as Record<string, unknown>,
       maxTokens: 6000,
       proseField: "verdict",
-      signal: req.signal,
+      signal: emit.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);

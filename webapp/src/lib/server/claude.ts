@@ -241,7 +241,11 @@ export async function analystJsonStream<T>({
     system: `${TEAM_RULES}\n\n${system}`,
     output_config: { format: { type: "json_schema", schema } },
     messages: [{ role: "user", content: user }],
-  }, { signal });
+    // maxRetries 0: the SDK's default of 2 silently re-runs the whole request
+    // on a transient failure. On a forty-second streamed generation that means
+    // regenerating from scratch and paying twice for one user action, with the
+    // first attempt's output thrown away. One action, one generation.
+  }, { signal, maxRetries: 0 });
 
   const prose = new JsonStringFieldStreamer(proseField);
   for await (const event of stream) {
@@ -266,6 +270,10 @@ export type AnalystEmit = {
   /** One truthful line about the step now running — never a fake tick. */
   stage: (message: string) => void;
   prose: (delta: string) => void;
+  /** Aborts when the request is aborted OR when the reader stops reading.
+      Hand this to the model call — not the raw request signal — so a read
+      nobody is waiting for stops generating instead of billing on quietly. */
+  signal: AbortSignal;
 };
 
 /** Runs an analyst and returns its whole progress as newline-delimited JSON:
@@ -283,27 +291,42 @@ export function analystStream(
   signal?: AbortSignal
 ): Response {
   const encoder = new TextEncoder();
+
+  // One signal for the whole read, aborting on either way a reader can leave:
+  // the request itself being aborted, or the response body being cancelled
+  // because nobody is pulling from it any more.
+  const gone = new AbortController();
+  if (signal) {
+    if (signal.aborted) gone.abort();
+    else signal.addEventListener("abort", () => gone.abort(), { once: true });
+  }
+
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
       const write = (event: Record<string, unknown>) => {
-        if (signal?.aborted) return; // nobody is holding the other end
+        if (gone.signal.aborted) return; // nobody is holding the other end
         controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
       };
       try {
         const done = await run({
           stage: (message) => write({ t: "stage", m: message }),
           prose: (delta) => write({ t: "prose", d: delta }),
+          signal: gone.signal,
         });
         write({ t: "done", ...done });
       } catch (e) {
         // A reader who walked away hasn't hit an error, and there is nobody
         // left to read one — let the abort be quiet.
-        if (!signal?.aborted) {
+        if (!gone.signal.aborted) {
           write({ t: "error", error: e instanceof Error ? e.message : "The read couldn't finish." });
         }
       } finally {
-        controller.close();
+        try { controller.close(); } catch { /* already closed by a cancel */ }
       }
+    },
+    cancel() {
+      // The reader stopped reading. Stop generating.
+      gone.abort();
     },
   });
 

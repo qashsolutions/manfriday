@@ -209,7 +209,7 @@ ${transcript ? `TRANSCRIPT / SCRIPT (provided by the creator — quote it when e
       user: userMsg,
       schema: SCHEMA as unknown as Record<string, unknown>,
       proseField: "verdict",
-      signal: req.signal,
+      signal: emit.signal,
       onProse: (delta) => {
         if (firstWordMs === null) firstWordMs = Math.round(performance.now() - started);
         emit.prose(delta);
