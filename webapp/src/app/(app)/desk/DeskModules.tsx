@@ -207,6 +207,8 @@ export function IsTheAdviceWorking({ score }: { score: Score }) {
             <div key={r.id}>
               <div style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
                 <span className={`pill ${r.chip.cls}`}>{r.chip.label}</span>
+                {/* A result the creator reported never travels without saying so. */}
+                {r.chip.reported && <span className="pill mut">you reported this</span>}
                 <b style={{ fontSize: 13, flex: 1, minWidth: 200, fontWeight: 600 }}>{r.text}</b>
                 {r.shift && (
                   <span className="num" style={{ fontSize: 12, color: "var(--ink2)", whiteSpace: "nowrap" }}>

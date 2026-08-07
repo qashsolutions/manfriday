@@ -119,6 +119,26 @@ describe("POST /api/analyst/packaging", () => {
     expect(stagesOf(events).at(-1)).toBe("The Marketer is grading it…");
   });
 
+  it("puts the grade on the record, with the normal it was graded against", async () => {
+    const fake = fakeSvc({ ...happyTables(), reports: [{ data: { id: "rep1", title: "t", created_at: "2026-08-07T00:00:00Z" } }] });
+    service.mockReturnValue(fake.svc);
+    phrases.mockResolvedValue([]);
+    anthropic.mockReturnValue(fakeAnthropic(GRADE).client);
+
+    const done = doneOf(await safeStream(await POST(post({ title: "How to sharpen a chisel" }))));
+    expect(done.report).toMatchObject({ id: "rep1" });
+
+    const row = fake.inserts.reports[0] as any;
+    expect(row).toMatchObject({ agent: "the Marketer", channel_id: "ch1" });
+    expect(row.title).toBe('Title grade for "How to sharpen a chisel"');
+    expect(row.body_md).toContain("Grade B+");
+    expect(row.body_md).toContain('"Sharpen a chisel like their winners"');
+    expect(row.data).toMatchObject({ kind: "packaging", draft: "How to sharpen a chisel", grade: "B+" });
+    // The number the Scorekeeper will compare against later — stored at grade
+    // time, because a later upload moves it.
+    expect(row.data.normal).toEqual([{ format: "longform", usual_views: 120, sample_size: 8, swing: null }]);
+  });
+
   it("turns a model refusal into the friendly analyst message", async () => {
     service.mockReturnValue(fakeSvc(happyTables()).svc);
     phrases.mockResolvedValue([]);

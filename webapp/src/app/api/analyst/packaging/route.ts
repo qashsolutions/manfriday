@@ -4,6 +4,7 @@ import { serviceClient } from "@/lib/server/service";
 import { analystJsonStream, analystStream, claudeConfigured, OPTIONS_RULES } from "@/lib/server/claude";
 import { analystGrounding } from "@/lib/server/grounding";
 import { typedPhrases } from "@/lib/server/publicYt";
+import { spread } from "@/lib/server/scorekeeper";
 import { TEAM, sentenceCase } from "@/lib/team";
 
 export const maxDuration = 120;
@@ -110,6 +111,24 @@ type BaselineDetail = {
   ratio_to_median: number | null;
   flag: string;
 };
+
+/** The readable render of a grade, stored beside the structured shape so the
+    Ledger, the exports and a reload all read the same words. */
+function toMarkdown(draft: string, g: Grade): string {
+  const lines = [`**Your draft:** "${draft}"`, "", `**Grade ${g.grade}** — ${g.one_line}`];
+  if (g.strengths.length) lines.push("", "### What's working", ...g.strengths.map((s) => `- ${s}`));
+  if (g.risks.length) lines.push("", "### Where it loses people", ...g.risks.map((s) => `- ${s}`));
+  if (g.thumb_read) {
+    lines.push("", "### The thumbnail", g.thumb_read.one_line);
+    lines.push(...g.thumb_read.works.map((s) => `- ${s}`), ...g.thumb_read.risks.map((s) => `- ${s}`));
+  }
+  lines.push("", "### Three ways to go — you pick");
+  const label = { safe: "The safe bet", reach: "The smart reach", bold: "The bold swing" } as const;
+  for (const o of g.options) lines.push(`- **${label[o.type] ?? "Option"}:** "${o.title}" — ${o.why}`);
+  if (g.search_note) lines.push("", `**People type:** ${g.search_note}`);
+  if (g.thin_data_note) lines.push("", `**Early days:** ${g.thin_data_note}`);
+  return lines.join("\n");
+}
 
 export async function POST(req: Request) {
   const svc = serviceClient();
@@ -248,9 +267,37 @@ ${phrases.length ? phrases.map((p) => `- ${p}`).join("\n") : "(no suggestions ca
       },
     });
 
+    // The grade goes on the record. Until now it lived only in this response:
+    // a reload lost it, and a title the creator picked had no read behind it
+    // for the Scorekeeper to point at later. Stored with the normal it was
+    // graded against, so the comparison can be repeated exactly.
+    const normal = [...latestByFormat.entries()].map(([format, b]) => {
+      const sw = spread((b.videos ?? []).map((v) => v.view_count));
+      return {
+        format,
+        usual_views: b.median_views,
+        sample_size: b.sample_size,
+        swing: sw ? { low: sw.low, high: sw.high } : null,
+      };
+    });
+    const { data: report, error: rErr } = await svc
+      .from("reports")
+      .insert({
+        user_id: user.id,
+        agent: TEAM.marketer.name,
+        title: `Title grade for "${draft.slice(0, 60)}"`,
+        body_md: toMarkdown(draft, analysis),
+        data: { kind: "packaging", draft, ...analysis, phrases, normal },
+        channel_id: channel.id,
+      })
+      .select("id,title,created_at")
+      .single();
+    if (rErr) throw new Error(rErr.message);
+
     return {
       analysis,
       phrases,
+      report,
       timing: {
         gatherMs,
         modelMs: Math.round(performance.now() - modelStarted),

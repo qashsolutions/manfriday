@@ -13,7 +13,7 @@ export async function analystGrounding(svc: SupabaseClient, userId: string): Pro
       .select("niche,audience,goals,tone,competitors,formats,products_links,language_culture,monetization,risk_appetite,effort_budget,constraints_notes")
       .eq("user_id", userId).limit(1),
     svc.from("recommendations")
-      .select("category,verdict,option_type")
+      .select("category,verdict,verdict_kind,option_type")
       .eq("user_id", userId),
   ]);
 
@@ -43,25 +43,55 @@ export async function analystGrounding(svc: SupabaseClient, userId: string): Pro
     ? `THE CREATOR'S OWN DEFINITION OF WHO THEY'RE FOR (tailor everything to this)\n${audienceLines.join("\n")}`
     : `THE CREATOR HASN'T FILLED IN THEIR AUDIENCE PROFILE YET — do not guess who they're for; audience-fit evidence is unavailable, say so where relevant.`;
 
-  const byCat = new Map<string, { worked: number; mixed: number; failed: number }>();
+  // Counted by the KIND of claim each verdict can make, because they are not
+  // interchangeable: a curve that moved is proof, a view count that moved is
+  // an observation, and a Test & Compare result is the creator telling us what
+  // YouTube found. Only the first two are evidence a tip worked here.
+  type Tally = { stayed: number; noChange: number; leftSooner: number; reportedWon: number; reportedLost: number; watched: number };
+  const empty = (): Tally => ({ stayed: 0, noChange: 0, leftSooner: 0, reportedWon: 0, reportedLost: 0, watched: 0 });
+  const byCat = new Map<string, Tally>();
   const picks = { safe: 0, reach: 0, bold: 0 };
-  for (const r of (verdictRecs ?? []) as { category: string; verdict: string | null; option_type: string | null }[]) {
+  for (const r of (verdictRecs ?? []) as { category: string; verdict: string | null; verdict_kind: string | null; option_type: string | null }[]) {
     if (r.option_type === "safe") picks.safe++;
     else if (r.option_type === "reach") picks.reach++;
     else if (r.option_type === "bold") picks.bold++;
     if (!r.verdict) continue;
-    const c = byCat.get(r.category) ?? { worked: 0, mixed: 0, failed: 0 };
-    if (r.verdict === "worked") c.worked++;
-    else if (r.verdict === "mixed") c.mixed++;
-    else if (r.verdict === "failed") c.failed++;
+    // Rows written before kinds existed were judged on view counts alone.
+    const kind = r.verdict_kind ?? (r.verdict === "unclear" ? "too_early" : "what_happened");
+    if (kind === "too_early") continue;
+    const c = byCat.get(r.category) ?? empty();
+    if (kind === "viewers_stayed") {
+      if (r.verdict === "worked") c.stayed++;
+      else if (r.verdict === "failed") c.leftSooner++;
+      else c.noChange++;
+    } else if (kind === "head_to_head") {
+      if (r.verdict === "worked") c.reportedWon++;
+      else if (r.verdict === "failed") c.reportedLost++;
+    } else {
+      c.watched++;
+    }
     byCat.set(r.category, c);
   }
-  const trackLines = [...byCat.entries()]
-    .filter(([, c]) => c.worked + c.mixed + c.failed > 0)
-    .map(([cat, c]) => `- ${cat}: worked ${c.worked} · mixed ${c.mixed} · didn't work ${c.failed}`);
-  let trackBlock = trackLines.length
-    ? `THE TEAM'S VERIFIED TRACK RECORD ON THIS CHANNEL (checked by the Scorekeeper — cite these when relevant)\n${trackLines.join("\n")}`
-    : `NO CHECKED TIPS ON THIS CHANNEL YET — "worked on your channel before" evidence is unavailable; confidence must reflect that.`;
+  const measuredLines: string[] = [];
+  const watchedLines: string[] = [];
+  for (const [cat, c] of byCat) {
+    const measured = [
+      c.stayed > 0 ? `viewers stayed longer ${c.stayed}` : null,
+      c.noChange > 0 ? `no real change ${c.noChange}` : null,
+      c.leftSooner > 0 ? `viewers left sooner ${c.leftSooner}` : null,
+      c.reportedWon > 0 ? `YouTube's own test picked ours ${c.reportedWon} (creator-reported)` : null,
+      c.reportedLost > 0 ? `YouTube's own test picked another ${c.reportedLost} (creator-reported)` : null,
+    ].filter(Boolean);
+    if (measured.length) measuredLines.push(`- ${cat}: ${measured.join(" · ")}`);
+    if (c.watched > 0) watchedLines.push(`- ${cat}: ${c.watched} watched on views only`);
+  }
+  let trackBlock = measuredLines.length
+    ? `WHAT ACTUALLY HELD UP ON THIS CHANNEL (measured on real viewers, or reported from YouTube's own Test & Compare — cite these when relevant; a creator-reported test result must be described as exactly that)\n${measuredLines.join("\n")}`
+    : `NOTHING MEASURED ON REAL VIEWERS ON THIS CHANNEL YET — "this worked on your channel before" evidence is unavailable; confidence must reflect that.`;
+  if (watchedLines.length) {
+    trackBlock +=
+      `\nWATCHED ON VIEWS ONLY — these are NOT evidence a tip worked. A channel's views swing on their own, so never cite one as proof, never say a tip caused a view change; at most, note what happened.\n${watchedLines.join("\n")}`;
+  }
   const totalPicks = picks.safe + picks.reach + picks.bold;
   if (totalPicks > 0) {
     trackBlock += `\nWHAT THEY PICK when offered typed options: safe ${picks.safe} · reach ${picks.reach} · bold ${picks.bold} — revealed preference; still offer all three types, but write the one they lean toward with extra care.`;

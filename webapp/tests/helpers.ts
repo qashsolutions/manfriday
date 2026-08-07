@@ -9,10 +9,13 @@ type QueryResult = { data?: unknown; error?: { message: string } | null };
 /** Chainable, awaitable stand-in for a supabase-js query builder. Each
     `.from(table)` consumes the next queued result for that table; every
     builder method returns the chain, and awaiting the chain — directly or
-    after `.single()`/`.maybeSingle()` — resolves that result. `insert`
-    payloads are recorded per table so tests can assert what was written. */
+    after `.single()`/`.maybeSingle()` — resolves that result. `insert` and
+    `update` payloads are recorded per table so tests can assert what was
+    written — the Scorekeeper only ever updates, so its verdicts are read back
+    out of `updates`. */
 export function fakeSvc(tables: Record<string, QueryResult[]> = {}) {
   const inserts: Record<string, unknown[]> = {};
+  const updates: Record<string, unknown[]> = {};
   const svc = {
     from(table: string) {
       const queued = tables[table]?.shift() ?? {};
@@ -25,12 +28,16 @@ export function fakeSvc(tables: Record<string, QueryResult[]> = {}) {
         (inserts[table] ??= []).push(rows);
         return chain;
       };
+      chain.update = (row: unknown) => {
+        (updates[table] ??= []).push(row);
+        return chain;
+      };
       chain.then = (onOk: (v: unknown) => unknown, onErr?: (e: unknown) => unknown) =>
         Promise.resolve(result).then(onOk, onErr);
       return chain;
     },
   };
-  return { svc: svc as any, inserts };
+  return { svc: svc as any, inserts, updates };
 }
 
 /** A stand-in Anthropic client whose structured-output call answers with

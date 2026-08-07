@@ -45,7 +45,7 @@ export default function DeskPage() {
       loadChannelData(),
       supabase
         .from("recommendations")
-        .select("id,created_at,agent,category,recommendation,notes,status,verdict,target_type,target_yt_id,confidence,evidence,option_type,result_snapshot,updates")
+        .select("id,created_at,agent,category,recommendation,notes,status,verdict,verdict_kind,target_type,target_yt_id,confidence,evidence,option_type,result_snapshot,updates")
         .order("created_at", { ascending: false })
         .limit(100),
       // Both seats that write a per-video read: the team's why-verdict and the

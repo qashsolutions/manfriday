@@ -9,7 +9,7 @@
     instead of guessing. */
 
 import { fmtNum, type Baseline, type ChannelData, type VideoPerf } from "@/lib/channelData";
-import type { EvidenceItem } from "@/components/Verdict";
+import { isMeasured, kindOf, verdictChip, type EvidenceItem, type VerdictKind } from "@/components/Verdict";
 import type { OptionType } from "@/components/OptionCard";
 import { TEAM, sentenceCase } from "@/lib/team";
 
@@ -23,12 +23,18 @@ export type Rec = {
   notes: string | null;
   status: "open" | "applied" | "skipped" | "resolved";
   verdict: "worked" | "failed" | "mixed" | "unclear" | null;
+  /** What kind of claim that verdict can make. Null on rows written before
+      kinds existed — read as the weakest claim they could be making. */
+  verdict_kind: VerdictKind | null;
   target_type: "video" | "channel" | "idea" | null;
   target_yt_id: string | null;
   confidence: number | null;
   evidence: EvidenceItem[] | null;
   option_type: OptionType | null;
-  result_snapshot: { metric?: string; before?: number; after?: number; video_title?: string } | null;
+  result_snapshot: {
+    metric?: string; before?: number; after?: number; video_title?: string;
+    held_before?: number; held_after?: number; mark?: string;
+  } | null;
   updates: { type: string; at?: string }[] | null;
 };
 
@@ -291,7 +297,13 @@ export function whatToDoNext(recs: Rec[], videos: VideoPerf[], limit = 3): NextU
  * 3 — Is the advice working
  * ------------------------------------------------------------------ */
 
-export type ScoreChip = { cls: "good" | "warn" | "crit" | "mut"; label: string };
+export type ScoreChip = {
+  cls: "good" | "warn" | "crit" | "mut";
+  label: string;
+  /** A result the creator reported to us rather than one we measured. The
+      chip never ships without those words beside it. */
+  reported?: boolean;
+};
 
 export type ScoreRow = {
   id: string;
@@ -305,7 +317,13 @@ export type ScoreRow = {
 export type Score = {
   lead: string;
   rows: ScoreRow[];
-  counts: { worked: number; mixed: number; failed: number; applied: number; open: number };
+  counts: {
+    /** Results measured on real viewers, or on YouTube's own test. */
+    worked: number; mixed: number; failed: number;
+    /** Moves we could only watch on views — what happened, never why. */
+    watched: number;
+    applied: number; open: number;
+  };
 };
 
 /** Day N of the Scorekeeper's week, counted from when it was marked applied. */
@@ -315,43 +333,53 @@ export function appliedDay(rec: Rec, now = Date.now()): number {
   return Math.max(1, Math.floor((now - Date.parse(at)) / 86_400_000) + 1);
 }
 
-/** Four states, and only four (DESIGN.md §7). "Too early to judge" is neutral:
-    honesty about thin numbers is not a warning. */
+/** Four states, and only four (DESIGN.md §7) — one per kind of claim the
+    numbers support. The Desk and the Ledger stamp the same chip from the same
+    function, so the two screens can never disagree about what was proved. */
 export function chipFor(rec: Rec, now = Date.now()): ScoreChip {
-  if (rec.verdict === "worked") return { cls: "good", label: "✓ worked" };
-  if (rec.verdict === "mixed") return { cls: "warn", label: "~ mixed" };
-  if (rec.verdict === "failed") return { cls: "crit", label: "✕ didn't work" };
-  if (rec.verdict === "unclear") return { cls: "mut", label: "too few views to judge" };
-  return {
-    cls: "mut",
-    label: `too early to judge — day ${Math.min(appliedDay(rec, now), JUDGE_AFTER_DAYS)} of ${JUDGE_AFTER_DAYS}`,
-  };
+  return verdictChip(rec.verdict, kindOf(rec), {
+    appliedDay: Math.min(appliedDay(rec, now), JUDGE_AFTER_DAYS),
+    judgeAfterDays: JUDGE_AFTER_DAYS,
+  });
 }
 
 export function isTheAdviceWorking(recs: Rec[], limit = 3, now = Date.now()): Score {
+  const called_ = recs.filter((r) => r.status === "resolved" && isMeasured(kindOf(r)));
   const counts = {
-    worked: recs.filter((r) => r.verdict === "worked").length,
-    mixed: recs.filter((r) => r.verdict === "mixed").length,
-    failed: recs.filter((r) => r.verdict === "failed").length,
+    worked: called_.filter((r) => r.verdict === "worked").length,
+    mixed: called_.filter((r) => r.verdict === "mixed").length,
+    failed: called_.filter((r) => r.verdict === "failed").length,
+    watched: recs.filter(
+      (r) => r.status === "resolved" && kindOf(r) === "what_happened"
+    ).length,
     applied: recs.filter((r) => r.status === "applied").length,
     open: recs.filter((r) => r.status === "open").length,
   };
 
   // Only the verdicts that exist get named — a zero is not a result.
   const called = [
-    counts.worked > 0 ? `${counts.worked} worked` : null,
-    counts.mixed > 0 ? `${counts.mixed} mixed` : null,
-    counts.failed > 0 ? `${counts.failed} didn't` : null,
+    counts.worked > 0 ? `${counts.worked} kept viewers longer` : null,
+    counts.mixed > 0 ? `${counts.mixed} changed nothing` : null,
+    counts.failed > 0 ? `${counts.failed} lost them sooner` : null,
   ].filter(Boolean).join(" · ");
   const judged = counts.worked + counts.mixed + counts.failed;
   const stillWatched =
     counts.applied > 0 ? ` ${counts.applied} more ${counts.applied === 1 ? "is" : "are"} still being watched.` : "";
+  // Views-only moves are never counted as results — they get their own
+  // sentence, and it says what it is. "more" only when there is a result for
+  // them to be more than.
+  const onViews = (more: boolean) =>
+    counts.watched > 0
+      ? ` ${counts.watched}${more ? " more" : ""} ${counts.watched === 1 ? "move" : "moves"} shifted your views — what happened, not why.`
+      : "";
   const lead =
     judged > 0
-      ? `${called} — measured against your own views, so you know which moves to repeat.${stillWatched}`
-      : counts.applied > 0
-        ? `${counts.applied} tip${counts.applied === 1 ? "" : "s"} applied and being watched. ${sentenceCase(TEAM.scorekeeper.name)} needs about a week of fresh numbers before calling one, so nothing is graded yet.`
-        : "Nothing on the record yet. Mark a tip applied and your views are snapshotted then and there — a week later the Scorekeeper says whether the move paid, misses included.";
+      ? `${called} — measured on real viewers, so you know which moves to repeat.${onViews(true)}${stillWatched}`
+      : counts.watched > 0
+        ? `Nothing measured on viewers yet.${onViews(false)}${stillWatched} A retention fix on one video is the kind the curve can actually settle.`
+        : counts.applied > 0
+          ? `${counts.applied} tip${counts.applied === 1 ? "" : "s"} applied and being watched. ${sentenceCase(TEAM.scorekeeper.name)} needs about a week of fresh numbers before calling one, so nothing is graded yet.`
+          : "Nothing on the record yet. Mark a tip applied and your numbers are snapshotted then and there — a week later the Scorekeeper says what changed and how much of it it can actually prove, misses included.";
 
   const rows = recs
     .filter((r) => r.status === "applied" || r.status === "resolved")
@@ -362,13 +390,20 @@ export function isTheAdviceWorking(recs: Rec[], limit = 3, now = Date.now()): Sc
       text: r.recommendation,
       chip: chipFor(r, now),
       shift:
-        r.result_snapshot?.before !== undefined && r.result_snapshot?.after !== undefined
+        // Viewers first: when the curve was read, the pair is people, not views.
+        r.result_snapshot?.held_before !== undefined && r.result_snapshot?.held_after !== undefined
           ? {
-              before: r.result_snapshot.before,
-              after: r.result_snapshot.after,
-              unit: r.result_snapshot.metric === "views_per_day" ? "views a day" : "views",
+              before: r.result_snapshot.held_before,
+              after: r.result_snapshot.held_after,
+              unit: `of 100 reached ${r.result_snapshot.mark ?? "the mark"}`,
             }
-          : null,
+          : r.result_snapshot?.before !== undefined && r.result_snapshot?.after !== undefined
+            ? {
+                before: r.result_snapshot.before,
+                after: r.result_snapshot.after,
+                unit: r.result_snapshot.metric === "views_per_day" ? "views a day" : "views",
+              }
+            : null,
       measuredOn: r.result_snapshot?.video_title ?? null,
     }));
 

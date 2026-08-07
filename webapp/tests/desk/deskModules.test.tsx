@@ -116,7 +116,7 @@ describe("2 — what to do next", () => {
     rec: {
       id: "r1", created_at: "2026-08-06T10:00:00Z", agent: "the Marketer", category: "packaging",
       recommendation: 'Use the title: "The $12 jig that fixed my dovetails"',
-      notes: "Your two best titles name the price up front.", status: "open" as const, verdict: null,
+      notes: "Your two best titles name the price up front.", status: "open" as const, verdict: null, verdict_kind: null,
       target_type: "channel" as const, target_yt_id: null, confidence: 62,
       evidence: [{ kind: "library" as const, label: "your own winners" }],
       option_type: "safe" as const, result_snapshot: null, updates: null,
@@ -205,7 +205,7 @@ describe("3 — is the advice working", () => {
   const base: Score = {
     lead: "Nothing on the record yet.",
     rows: [],
-    counts: { worked: 0, mixed: 0, failed: 0, applied: 0, open: 0 },
+    counts: { worked: 0, mixed: 0, failed: 0, watched: 0, applied: 0, open: 0 },
   };
 
   // THIN: nothing judged yet — the honest state, not a fake verdict.

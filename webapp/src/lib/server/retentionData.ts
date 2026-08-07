@@ -4,14 +4,22 @@
 export type RetentionPoint = { x: number; watch: number; rel: number | null };
 export type RetentionDrop = { x: number; delta: number };
 
+/** A slice of the video's life, as YYYY-MM-DD dates. Without one the curve
+    covers everything since publication — the read every screen wants. With
+    one, the same curve is drawn from a single window, which is how the
+    Scorekeeper compares the weeks before a change against the weeks after. */
+export type RetentionWindow = { startDate: string; endDate: string };
+
 export async function fetchRetention(
   accessToken: string,
-  ytVideoId: string
+  ytVideoId: string,
+  window?: RetentionWindow
 ): Promise<{ points: RetentionPoint[]; drops: RetentionDrop[] } | null> {
   const today = new Date().toISOString().slice(0, 10);
   const url =
     `https://youtubeanalytics.googleapis.com/v2/reports` +
-    `?ids=channel%3D%3DMINE&startDate=2000-01-01&endDate=${today}` +
+    `?ids=channel%3D%3DMINE&startDate=${window?.startDate ?? "2000-01-01"}` +
+    `&endDate=${window?.endDate ?? today}` +
     `&metrics=audienceWatchRatio,relativeRetentionPerformance` +
     `&dimensions=elapsedVideoTimeRatio&filters=video%3D%3D${encodeURIComponent(ytVideoId)}`;
   const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });

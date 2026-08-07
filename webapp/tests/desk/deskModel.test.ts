@@ -48,6 +48,7 @@ function rec(over: Partial<Rec> = {}): Rec {
     notes: "Your two best-performing titles both name the price up front.",
     status: "open",
     verdict: null,
+    verdict_kind: null,
     target_type: "channel",
     target_yt_id: null,
     confidence: 62,
@@ -214,17 +215,36 @@ describe("2 — what to do next", () => {
 describe("3 — is the advice working", () => {
   it("reports the record with the misses in it", () => {
     const s = isTheAdviceWorking([
-      rec({ id: "1", status: "resolved", verdict: "worked" }),
-      rec({ id: "2", status: "resolved", verdict: "failed" }),
-      rec({ id: "3", status: "resolved", verdict: "mixed" }),
+      rec({ id: "1", status: "resolved", verdict: "worked", verdict_kind: "viewers_stayed" }),
+      rec({ id: "2", status: "resolved", verdict: "failed", verdict_kind: "viewers_stayed" }),
+      rec({ id: "3", status: "resolved", verdict: "mixed", verdict_kind: "viewers_stayed" }),
     ], 3, NOW);
-    expect(s.lead).toBe("1 worked · 1 mixed · 1 didn't — measured against your own views, so you know which moves to repeat.");
+    expect(s.lead).toBe("1 kept viewers longer · 1 changed nothing · 1 lost them sooner — measured on real viewers, so you know which moves to repeat.");
     expect(s.rows).toHaveLength(3);
   });
 
   it("names only the verdicts that happened — a zero is not a result", () => {
-    const s = isTheAdviceWorking([rec({ status: "resolved", verdict: "worked" })], 3, NOW);
-    expect(s.lead).toBe("1 worked — measured against your own views, so you know which moves to repeat.");
+    const s = isTheAdviceWorking([rec({ status: "resolved", verdict: "worked", verdict_kind: "viewers_stayed" })], 3, NOW);
+    expect(s.lead).toBe("1 kept viewers longer — measured on real viewers, so you know which moves to repeat.");
+  });
+
+  // The mission of the taxonomy, on the Desk: a view count that tripled is not
+  // a result, and it never gets counted beside one.
+  it("keeps views-only moves out of the results, and says what they are", () => {
+    const s = isTheAdviceWorking([
+      rec({ id: "1", status: "resolved", verdict: "worked", verdict_kind: "what_happened" }),
+      rec({ id: "2", status: "resolved", verdict: "worked", verdict_kind: "what_happened" }),
+    ], 3, NOW);
+    expect(s.counts).toMatchObject({ worked: 0, mixed: 0, failed: 0, watched: 2 });
+    expect(s.lead).toContain("Nothing measured on viewers yet");
+    expect(s.lead).toContain("2 moves shifted your views — what happened, not why");
+    expect(s.lead).not.toContain("worked");
+  });
+
+  it("reads a row stored before kinds existed as the weakest claim it could make", () => {
+    const legacy = rec({ status: "resolved", verdict: "worked", verdict_kind: null });
+    expect(chipFor(legacy, NOW)).toEqual({ cls: "mut", label: "views up — what happened, not why" });
+    expect(isTheAdviceWorking([legacy], 3, NOW).counts).toMatchObject({ worked: 0, watched: 1 });
   });
 
   it("says plainly that nothing is judged yet rather than faking a verdict", () => {
@@ -249,11 +269,30 @@ describe("3 — is the advice working", () => {
   });
 
   it("uses the four verdict states and only those", () => {
-    expect(chipFor(rec({ verdict: "worked" }), NOW).label).toBe("✓ worked");
-    expect(chipFor(rec({ verdict: "mixed" }), NOW).cls).toBe("warn");
-    expect(chipFor(rec({ verdict: "failed" }), NOW).cls).toBe("crit");
+    // Measured on viewers — colour is earned here.
+    expect(chipFor(rec({ verdict: "worked", verdict_kind: "viewers_stayed" }), NOW))
+      .toEqual({ cls: "good", label: "✓ viewers stayed longer" });
+    expect(chipFor(rec({ verdict: "mixed", verdict_kind: "viewers_stayed" }), NOW).cls).toBe("warn");
+    expect(chipFor(rec({ verdict: "failed", verdict_kind: "viewers_stayed" }), NOW).cls).toBe("crit");
+    // YouTube's own test — colour, and the words saying who reported it.
+    expect(chipFor(rec({ verdict: "worked", verdict_kind: "head_to_head" }), NOW))
+      .toEqual({ cls: "good", label: "✓ YouTube's test picked this", reported: true });
+    // Views only — never a semantic colour, however big the move.
+    expect(chipFor(rec({ verdict: "worked", verdict_kind: "what_happened" }), NOW).cls).toBe("mut");
+    expect(chipFor(rec({ verdict: "failed", verdict_kind: "what_happened" }), NOW).cls).toBe("mut");
     // honesty about thin numbers is never a warning colour (DESIGN.md §7)
-    expect(chipFor(rec({ verdict: "unclear" }), NOW).cls).toBe("mut");
+    expect(chipFor(rec({ verdict: "unclear", verdict_kind: "too_early" }), NOW))
+      .toEqual({ cls: "mut", label: "too early to judge" });
+  });
+
+  it("shows a measured pair in viewers, not views", () => {
+    const s = isTheAdviceWorking([
+      rec({
+        status: "resolved", verdict: "worked", verdict_kind: "viewers_stayed",
+        result_snapshot: { held_before: 50, held_after: 62, mark: "0:30", video_title: "The $12 jig" },
+      }),
+    ], 3, NOW);
+    expect(s.rows[0].shift).toEqual({ before: 50, after: 62, unit: "of 100 reached 0:30" });
   });
 
   it("caps the Scorekeeper's clock at the week it actually waits", () => {

@@ -55,7 +55,7 @@ export async function writeWeeklyReport(
       .eq("user_id", userId).gte("captured_at", since).order("captured_at", { ascending: false }).limit(500),
     svc.from("channel_baselines").select("format,median_views,sample_size,computed_at")
       .eq("channel_id", channel.id).order("computed_at", { ascending: false }).limit(10),
-    svc.from("recommendations").select("agent,category,recommendation,status,verdict,created_at")
+    svc.from("recommendations").select("agent,category,recommendation,status,verdict,verdict_kind,created_at")
       .eq("user_id", userId).order("created_at", { ascending: false }).limit(30),
     svc.from("recommendations").select("recommendation,notes,created_at")
       .eq("user_id", userId).eq("target_type", "idea").eq("status", "open")
@@ -94,14 +94,36 @@ export async function writeWeeklyReport(
     );
   }
 
-  const ledgerCounts = { open: 0, applied: 0, resolved: 0, worked: 0, mixed: 0, failed: 0 };
-  for (const r of (recs ?? []) as { status: string; verdict: string | null }[]) {
+  // Split by the kind of claim each verdict can make: viewers staying longer
+  // is a result, a view count moving is an observation, and YouTube's own test
+  // is the creator reporting what YouTube found. The report never blends them.
+  const ledgerCounts = {
+    open: 0, applied: 0, resolved: 0,
+    stayed: 0, noChange: 0, leftSooner: 0,
+    reportedWon: 0, reportedLost: 0,
+    watchedUp: 0, watchedSteady: 0, watchedDown: 0,
+    tooEarly: 0,
+  };
+  for (const r of (recs ?? []) as { status: string; verdict: string | null; verdict_kind: string | null }[]) {
     if (r.status === "open") ledgerCounts.open++;
     if (r.status === "applied") ledgerCounts.applied++;
-    if (r.status === "resolved") ledgerCounts.resolved++;
-    if (r.verdict === "worked") ledgerCounts.worked++;
-    if (r.verdict === "mixed") ledgerCounts.mixed++;
-    if (r.verdict === "failed") ledgerCounts.failed++;
+    if (r.status !== "resolved") continue;
+    ledgerCounts.resolved++;
+    // Rows written before kinds existed were judged on view counts alone.
+    const kind = r.verdict_kind ?? (r.verdict === "unclear" ? "too_early" : "what_happened");
+    if (kind === "too_early") ledgerCounts.tooEarly++;
+    else if (kind === "viewers_stayed") {
+      if (r.verdict === "worked") ledgerCounts.stayed++;
+      else if (r.verdict === "failed") ledgerCounts.leftSooner++;
+      else ledgerCounts.noChange++;
+    } else if (kind === "head_to_head") {
+      if (r.verdict === "worked") ledgerCounts.reportedWon++;
+      else ledgerCounts.reportedLost++;
+    } else {
+      if (r.verdict === "worked") ledgerCounts.watchedUp++;
+      else if (r.verdict === "failed") ledgerCounts.watchedDown++;
+      else ledgerCounts.watchedSteady++;
+    }
   }
   const recentTips = ((recs ?? []) as { agent: string; recommendation: string; status: string; created_at: string }[])
     .slice(0, 8)
@@ -128,8 +150,12 @@ Total tracked views now: ${totalNow}${hasHistory ? ` (was ${totalThen} at the la
 ${videoLines.join("\n") || "- no tracked videos yet"}
 ${hasHistory ? "" : "\nNOTE: this is the first tracked week — there is no earlier check to compare against. Say tracking starts now; do NOT invent week-over-week changes."}
 
-THE LEDGER (advice given and how it's going)
-Open tips: ${ledgerCounts.open} · applied: ${ledgerCounts.applied} · checked: ${ledgerCounts.resolved} (worked ${ledgerCounts.worked} / mixed ${ledgerCounts.mixed} / didn't ${ledgerCounts.failed})
+THE LEDGER (advice given and how it landed)
+Open tips: ${ledgerCounts.open} · applied: ${ledgerCounts.applied} · checked: ${ledgerCounts.resolved}
+Measured on real viewers (their retention curve, before the change vs after): viewers stayed longer ${ledgerCounts.stayed} · no real change ${ledgerCounts.noChange} · viewers left sooner ${ledgerCounts.leftSooner}
+YouTube's own Test & Compare, as the creator reported it: picked ours ${ledgerCounts.reportedWon} · picked another ${ledgerCounts.reportedLost}
+Watched on views only: views moved up ${ledgerCounts.watchedUp} · held steady ${ledgerCounts.watchedSteady} · moved down ${ledgerCounts.watchedDown}
+Too early to judge: ${ledgerCounts.tooEarly}
 Most recent tips:
 ${recentTips || "- none yet"}
 
@@ -138,7 +164,13 @@ ${ideaLines || "- none mined yet"}
 `.trim();
 
   const call = {
-    system: `You write the team's weekly report to the creator. Three sections, exactly: "## Your numbers" (their real figures, honestly framed), "## What your team did" (grounded in the ledger and idea list given — never invent activity), "## Needs you (one decision)" (the single highest-leverage decision this week, laid out as a choice with its options — e.g. "apply this tip, or skip it and tell the team why" — one decision only, the creator makes the call). Two-minute read, warm but straight. You are a guide, not a boss.`,
+    system: `You write the team's weekly report to the creator. Three sections, exactly: "## Your numbers" (their real figures, honestly framed), "## What your team did" (grounded in the ledger and idea list given — never invent activity), "## Needs you (one decision)" (the single highest-leverage decision this week, laid out as a choice with its options — e.g. "apply this tip, or skip it and tell the team why" — one decision only, the creator makes the call). Two-minute read, warm but straight. You are a guide, not a boss.
+
+HOW TO REPORT VERDICTS — the ledger block gives them in three groups and they are not interchangeable:
+- Measured on real viewers: the only group you may describe as a tip working or not working. Say it in viewers, not percentages.
+- YouTube's own Test & Compare: always name it as the creator's own report of what YouTube's test picked — never as something the team measured.
+- Watched on views only: an observation and nothing more. NEVER write that a tip caused, drove, led to or produced a change in views; a channel's views swing on their own. Say what happened, and say plainly that the numbers can't show why.
+If a group is zero, leave it out — a zero is not a result.`,
     user: userMsg,
     schema: SCHEMA as unknown as Record<string, unknown>,
   };
