@@ -19,6 +19,8 @@ export default function IdeasPage() {
   const [note, setNote] = useState<string | null>(null);
   const [stages, setStages] = useState<string[]>([]);
   const [prose, setProse] = useState("");
+  /** An expected "nothing to read yet" outcome, shown in plain ink. */
+  const [quiet, setQuiet] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -34,9 +36,17 @@ export default function IdeasPage() {
 
   type Mined = { summary: string; found: number; added: number };
 
+  /** "Your viewers haven't said anything yet" is a state this product expects,
+      not a failure — it gets the designed empty state, never the red banner.
+      Recognised by the route's own wording (analyst/ideas/route.ts): the two
+      strings are coupled, which is worth replacing with a typed error kind on
+      the stream if a third caller ever needs to tell them apart. */
+  const noCommentsYet = (message: string) => message.startsWith("No comments to read yet");
+
   async function mine() {
     setErr(null);
     setNote(null);
+    setQuiet(null);
     setMining(true);
     setProse("");
     setStages([`${sentenceCase(TEAM.listener.name)} is opening your comments…`]);
@@ -71,7 +81,11 @@ export default function IdeasPage() {
       await load();
     } catch (e) {
       setProse(""); // a half-written read next to an error only confuses
-      setErr(e instanceof Error ? e.message : "The comment read couldn't finish.");
+      const message = e instanceof Error ? e.message : "The comment read couldn't finish.";
+      // Red is reserved for things that actually went wrong — a network drop,
+      // a server error. Having no comments yet is neither.
+      if (noCommentsYet(message)) setQuiet(message);
+      else setErr(message);
     } finally {
       setMining(false);
     }
@@ -85,22 +99,22 @@ export default function IdeasPage() {
         <h1>Your idea list</h1>
         {ideas.length > 0 && (
           <button className="btn btn-ghost btn-sm" style={{ marginLeft: "auto" }} onClick={mine} disabled={mining}>
-            {mining ? "Reading your comments…" : "Read my comments again"}
+            {mining ? "Reading your comments…" : "Read my channel's comments again"}
           </button>
         )}
       </div>
-      {err && (
-        <div className="err">
-          {err}
-          {err.includes("No comments") && (
-            <>
-              {" "}Meanwhile, <Link href="/scout" style={{ color: "inherit", textDecoration: "underline" }}>Compare with any video</Link>{" "}
-              reads the comments on any public video — asks and all.
-            </>
-          )}
+      {err && <div className="err">{err}</div>}
+      {note && <div className="ok-note">{note}</div>}
+      {/* Nothing to read yet, but ideas already on the list — the empty state
+          below won't render, so say it here in plain ink rather than red. */}
+      {quiet && ideas.length > 0 && (
+        <div className="aside-note">
+          <b>No comments to read yet</b>
+          There are no comments on your videos at the moment, so there was nothing to pull
+          from. {sentenceCase(TEAM.listener.name)} will have something to work with as
+          viewers start replying.
         </div>
       )}
-      {note && <div className="ok-note">{note}</div>}
       {(mining || prose) && (
         <div className="card" style={{ marginBottom: 12 }}>
           {mining && <Working stages={stages} />}
@@ -115,11 +129,20 @@ export default function IdeasPage() {
         <div className="empty" style={{ padding: 40 }}>
           <b>Ideas come from your own comments</b>
           {sentenceCase(TEAM.listener.name)}{" "}
-          reads what your viewers write and pulls out what they&apos;re literally
-          asking you to make — every idea with a receipt: how many asked, and the actual comment.
+          reads every comment across your channel&apos;s videos — you don&apos;t paste
+          anything — and pulls out what viewers are literally asking you to make, every
+          idea with a receipt: how many asked, and the actual comment.
+          {quiet && (
+            <>
+              {" "}Right now there are no comments to read yet, so there is nothing to pull from.
+              Meanwhile,{" "}
+              <Link href="/scout" style={{ color: "var(--acc)" }}>Compare with any video</Link>{" "}
+              reads the comments on any public video — asks and all.
+            </>
+          )}
           <div style={{ marginTop: 16 }}>
             <button className="btn btn-acc btn-lg" onClick={mine} disabled={mining}>
-              {mining ? "Reading your comments…" : "Read my comments"}
+              {mining ? "Reading your comments…" : "Read my channel's comments"}
             </button>
           </div>
           <div style={{ maxWidth: 520, margin: "18px auto 0", textAlign: "left" }}>
