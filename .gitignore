@@ -16,6 +16,7 @@ __pycache__/
 .claude/yt-monitor-state.json
 .claude/yt-ledger.jsonl
 .claude/settings.local.json
+.claude/worktrees/
 
 # strategy research — local only, never commit
 deck/findings.md
