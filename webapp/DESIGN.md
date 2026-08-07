@@ -271,7 +271,9 @@ If a screenshot resembles any of this, iterate before showing it:
 
 ## 15. Quality floor
 
-- Fully usable at 390px — every screen, including navigation.
+- Phone-tier surfaces fully usable at 390px, including navigation;
+  desktop-tier surfaces readable at 390px with the works-best-on-desktop
+  line (§17).
 - Visible keyboard focus on every interactive element (the existing
   `:focus-visible` outline is the pattern).
 - `prefers-reduced-motion` respected everywhere (§5).
@@ -284,3 +286,34 @@ For UI work: run the app, screenshot every changed screen at 1440px and
 and LOOK at them, critique against this file — especially §14 — iterate at
 least twice, keep the final screenshots and cite their paths in the session
 report.
+
+## 17. Mobile policy
+
+Two tiers, user-set 2026-08-06:
+
+- **Phone tier — first-class at 390px with real navigation:** the check-in
+  surfaces — the Desk, why-reads, the Ledger, reports, the idea list,
+  research reads, settings.
+- **Desktop tier — readable on phones, built for desktop:** the working
+  surfaces — packaging (thumbnail work), the Scout comparison desk, and
+  future compose-heavy screens. On phones these render stacked and readable
+  with one quiet "works best on a bigger screen" line — never a hard gate,
+  never a dead end.
+- **Classifying rule for future screens:** read or tap → phone tier;
+  compose, upload, or side-by-side work → desktop tier.
+
+**The shipped mechanism** (`globals.css`, phone-tier block; the shell in
+`src/app/(app)/layout.tsx`). Below 860px — the same breakpoint at which
+`.g2`/`.g3` collapse to one column, so stacking and the shell switch
+together:
+
+- The rail becomes a slide-over panel, opened by **All screens** in the
+  bottom bar and closed by the scrim, Escape, or arriving somewhere. It is
+  the same grouped nav as on desktop — no phone-only route list to keep in
+  sync.
+- The cycle condenses into a fixed bottom bar (Today · 1 Why · 2 Next ·
+  3 Score · All screens), so which step you're in is visible under your
+  thumb; the topbar keeps the active step's one-line worth (`.cycnow`).
+- Desktop-tier routes are named once in the shell's `DESKTOP_TIER` array,
+  which renders the quiet note above the page. Adding a screen to that tier
+  is a one-line change and touches no page file.

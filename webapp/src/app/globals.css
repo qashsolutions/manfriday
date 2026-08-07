@@ -11,8 +11,10 @@
   --crit: #C6222F; --crit-soft: #FBEAEC; --crit-line: #F0C3C8;
   --chart2: #0E8A6D;
   --shadow: 0 12px 32px rgba(10, 16, 30, .08);
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* the three type roles — DESIGN.md §3; faces loaded in src/app/layout.tsx */
+  --mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --sans: var(--font-inter), Roboto, "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --display: var(--font-newsreader), Georgia, "Times New Roman", serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -87,11 +89,16 @@ button { font-family: inherit; }
 
 /* app shell */
 .shell { display: grid; grid-template-columns: 218px 1fr; min-height: 100vh; }
-@media (max-width: 860px) { .shell { grid-template-columns: 1fr; } .rail { display: none; } }
+/* the phone tier takes over below 860px — see the block at the end of this
+   section; the rail becomes a slide-over there rather than disappearing */
+@media (max-width: 860px) { .shell { grid-template-columns: 1fr; } }
 .rail {
   background: var(--card); border-right: 1px solid var(--line);
   padding: 18px 0 20px; display: flex; flex-direction: column;
   position: sticky; top: 0; height: 100vh;
+  /* the grouped nav is taller than the flat list was — a short window must
+     still reach the last step and the settings links */
+  overflow-y: auto;
 }
 .logo { font-weight: 700; font-size: 17px; letter-spacing: -.02em; color: var(--ink); text-decoration: none; }
 .logo i { display: inline-block; width: 20px; height: 5px; background: var(--acc); border-radius: 2px; margin-right: 8px; vertical-align: 3px; }
@@ -104,6 +111,17 @@ button { font-family: inherit; }
 }
 .rail nav a:hover { background: var(--line2); }
 .rail nav a.on { background: var(--acc-soft); color: var(--acc); font-weight: 600; }
+/* step headings sit inside the padded nav — pull them back so they line up
+   with the item labels below and with "Your team of six" further down */
+.rail nav .sect { padding-left: 12px; padding-right: 12px; }
+/* a step's second door — belongs to the item above it, so it hangs off it */
+.rail nav a.sub {
+  margin-left: 22px; padding-left: 10px; font-size: 12.5px;
+  border-left: 1px solid var(--line); border-radius: 0 7px 7px 0;
+}
+.rail .foot { margin-top: auto; padding: 16px 20px 0; display: flex; flex-direction: column; gap: 7px; }
+.rail .foot a { font-size: 11.5px; color: var(--ink3); text-decoration: none; }
+.rail .foot a:hover { color: var(--ink2); }
 .sect { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); font-weight: 700; padding: 18px 22px 6px; }
 .team { padding: 0 10px; }
 .team .an { display: flex; align-items: center; gap: 9px; padding: 5.5px 12px; font-size: 12.5px; color: var(--ink2); }
@@ -116,8 +134,10 @@ button { font-family: inherit; }
 .chan {
   display: flex; align-items: center; gap: 9px; background: var(--card);
   border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px;
-  font-weight: 600; font-size: 13px;
+  font-weight: 600; font-size: 13px; min-width: 0;
 }
+/* a long address shortens rather than pushing the topbar sideways */
+.chan .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ava { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #F0A24B, #D96C4F); flex: none; }
 .topbar .sp { flex: 1; }
 .iconbtn {
@@ -126,8 +146,69 @@ button { font-family: inherit; }
   color: var(--ink2); cursor: pointer; font-size: 15px;
 }
 .iconbtn:hover { background: var(--line2); }
+.iconbtn svg { display: block; }
+
+/* the cycle — which step of their own week this screen belongs to.
+   Quiet on purpose: the product spends its boldness on the Receipt. */
+.cycwrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cyc { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cyc a {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  padding: 3px 10px; border-radius: 999px; border: 1px solid transparent;
+  font-size: 11.5px; font-weight: 600; color: var(--ink3); text-decoration: none;
+  transition: color .12s ease, background .12s ease;
+}
+.cyc a:hover { color: var(--ink2); background: var(--line2); }
+.cyc a.on { color: var(--acc); background: var(--acc-soft); border-color: var(--acc-line); }
+.cyc a i { font-style: normal; font-family: var(--mono); font-size: 10.5px; opacity: .75; }
+.cyc .arw { width: 12px; height: 1px; background: var(--line); flex: none; }
+.cycnow { font-size: 11.5px; color: var(--ink3); }
+
+/* ---- phone tier (DESIGN.md §17) ----
+   Below 860px the rail stops being a column and becomes a slide-over, the
+   cycle moves to a bottom bar under the thumb, and the step's line stays up
+   top. Three pieces of chrome exist only here. */
+.mlogo, .tabs, .aside-note.bigscreen { display: none; }
+
+@media (max-width: 860px) {
+  .rail {
+    position: fixed; inset: 0 auto 0 0; z-index: 45;
+    width: 272px; max-width: 86vw; height: 100dvh;
+    border-right: 1px solid var(--line); box-shadow: var(--shadow);
+    transform: translateX(-100%); visibility: hidden;
+    transition: transform .18s ease, visibility .18s ease;
+  }
+  .rail.open { transform: none; visibility: visible; }
+  .mlogo { display: block; font-size: 15px; }
+  .main { padding: 16px 16px 96px; }        /* room for the bottom bar */
+  .cyc { display: none; }                    /* the bottom bar carries it */
+  .aside-note.bigscreen { display: block; margin-bottom: 14px; }
+
+  /* stacking while the slide-over is open: rail 45 over scrim 44 over tabs 43,
+     so a tap anywhere outside the panel — bottom bar included — closes it */
+  .railback { z-index: 44; }
+  .tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 43;
+    display: flex; background: var(--card); border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tabs a, .tabs button {
+    flex: 1 1 0; min-width: 0; display: flex; align-items: baseline;
+    justify-content: center; gap: 4px; padding: 11px 4px 12px;
+    border: 0; background: none; cursor: pointer; text-decoration: none;
+    font-size: 11.5px; font-weight: 600; color: var(--ink3);
+    font-family: inherit; text-align: center; white-space: nowrap;
+  }
+  .tabs a.on, .tabs button.on { color: var(--acc); box-shadow: inset 0 2px 0 var(--acc); }
+  .tabs i { font-style: normal; font-family: var(--mono); font-size: 10.5px; opacity: .75; }
+}
+@media (min-width: 861px) { .railback { display: none; } }
 .pagehead { display: flex; align-items: baseline; gap: 12px; margin: 2px 0 16px; }
-.pagehead h1 { font-size: 20px; letter-spacing: -.015em; margin: 0; }
+/* Display face, spent only on a page's own h1 — never in cards, buttons,
+   tables or nav (DESIGN.md §3). A serif doesn't want the tight tracking a
+   grotesk does, so the negative letter-spacing eases off. */
+.pagehead h1, .authcard h1 { font-family: var(--display); font-weight: 600; letter-spacing: -.005em; }
+.pagehead h1 { font-size: 20px; margin: 0; }
 .pagehead .when { color: var(--ink3); font-size: 12px; }
 .byline {
   display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--ink2);
@@ -143,7 +224,7 @@ button { font-family: inherit; }
 /* auth pages */
 .authpage { min-height: calc(100vh - 260px); display: flex; align-items: center; justify-content: center; padding: 48px 16px; }
 .authcard { width: 430px; max-width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 34px 36px; }
-.authcard h1 { margin: 14px 0 6px; font-size: 21px; letter-spacing: -.015em; }
+.authcard h1 { margin: 14px 0 6px; font-size: 21px; }
 .authcard p { color: var(--ink2); margin: 0 0 20px; font-size: 13px; }
 .fine { font-size: 12px; color: var(--ink2); text-align: center; margin-top: 14px; }
 .hr { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: var(--ink3); font-size: 11.5px; }
@@ -365,5 +446,5 @@ main.site-wrap { overflow-x: clip; }
 
 /* signed-out shell: rail present but inert until sign-in completes */
 .rail nav a.lock { opacity: .4; pointer-events: none; }
-.rail nav a.lock::after { content: "🔒"; font-size: 9px; margin-left: 6px; opacity: .8; }
+.rail nav a.lock svg { margin-left: auto; flex: none; }
 .locked { opacity: .45; pointer-events: none; user-select: none; }
