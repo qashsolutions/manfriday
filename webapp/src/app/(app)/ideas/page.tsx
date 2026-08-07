@@ -114,7 +114,8 @@ export default function IdeasPage() {
       {ideas.length === 0 ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Ideas come from your own comments</b>
-          {sentenceCase(TEAM.listener.name)} reads what your viewers write and pulls out what they&apos;re literally
+          {sentenceCase(TEAM.listener.name)}{" "}
+          reads what your viewers write and pulls out what they&apos;re literally
           asking you to make — every idea with a receipt: how many asked, and the actual comment.
           <div style={{ marginTop: 16 }}>
             <button className="btn btn-acc btn-lg" onClick={mine} disabled={mining}>
