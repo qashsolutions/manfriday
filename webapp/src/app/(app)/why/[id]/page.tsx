@@ -7,6 +7,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, type VideoPerf, type ChannelData } from "@/lib/channelData";
 import { RetentionChart, type RetentionPoint, type RetentionDrop } from "@/components/RetentionChart";
 import { Explain, WrongClaim } from "@/components/Explain";
+import { ReadFailed, readFailed } from "@/components/ReadFailed";
 import { Md } from "@/components/Md";
 import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
@@ -207,6 +208,8 @@ export default function WhyDetailPage() {
   }
 
   if (!data) return <div className="quiet">Loading…</div>;
+  // Before "video not found": a failed read has no videos to find (§ReadFailed).
+  if (readFailed(data)) return <ReadFailed onRetry={() => { setData(null); loadChannelData().then(setData); }} />;
 
   const v: VideoPerf | undefined = data.videos.find((x) => x.id === params.id || x.yt_video_id === params.id);
   if (!v) {

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, type ChannelData } from "@/lib/channelData";
 import { Working } from "@/components/Working";
+import { ReadFailed } from "@/components/ReadFailed";
 import { TEAM, TEAM_ATTRIBUTION, agentNames, sentenceCase } from "@/lib/team";
 import {
   deskView, isTheAdviceWorking, whatJustHappened, whatToDoNext,
@@ -167,13 +168,7 @@ export default function DeskPage() {
     return (
       <>
         {head}
-        <div className="card">
-          <div className="err">
-            Couldn&apos;t reach your numbers just now, so nothing below would be true. Nothing is
-            lost — your channel and your Ledger are untouched.
-          </div>
-          <button className="btn btn-acc btn-sm" onClick={refresh}>Try again</button>
-        </div>
+        <ReadFailed onRetry={refresh} />
       </>
     );
   }

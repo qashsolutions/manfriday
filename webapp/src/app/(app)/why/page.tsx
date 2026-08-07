@@ -4,20 +4,33 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loadChannelData, fmtNum, type ChannelData } from "@/lib/channelData";
 import { Explain, RatioBar, Thumb } from "@/components/Explain";
+import { ReadFailed } from "@/components/ReadFailed";
+
+/** Which screen the numbers earn. `unreachable` comes first and on its own:
+    a read that failed is not a channel with nothing in it. */
+export type WhyView = "unreachable" | "empty" | "ready";
+
+export function whyView(data: ChannelData): WhyView {
+  if (data.failed) return "unreachable";
+  return data.channel && data.videos.some((v) => v.ratio !== null) ? "ready" : "empty";
+}
 
 export default function WhyPage() {
   const [data, setData] = useState<ChannelData | null>(null);
 
+  const load = () => { setData(null); loadChannelData().then(setData); };
   useEffect(() => { loadChannelData().then(setData); }, []);
 
   if (!data) return <div className="quiet">Loading…</div>;
 
-  const hasData = data.channel && data.videos.some((v) => v.ratio !== null);
+  const view = whyView(data);
 
   return (
     <>
       <div className="pagehead"><h1>Why videos win or die</h1></div>
-      {!hasData ? (
+      {view === "unreachable" ? (
+        <ReadFailed onRetry={load} />
+      ) : view === "empty" ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Waiting on your first analysis</b>
           Once your channel is read, every video shows up here against your own normal —

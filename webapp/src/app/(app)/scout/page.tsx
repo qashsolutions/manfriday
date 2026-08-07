@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData, fmtNum, type ChannelData } from "@/lib/channelData";
 import { Explain, WrongClaim } from "@/components/Explain";
+import { ReadFailed } from "@/components/ReadFailed";
 import { Md } from "@/components/Md";
 import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
@@ -58,6 +59,14 @@ import { TEAM, agentNames, sentenceCase } from "@/lib/team";
 
 function Byline({ who, part }: { who: { name: string; job: string }; part: string }) {
   return <span className="k" title={who.job} style={{ display: "block", marginBottom: 8 }}>{sentenceCase(who.name)} — {part}</span>;
+}
+
+/** The comparison is against the creator's own normal, so a failed read can't
+    be quietly treated as "no channel data" — it gets its own answer. */
+export type ScoutView = "unreachable" | "ready";
+
+export function scoutView(data: ChannelData | null): ScoutView {
+  return data?.failed ? "unreachable" : "ready";
 }
 
 export default function ScoutPage() {
@@ -140,6 +149,15 @@ export default function ScoutPage() {
   }
 
   const a = result?.analysis;
+
+  if (scoutView(data) === "unreachable") {
+    return (
+      <>
+        <div className="pagehead"><h1>Compare with any video</h1></div>
+        <ReadFailed onRetry={() => { setData(null); loadChannelData().then(setData); }} />
+      </>
+    );
+  }
 
   return (
     <>

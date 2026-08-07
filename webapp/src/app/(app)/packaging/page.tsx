@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { loadChannelData } from "@/lib/channelData";
 import { Explain } from "@/components/Explain";
+import { ReadFailed } from "@/components/ReadFailed";
 import { Md } from "@/components/Md";
 import { proseBuffer, readAnalystStream, Working } from "@/components/Working";
 import { ConfidenceBar, EvidenceChips, type EvidenceItem } from "@/components/Verdict";
@@ -42,9 +43,19 @@ function gradeColors(g: string): { bg: string; fg: string } {
   return { bg: "var(--crit-soft)", fg: "var(--crit)" };
 }
 
+/** Which screen the read earns. `unreachable` is its own answer: a read that
+    failed is not a channel the team hasn't measured yet. */
+export type PackagingView = "unreachable" | "needs-first-read" | "ready";
+
+export function packagingView({ failed, hasNumbers }: { failed: boolean; hasNumbers: boolean }): PackagingView {
+  if (failed) return "unreachable";
+  return hasNumbers ? "ready" : "needs-first-read";
+}
+
 export default function PackagingPage() {
   const supabase = supabaseBrowser();
   const [ready, setReady] = useState<boolean | null>(null);
+  const [failed, setFailed] = useState(false);
   const [draft, setDraft] = useState("");
   const [thumb, setThumb] = useState<string | null>(null);
   const [thumbErr, setThumbErr] = useState<string | null>(null);
@@ -55,10 +66,15 @@ export default function PackagingPage() {
   const [stages, setStages] = useState<string[]>([]);
   const [prose, setProse] = useState("");
 
-  useEffect(() => {
-    loadChannelData().then((d) => setReady(Boolean(d.baselines.longform || d.baselines.shorts)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const load = useCallback(() => {
+    setReady(null);
+    setFailed(false);
+    loadChannelData().then((d) => {
+      setFailed(d.failed);
+      setReady(Boolean(d.baselines.longform || d.baselines.shorts));
+    });
   }, []);
+  useEffect(() => { load(); }, [load]);
 
   async function gradeIt() {
     setErr(null);
@@ -139,10 +155,14 @@ export default function PackagingPage() {
 
   if (ready === null) return <div className="quiet">Loading…</div>;
 
+  const view = packagingView({ failed, hasNumbers: ready });
+
   return (
     <>
       <div className="pagehead"><h1>Titles &amp; thumbnails</h1></div>
-      {!ready ? (
+      {view === "unreachable" ? (
+        <ReadFailed onRetry={load} />
+      ) : view === "needs-first-read" ? (
         <div className="empty" style={{ padding: 40 }}>
           <b>Grading needs your baseline first</b>
           Your drafts get graded against your own past winners — so the team needs its first read
