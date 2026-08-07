@@ -221,6 +221,7 @@ describe("POST /api/analyst/research", () => {
     const events = await safeStream(res);
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "YouTube returned nothing for that — try different words.",
     });
     expect(doneOf(events)).toBeUndefined();
@@ -232,6 +233,7 @@ describe("POST /api/analyst/research", () => {
     const events = await safeStream(await POST(post({ query: "garage workshop" })));
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });
@@ -242,6 +244,7 @@ describe("POST /api/analyst/research", () => {
     const events = await safeStream(await POST(post({ query: "garage workshop" })));
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "The analyst declined this request. Try again, or contact us if it repeats.",
     });
   });

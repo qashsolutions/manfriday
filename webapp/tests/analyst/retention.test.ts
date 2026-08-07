@@ -110,6 +110,7 @@ describe("POST /api/analyst/retention", () => {
     const events = await safeStream(res);
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "YouTube hasn't produced a retention curve for this video yet — the analyst needs it to work.",
     });
     expect(doneOf(events)).toBeUndefined();
@@ -153,6 +154,7 @@ describe("POST /api/analyst/retention", () => {
     const events = await safeStream(await POST(post({ video: "vidAAAAAAA1" })));
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });

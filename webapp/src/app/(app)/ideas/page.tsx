@@ -36,13 +36,6 @@ export default function IdeasPage() {
 
   type Mined = { summary: string; found: number; added: number };
 
-  /** "Your viewers haven't said anything yet" is a state this product expects,
-      not a failure — it gets the designed empty state, never the red banner.
-      Recognised by the route's own wording (analyst/ideas/route.ts): the two
-      strings are coupled, which is worth replacing with a typed error kind on
-      the stream if a third caller ever needs to tell them apart. */
-  const noCommentsYet = (message: string) => message.startsWith("No comments to read yet");
-
   async function mine() {
     setErr(null);
     setNote(null);
@@ -67,8 +60,13 @@ export default function IdeasPage() {
       for await (const ev of readAnalystStream<Mined>(r.body)) {
         if (ev.t === "stage") setStages((s) => [...s, ev.m]);
         else if (ev.t === "prose") prose.push(ev.d);
-        else if (ev.t === "error") throw new Error(ev.error);
         else if (ev.t === "done") j = ev;
+        else if (ev.t === "error") {
+          // The server says whether this is a state we planned for or a thing
+          // that broke; red is only ever for the latter.
+          if (ev.kind === "expected") { setProse(""); setQuiet(ev.error); return; }
+          throw new Error(ev.error);
+        }
       }
       prose.flush();
       if (!j) throw new Error("The comment read stopped before it finished — try again.");
@@ -81,11 +79,7 @@ export default function IdeasPage() {
       await load();
     } catch (e) {
       setProse(""); // a half-written read next to an error only confuses
-      const message = e instanceof Error ? e.message : "The comment read couldn't finish.";
-      // Red is reserved for things that actually went wrong — a network drop,
-      // a server error. Having no comments yet is neither.
-      if (noCommentsYet(message)) setQuiet(message);
-      else setErr(message);
+      setErr(e instanceof Error ? e.message : "The comment read couldn't finish.");
     } finally {
       setMining(false);
     }

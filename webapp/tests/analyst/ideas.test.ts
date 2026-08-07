@@ -126,15 +126,18 @@ describe("POST /api/analyst/ideas", () => {
     expect(stagesOf(events)).toContain(`Opening the comments on your ${VIDEO_COUNT} most recent videos…`);
   });
 
-  it("says so honestly when there are no comments to read yet", async () => {
+  it("calls a channel with no comments an expected state, not a failure", async () => {
     service.mockReturnValue(fakeSvc(happyTables()).svc);
     accessToken.mockResolvedValue("access-token");
     comments.mockResolvedValue([]);
     const res = await POST(post());
     expect(res.status).toBe(200);
     const events = await safeStream(res);
+    // "expected" is what tells the page to show its designed empty state
+    // instead of the red banner.
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "expected",
       error: `No comments to read yet — ${TEAM.listener.name} needs viewers talking first.`,
     });
     expect(doneOf(events)).toBeUndefined();
@@ -146,6 +149,7 @@ describe("POST /api/analyst/ideas", () => {
     const events = await safeStream(await POST(post()));
     expect(errorOf(events)).toEqual({
       t: "error",
+      kind: "failure",
       error: "Couldn't refresh YouTube access — reconnect the channel in Settings.",
     });
   });
