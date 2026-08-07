@@ -12,12 +12,12 @@ import { loadChannelData, type ChannelData } from "@/lib/channelData";
 import { Working } from "@/components/Working";
 import { TEAM, TEAM_ATTRIBUTION, agentNames, sentenceCase } from "@/lib/team";
 import {
-  isTheAdviceWorking, whatJustHappened, whatToDoNext,
+  deskView, isTheAdviceWorking, whatJustHappened, whatToDoNext,
   type DeskReport, type NextAction, type Rec,
 } from "./deskModel";
 import { DeskInvitation, IsTheAdviceWorking, WhatJustHappened, WhatToDoNext } from "./DeskModules";
 
-const NO_DATA: ChannelData = { channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null };
+const NO_DATA: ChannelData = { channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null, failed: false };
 
 export default function DeskPage() {
   const supabase = supabaseBrowser();
@@ -34,7 +34,10 @@ export default function DeskPage() {
   const [applyNote, setApplyNote] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Unreachable Supabase returns an error with a null user; signed out
+    // returns a null user and no error. Only one of those is the error state.
+    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    if (authErr) throw authErr;
     if (!user) return;
     const [prof, cd, recRows, reportRows] = await Promise.all([
       supabase.from("profiles").select("paused_at").eq("id", user.id).maybeSingle(),
@@ -54,7 +57,9 @@ export default function DeskPage() {
         .order("created_at", { ascending: false })
         .limit(50),
     ]);
-    // A failed read used to render as a brand-new account. It says so now.
+    // A failed read used to render as a brand-new account. It says so now —
+    // whichever of the three reads is the one that couldn't get through.
+    if (cd.failed) throw new Error("Your channel numbers couldn't be read.");
     if (recRows.error || reportRows.error) throw new Error(recRows.error?.message ?? reportRows.error?.message);
     setPaused(Boolean(prof.data?.paused_at));
     setData(cd);
@@ -129,14 +134,14 @@ export default function DeskPage() {
   }
 
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
-  const { channel, baselines } = data;
-  const hasNumbers = Boolean(baselines.longform || baselines.shorts);
+  const { channel } = data;
+  const view = deskView(data);
 
   const head = (
     <div className="pagehead">
       <h1>The Desk</h1>
       <span className="when">{today}</span>
-      {phase === "ready" && hasNumbers && data.lastUpdated && (
+      {phase === "ready" && view === "ready" && data.lastUpdated && (
         <span className="sub" style={{ marginLeft: "auto" }}>
           your YouTube numbers as of{" "}
           {new Date(data.lastUpdated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
@@ -156,7 +161,9 @@ export default function DeskPage() {
     );
   }
 
-  if (phase === "error") {
+  // Either route into failure — a thrown read, or data that came back marked
+  // unreadable — lands on the same honest screen. Never the connect invitation.
+  if (phase === "error" || view === "unreachable") {
     return (
       <>
         {head}
@@ -186,12 +193,12 @@ export default function DeskPage() {
         </div>
       )}
 
-      {!channel ? (
+      {view === "connect" ? (
         <DeskInvitation step={1} />
-      ) : !hasNumbers ? (
+      ) : view === "first-read" ? (
         <DeskInvitation
           step={2}
-          channelTitle={channel.title}
+          channelTitle={channel?.title}
           onStart={runFirstAnalysis}
           running={running}
           error={runErr}

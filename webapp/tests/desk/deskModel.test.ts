@@ -33,6 +33,7 @@ function channelData(over: Partial<ChannelData> = {}): ChannelData {
     videos: [video()],
     flagsActive: true,
     lastUpdated: "2026-08-07T06:00:00Z",
+    failed: false,
     ...over,
   };
 }

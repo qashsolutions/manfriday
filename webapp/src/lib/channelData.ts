@@ -33,6 +33,16 @@ export type ChannelData = {
   flagsActive: boolean;
   /** When the numbers were last pulled from YouTube (newest snapshot). */
   lastUpdated: string | null;
+  /** true = a read failed, so "no channel" here means "we couldn't look", not
+      "there isn't one". Without it a network failure is indistinguishable from
+      a brand-new account, and the app tells the user something untrue about
+      their own account. Callers that ignore it get the old behaviour. */
+  failed: boolean;
+};
+
+/** No data, and no claim about why — the shape every early return starts from. */
+const NONE: ChannelData = {
+  channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null, failed: false,
 };
 
 /** Flags only mean something once a format has a real sample and real views. */
@@ -44,18 +54,22 @@ function formatHasSignal(b: Baseline | undefined): boolean {
 
 export async function loadChannelData(): Promise<ChannelData> {
   const supabase = supabaseBrowser();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null };
+  // An unreachable Supabase answers here with an error and a null user — the
+  // same null a signed-out visitor has. Only the error tells them apart.
+  const { data: { user }, error: authErr } = await supabase.auth.getUser();
+  if (authErr) return { ...NONE, failed: true };
+  if (!user) return NONE;
 
-  const { data: chans } = await supabase
+  const { data: chans, error: chanErr } = await supabase
     .from("channels")
     .select("id,title,handle,subscriber_count")
     .eq("is_owned", true)
     .limit(1);
+  if (chanErr) return { ...NONE, failed: true };
   const channel = (chans?.[0] as ChannelData["channel"]) ?? null;
-  if (!channel) return { channel: null, baselines: {}, videos: [], flagsActive: false, lastUpdated: null };
+  if (!channel) return NONE;
 
-  const [{ data: bl }, { data: vids }, { data: snaps }] = await Promise.all([
+  const [{ data: bl, error: blErr }, { data: vids, error: vidErr }, { data: snaps, error: snapErr }] = await Promise.all([
     supabase
       .from("channel_baselines")
       .select("format,median_views,mean_views,sample_size,computed_at")
@@ -74,6 +88,8 @@ export async function loadChannelData(): Promise<ChannelData> {
       .order("captured_at", { ascending: false })
       .limit(200),
   ]);
+  // Half the numbers is not the channel's story — say the read failed instead.
+  if (blErr || vidErr || snapErr) return { ...NONE, channel, failed: true };
 
   const baselines: ChannelData["baselines"] = {};
   for (const b of (bl ?? []) as Baseline[]) {
@@ -116,7 +132,7 @@ export async function loadChannelData(): Promise<ChannelData> {
   });
 
   const flagsActive = formatHasSignal(baselines.longform) || formatHasSignal(baselines.shorts);
-  return { channel, baselines, videos, flagsActive, lastUpdated };
+  return { channel, baselines, videos, flagsActive, lastUpdated, failed: false };
 }
 
 /** Days since publish; null when unknown. */

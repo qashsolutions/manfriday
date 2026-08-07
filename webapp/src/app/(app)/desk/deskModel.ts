@@ -48,6 +48,18 @@ export type DeskReport = {
 /** The Scorekeeper waits a week of fresh numbers before calling anything. */
 export const JUDGE_AFTER_DAYS = 7;
 
+/** Which Desk the reader gets. `unreachable` exists so a failed read can never
+    be mistaken for a brand-new account — telling a connected creator to
+    connect their channel is the app lying about their own account. */
+export type DeskView = "unreachable" | "connect" | "first-read" | "ready";
+
+export function deskView(data: ChannelData): DeskView {
+  if (data.failed) return "unreachable";
+  if (!data.channel) return "connect";
+  if (!data.baselines.longform && !data.baselines.shorts) return "first-read";
+  return "ready";
+}
+
 const shortDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
