@@ -4,6 +4,10 @@ import "./globals.css";
 
 // The three type roles (DESIGN.md §3), self-hosted by next/font and exposed
 // as CSS variables so globals.css owns every actual assignment.
+// The .variable classes MUST sit on <html>, not <body>: globals.css declares
+// --sans/--display/--mono on :root, and a var() that can't resolve there makes
+// the whole custom property invalid — which silently drops the entire app to
+// the browser default serif (shipped that way from P7 until 2026-08-07).
 // Body — an analyst's prose should disappear.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 // Display — the morning-memo register. Restraint is the rule: page h1 only.
@@ -36,11 +40,15 @@ try {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${newsreader.variable} ${plexMono.variable}`}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
-      <body className={`${inter.variable} ${newsreader.variable} ${plexMono.variable}`}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
