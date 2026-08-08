@@ -1,24 +1,10 @@
-/** Mini-diagrams for the how-it-works flow — each shows the step's outcome,
-    drawn with the app's tokens so they read as the product, not clip-art. */
+/** Mini-diagrams for the two steps and the score — each shows what the team
+    does at that step, drawn with the app's tokens so they read as the product,
+    not clip-art. No numbers appear in them: nothing here can be mistaken for
+    a claim about anyone's channel. */
 
-/** Your channel linked to the team — read-only. */
-export function VizConnect() {
-  return (
-    <svg viewBox="0 0 220 96" width="220" height="96" fill="none" aria-hidden>
-      <rect x="10" y="26" width="64" height="44" rx="10" stroke="var(--ink3)" strokeWidth="1.6" />
-      <path d="M36 40 L52 48 L36 56 Z" fill="var(--ink3)" />
-      <path d="M80 48 H140" stroke="var(--acc)" strokeWidth="1.8" strokeDasharray="4 5" strokeLinecap="round" />
-      <circle cx="110" cy="48" r="11" fill="var(--acc-soft)" stroke="var(--acc)" strokeWidth="1.6" />
-      <path d="M105.5 48 l3 3 l6 -6" stroke="var(--acc)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <rect x="146" y="26" width="64" height="44" rx="10" stroke="var(--acc)" strokeWidth="1.8" />
-      <rect x="158" y="44" width="24" height="6" rx="3" fill="var(--acc)" />
-      <text x="158" y="62" fontSize="9" fontWeight="700" fill="var(--ink)" fontFamily="inherit">your team</text>
-    </svg>
-  );
-}
-
-/** Your normal appears — one bar above it, one below. */
-export function VizBaseline() {
+/** Step 1 · Why — your videos against your normal: one above it, one below. */
+export function VizWhy() {
   return (
     <svg viewBox="0 0 220 96" width="220" height="96" fill="none" aria-hidden>
       {[
@@ -36,8 +22,8 @@ export function VizBaseline() {
   );
 }
 
-/** Three options, you pick — the pick gets checked later. */
-export function VizOptions() {
+/** Step 2 · Next — three options, you pick one. */
+export function VizNext() {
   return (
     <svg viewBox="0 0 220 96" width="220" height="96" fill="none" aria-hidden>
       {[
@@ -54,9 +40,31 @@ export function VizOptions() {
           <rect x="40" y={r.y + 3} width={r.w - 36} height="6" rx="3" fill={r.picked ? "var(--acc)" : "var(--line)"} />
         </g>
       ))}
-      <rect x="170" y="0" width="44" height="24" rx="7" fill="var(--good-soft)" />
-      <text x="178" y="15" fontSize="10" fontWeight="800" fill="var(--good)" fontFamily="inherit">✓ 3×</text>
-      <path d="M164 12 C168 12 168 12 171 12" stroke="var(--ink3)" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M170 12 h30" stroke="var(--ink3)" strokeWidth="1.4" strokeLinecap="round" strokeDasharray="3 4" />
+    </svg>
+  );
+}
+
+/** The Score — what your views did before the pick and after it, stamped.
+    The pair on the left is the verdict that landed; the pair on the right is
+    the one that didn't. Bars carry no scale — the shape is the point. */
+export function VizScore() {
+  return (
+    <svg viewBox="0 0 220 96" width="220" height="96" fill="none" aria-hidden>
+      {/* worked: before → after, taller after */}
+      <rect x="22" y="56" width="18" height="26" rx="4" fill="var(--line)" />
+      <rect x="46" y="26" width="18" height="56" rx="4" fill="var(--good)" />
+      <path d="M40 50 h4" stroke="var(--ink3)" strokeWidth="1.4" strokeLinecap="round" />
+      <rect x="20" y="6" width="46" height="16" rx="8" fill="var(--good-soft)" />
+      <text x="28" y="17.5" fontSize="9" fontWeight="800" fill="var(--good)" fontFamily="inherit">✓ worked</text>
+
+      {/* didn't: before → after, unchanged */}
+      <rect x="140" y="50" width="18" height="32" rx="4" fill="var(--line)" />
+      <rect x="164" y="51" width="18" height="31" rx="4" fill="var(--crit)" />
+      <rect x="136" y="6" width="60" height="16" rx="8" fill="var(--crit-soft)" />
+      <text x="144" y="17.5" fontSize="9" fontWeight="800" fill="var(--crit)" fontFamily="inherit">✕ didn&apos;t</text>
+
+      <line x1="104" y1="14" x2="104" y2="86" stroke="var(--line)" strokeWidth="1.4" strokeDasharray="3 5" />
     </svg>
   );
 }

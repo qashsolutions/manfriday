@@ -6,25 +6,54 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/Site";
 import { HeroPreview } from "@/components/HeroPreview";
-import { VizConnect, VizBaseline, VizOptions } from "@/components/HowVisuals";
-import { SEATS } from "@/lib/team";
+import { VizWhy, VizNext, VizScore } from "@/components/HowVisuals";
+import { TEAM, type Seat } from "@/lib/team";
 import { SEAT_ICONS } from "@/components/TeamIcons";
 
 /** Public landing page. Signed-in visitors skip the marketing: straight to
     their Desk if a channel is connected, to Settings (the first-run front
-    door) if not. */
+    door) if not.
 
-const STATS: [string, string][] = [
-  ["52%", "of creators report burnout — money strain is the top driver"],
-  ["41%", "say time is their #1 challenge — ahead of marketing"],
-  ["<$15K", "what most creators earn a year, at any follower count"],
-  ["#1", "business threat: the algorithm changing — not rivals"],
+    The page tells one story in one order — first the why, then the next, then
+    the score — the same three steps the signed-in shell runs on. Every claim
+    here has a shipped surface behind it. */
+
+/** The two steps and the score. Titles match the app's own nav headings so a
+    visitor meets the same three words again after signing in. */
+const STEPS: { step: string; viz: React.ReactNode; title: string; body: string }[] = [
+  {
+    step: "Step 1 · Why",
+    viz: <VizWhy />,
+    title: "Why it won or died",
+    body:
+      "The exact second viewers left, why YouTube showed it to fewer people than the one before it, " +
+      "and how it did against your normal — so you know what to change and what to repeat.",
+  },
+  {
+    step: "Step 2 · Next",
+    viz: <VizNext />,
+    title: "What to make, and how to package it",
+    body:
+      "Ideas your viewers already asked for in the comments, an opening written against the seconds " +
+      "they left, and title options graded against your own winners. Always 2–3 choices — you make the call.",
+  },
+  {
+    step: "The Score",
+    viz: <VizScore />,
+    title: "Whether it actually worked",
+    body:
+      "Every pick goes in the Ledger with your views at that moment. A week later the Scorekeeper " +
+      "compares — worked, mixed, or didn't — and next week's advice starts from what already worked on your channel.",
+  },
 ];
 
-const TEAM: { icon: React.ReactNode; name: string; says: string }[] = SEATS.map((s) => {
-  const Icon = SEAT_ICONS[s.key];
-  return { icon: <Icon />, name: s.name, says: s.job };
-});
+/** The six seats under the step where their work lands (DESIGN.md §12 for the
+    names and job lines — both verbatim from lib/team.ts). */
+const TEAM_BY_STEP: { step: string; seats: Seat[] }[] = [
+  { step: "Step 1 · Why", seats: [TEAM.editor, TEAM.scout] },
+  { step: "Step 2 · Next", seats: [TEAM.listener, TEAM.marketer, TEAM.researcher] },
+  { step: "The Score", seats: [TEAM.scorekeeper] },
+];
 
 export default function LandingPage() {
   const router = useRouter();
@@ -53,32 +82,40 @@ export default function LandingPage() {
         <section className="hero">
           <div>
             <span className="eyebrow">For all content creators</span>
-            <h1>Big channels have an analyst team. <span style={{ color: "var(--acc)" }}>Now you do.</span></h1>
+            <h1>
+              First we tell you <em>why</em>. Then we coach <em>what&apos;s next</em> — and keep score.
+            </h1>
             <p className="sub">
-              <b style={{ fontSize: "1.07em" }}>Why your last video died. What to make next. Which title wins.</b>
-              <br />
-              Six analysts answer from your own numbers, tuned to the audience you want —
-              always choices, never orders.
+              <b>Why your last video died</b> — the exact second viewers left, and why YouTube showed it
+              to fewer people than the one before it. <b>Then what to make next</b> — the ideas your
+              viewers asked for in your comments, and the title that gets it found; 2–3 choices every
+              time, you make the call. A week later the Scorekeeper tells you what your pick did to your views.
             </p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <Link href="/settings" className="btn btn-acc btn-lg">Start your one-week trial</Link>
+            <div className="herocta">
+              <Link href="/settings" className="btn btn-acc btn-lg">Connect your channel</Link>
               <Link href="#team" className="btn btn-ghost btn-lg">Meet the team</Link>
             </div>
-            <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--ink3)" }}>
-              One-week trial — every feature included
+            <p className="ctanote">
+              Free while manfriday is in early access — your first read lands about two minutes after you connect.
             </p>
           </div>
           <HeroPreview />
         </section>
 
-        <section className="site-section" style={{ paddingTop: 30 }}>
-          <span className="eyebrow">Why we exist</span>
-          <h2>Creators run real businesses. Most run them blind.</h2>
-          <div className="statband">
-            {STATS.map(([n, d]) => (
-              <div className="s" key={n}>
-                <b>{n}</b>
-                <span>{d}</span>
+        <section className="site-section" id="how">
+          <span className="eyebrow">How it works</span>
+          <h2>First the why. Then the next. Then the score.</h2>
+          <p className="lead">
+            Same order every week: work out what just happened, decide what to do about it, then find
+            out whether it worked.
+          </p>
+          <div className="flow">
+            {STEPS.map((s) => (
+              <div className="f" key={s.step}>
+                <div className="viz">{s.viz}</div>
+                <span className="k">{s.step}</span>
+                <b>{s.title}</b>
+                <p>{s.body}</p>
               </div>
             ))}
           </div>
@@ -88,39 +125,25 @@ export default function LandingPage() {
           <span className="eyebrow">The team</span>
           <h2>Six analysts. One job each. All on your side.</h2>
           <p className="lead">
-            Every call comes in plain English, tuned to the audience you&apos;re trying to win —
-            with choices, not commands.
+            Each seat has one job and says it in their own words — and every call comes from your own
+            numbers, as choices you pick from.
           </p>
           <div className="teamgrid">
-            {TEAM.map((m) => (
-              <div className="m" key={m.name}>
-                <div className="ic">{m.icon}</div>
-                <b>{m.name}</b>
-                <q>{m.says}</q>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="site-section" id="how">
-          <span className="eyebrow">How it works</span>
-          <h2>Three steps to your first real answer.</h2>
-          <div className="flow">
-            <div className="f">
-              <div className="viz"><VizConnect /></div>
-              <b>Connect</b>
-              <p>Sign in with Google. Read-only — we can look, never touch.</p>
-            </div>
-            <div className="f">
-              <div className="viz"><VizBaseline /></div>
-              <b>See your normal</b>
-              <p>Wins and misses flagged against your own bar, in about two minutes.</p>
-            </div>
-            <div className="f">
-              <div className="viz"><VizOptions /></div>
-              <b>Pick, publish, verify</b>
-              <p>2–3 options each time. You choose — the result gets checked.</p>
-            </div>
+            {TEAM_BY_STEP.flatMap(({ step, seats }) =>
+              seats.map((s) => {
+                const Icon = SEAT_ICONS[s.key];
+                return (
+                  <div className="m" key={s.key}>
+                    <div className="ic"><Icon /></div>
+                    <b>
+                      {s.name}
+                      <span className="pill mut">{step}</span>
+                    </b>
+                    <q>{s.job}</q>
+                  </div>
+                );
+              })
+            )}
           </div>
         </section>
 
@@ -166,7 +189,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="card ldemo">
-              <span className="k">The Ledger — how a checked tip reads</span>
+              <span className="k">Sample — how a checked tip reads</span>
               <div style={{ marginTop: 8 }}>
                 <div className="row">
                   <b>Say what they get in the title</b>
@@ -189,8 +212,8 @@ export default function LandingPage() {
                 <span style={{ flex: 2, background: "var(--warn)" }} />
                 <span style={{ flex: 2, background: "var(--crit)" }} />
               </div>
-              <p style={{ margin: "8px 0 0", fontSize: 11.5, color: "var(--ink3)" }}>
-                Every verdict on the record — green worked, amber mixed, red didn&apos;t.
+              <p className="vbarnote">
+                Green worked, amber mixed, red didn&apos;t — every verdict stays on the record.
               </p>
             </div>
           </div>
@@ -198,7 +221,7 @@ export default function LandingPage() {
 
         <div className="quoteband">
           <h2>Every winner has an analyst.<br />The business of one doesn&apos;t. Yet.</h2>
-          <Link href="/settings" className="btn btn-acc btn-lg">Start your one-week trial</Link>
+          <Link href="/settings" className="btn btn-acc btn-lg">Connect your channel</Link>
         </div>
       </main>
       <SiteFooter />

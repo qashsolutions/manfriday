@@ -1,5 +1,9 @@
 /** The product, floating in the hero: a retention read, a title grade, and a
-    checked Ledger verdict — drawn with the app's own visual language. */
+    checked Ledger verdict — drawn with the app's own visual language.
+
+    The numbers in here are illustrative, so the block carries a visible
+    "sample" mark (CLAUDE.md copy checklist). Below 560px the cards stop
+    floating and stack, so nothing overlaps on a phone (globals.css). */
 export function HeroPreview() {
   return (
     <div className="hero-visual" aria-hidden>
@@ -32,25 +36,24 @@ export function HeroPreview() {
 
       <div className="pv pv2">
         <span className="k">Title grade</span>
-        <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 4 }}>
-          <span style={{
-            width: 40, height: 40, borderRadius: 10, background: "var(--good-soft)", color: "var(--good)",
-            display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, flex: "none",
-          }}>A−</span>
-          <span style={{ fontSize: 12, lineHeight: 1.4 }}>matches your winners — <b>3 rewrites to pick from</b></span>
+        <div className="grade">
+          <span className="mark">A−</span>
+          <span>matches your winners — <b>3 rewrites to pick from</b></span>
         </div>
       </div>
 
       <div className="pv pv3">
         <span className="k">The Ledger — checked</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12.5 }}><b>Say what they get in the title</b></span>
+        <div className="cap" style={{ marginTop: 4 }}>
+          <span><b>Say what they get in the title</b></span>
         </div>
         <div className="cap" style={{ marginTop: 6 }}>
-          <span className="num" style={{ fontSize: 12 }}>41/day → 128/day</span>
+          <span className="num">41/day → 128/day</span>
           <span className="pill good" style={{ whiteSpace: "nowrap" }}>✓ worked · 3×</span>
         </div>
       </div>
+
+      <span className="samp">sample</span>
     </div>
   );
 }

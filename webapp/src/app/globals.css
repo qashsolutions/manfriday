@@ -315,18 +315,17 @@ main.site-wrap { overflow-x: clip; }
   background: radial-gradient(closest-side, color-mix(in srgb, var(--chart2) 12%, transparent), transparent 72%);
 }
 @media (max-width: 900px) { .hero { grid-template-columns: 1fr; padding-top: 44px; } }
-.hero h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.04; letter-spacing: -.02em; margin: 0 0 18px; text-wrap: balance; }
-.hero p.sub { font-size: 17.5px; color: var(--ink); max-width: 52ch; margin: 0 0 26px; line-height: 1.55; }
-.hero .defn { font-size: 13px; color: var(--ink3); font-style: italic; margin: 0 0 8px; }
-
-.statband { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 26px; padding: 34px 0 8px; }
-.statband .s b { display: block; font-size: 34px; letter-spacing: -.02em; line-height: 1.1; }
-.statband .s b::before { content: ""; display: block; width: 22px; height: 4px; background: var(--acc); border-radius: 2px; margin-bottom: 10px; }
-.statband .s span { display: block; font-size: 13px; color: var(--ink); margin-top: 4px; max-width: 26ch; }
-.statband .s i { display: inline-block; font-style: normal; font-size: 10.5px; color: var(--ink3); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; margin-top: 8px; }
+/* Display face on the hero and the section heads (DESIGN.md §3, display-xl /
+   display-m). A serif doesn't want the tracking a grotesk does, so the
+   negative letter-spacing eases off — same call as .pagehead h1. */
+.hero h1 { font-family: var(--display); font-weight: 600; font-size: clamp(34px, 6vw, 58px); line-height: 1.04; letter-spacing: -.005em; margin: 0 0 18px; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--acc); }
+.hero p.sub { font-size: 15px; color: var(--ink); max-width: 52ch; margin: 0 0 26px; line-height: 1.6; }
+.herocta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.ctanote { margin: 16px 0 0; font-size: 12.5px; color: var(--ink3); }
 
 .site-section { padding: 56px 0 8px; }
-.site-section h2 { font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -.015em; line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
+.site-section h2 { font-family: var(--display); font-weight: 600; font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -.005em; line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
 .site-section p.lead { color: var(--ink); font-size: 15px; max-width: 60ch; margin: 0 0 22px; line-height: 1.6; }
 
 .teamgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
@@ -340,12 +339,12 @@ main.site-wrap { overflow-x: clip; }
   display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
 }
 .teamgrid .ic svg { display: block; }
-.teamgrid .m b { font-size: 14.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.teamgrid .m b { font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .teamgrid .m p { color: var(--ink); font-size: 13.5px; margin: 6px 0 0; line-height: 1.55; }
 
 
 .quoteband { margin: 64px 0; padding: 44px 26px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; text-align: center; }
-.quoteband h2 { font-size: clamp(22px, 3.4vw, 32px); letter-spacing: -.015em; margin: 0 0 18px; text-wrap: balance; }
+.quoteband h2 { font-family: var(--display); font-weight: 600; font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -.005em; margin: 0 0 18px; text-wrap: balance; }
 
 .site-footer { border-top: 1px solid var(--line2); margin-top: 40px; padding: 34px 0 44px; }
 .site-footer .cols { display: flex; gap: 44px; flex-wrap: wrap; justify-content: space-between; }
@@ -387,9 +386,10 @@ main.site-wrap { overflow-x: clip; }
 /* ledger demo (landing, "why trust it") */
 .ldemo .row { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-top: 1px solid var(--line2); flex-wrap: wrap; }
 .ldemo .row:first-of-type { border-top: none; }
-.ldemo .row b { font-size: 13px; flex: 1; min-width: 160px; }
-.ldemo .shift { font-size: 12px; color: var(--ink2); white-space: nowrap; }
+.ldemo .row b { font-size: 13.5px; flex: 1; min-width: 160px; }
+.ldemo .shift { font-size: 12.5px; color: var(--ink2); white-space: nowrap; }
 .ldemo .vbar { display: flex; gap: 2px; height: 9px; border-radius: 4px; overflow: hidden; margin-top: 14px; }
+.ldemo .vbarnote { margin: 8px 0 0; font-size: 11.5px; color: var(--ink3); }
 
 
 /* hero product preview — three floating cards from the real UI */
@@ -397,33 +397,52 @@ main.site-wrap { overflow-x: clip; }
 @media (max-width: 900px) { .hero-visual { max-width: 460px; min-height: 350px; } }
 .pv {
   position: absolute; background: var(--card); border: 1px solid var(--line);
-  border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px;
+  border-radius: 12px; box-shadow: var(--shadow); padding: 14px 16px;
 }
 .pv .k { margin-bottom: 8px; }
 .pv1 { top: 34px; left: 0; right: 54px; }
 .pv2 { top: 0; right: 0; width: 190px; rotate: 2deg; animation: floaty 4.5s ease-in-out infinite alternate; }
 .pv3 { bottom: 10px; left: 22px; width: 250px; rotate: -1.6deg; animation: floaty 6s ease-in-out .8s infinite alternate; }
-.pv .cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; }
+.pv .cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 12.5px; }
+.pv .grade { display: flex; gap: 12px; align-items: center; margin-top: 4px; font-size: 12.5px; line-height: 1.45; }
+.pv .grade .mark {
+  width: 40px; height: 40px; border-radius: 12px; flex: none;
+  background: var(--good-soft); color: var(--good);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800;
+}
+/* the numbers in here are illustrative — the mark says so, always visible */
+.hero-visual .samp {
+  position: absolute; right: 4px; bottom: 0; font-size: 11.5px; color: var(--ink3);
+  letter-spacing: .06em; text-transform: uppercase; font-weight: 700;
+}
 @keyframes floaty { from { translate: 0 0; } to { translate: 0 -9px; } }
 @media (prefers-reduced-motion: reduce) { .pv2, .pv3 { animation: none; } }
+
+/* On a phone the float becomes a stack: absolute cards overlapped each other
+   at 390px (the title grade covered the retention card's line). */
+@media (max-width: 560px) {
+  .hero-visual { max-width: none; min-height: 0; display: grid; gap: 12px; margin-top: 8px; }
+  .pv, .pv1, .pv2, .pv3 {
+    position: static; width: auto; inset: auto; rotate: none; animation: none;
+  }
+  .hero-visual .samp { position: static; text-align: right; }
+}
 
 /* first-person team cards */
 .teamgrid .m q { display: block; quotes: "\201C" "\201D"; color: var(--ink); font-size: 13.5px; line-height: 1.55; margin-top: 6px; }
 
-/* how-it-works: visual 3-step flow */
-.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 22px; counter-reset: fstep; }
-.flow .f { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; position: relative; }
+/* how-it-works: the two steps and the score */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 22px; }
+.flow .f { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; position: relative; }
 .flow .f .viz {
-  position: relative; background: var(--bg); border: 1px solid var(--line2); border-radius: 10px;
+  position: relative; background: var(--bg); border: 1px solid var(--line2); border-radius: 12px;
   height: 128px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; overflow: hidden;
 }
-.flow .f .viz::before {
-  counter-increment: fstep; content: "0" counter(fstep);
-  position: absolute; top: 8px; left: 10px; font-family: var(--mono); font-size: 11px; font-weight: 700;
-  color: var(--acc); background: var(--acc-soft); border-radius: 6px; padding: 2px 7px;
-}
-.flow .f b { font-size: 14.5px; }
-.flow .f p { color: var(--ink); font-size: 13px; margin: 4px 0 0; line-height: 1.5; }
+/* the step's own name — the same three the signed-in shell groups its nav by */
+.flow .f > .k { display: block; color: var(--acc); margin-bottom: 4px; }
+.flow .f b { font-size: 15px; }
+.flow .f p { color: var(--ink); font-size: 13.5px; margin: 4px 0 0; line-height: 1.55; }
 @media (min-width: 900px) {
   .flow .f:not(:last-child)::after {
     content: "→"; position: absolute; right: -15px; top: 58px; z-index: 1;
@@ -441,8 +460,8 @@ main.site-wrap { overflow-x: clip; }
   display: flex; align-items: center; justify-content: center;
 }
 .trust .dot.bad { background: var(--crit-soft); color: var(--crit); border-color: var(--crit-line); }
-.trust .n b { display: block; font-size: 14px; margin-top: 2px; }
-.trust .n span { font-size: 13px; color: var(--ink); line-height: 1.55; }
+.trust .n b { display: block; font-size: 15px; margin-top: 2px; }
+.trust .n span { font-size: 13.5px; color: var(--ink); line-height: 1.55; }
 
 /* signed-out shell: rail present but inert until sign-in completes */
 .rail nav a.lock { opacity: .4; pointer-events: none; }
