@@ -11,10 +11,16 @@
   --crit: #C6222F; --crit-soft: #FBEAEC; --crit-line: #F0C3C8;
   --chart2: #0E8A6D;
   --shadow: 0 12px 32px rgba(10, 16, 30, .08);
-  /* the three type roles — DESIGN.md §3; faces loaded in src/app/layout.tsx */
-  --mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --sans: var(--font-inter), Roboto, "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
-  --display: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  /* the three type roles — DESIGN.md §3; faces loaded in src/app/layout.tsx.
+     Each var() carries its own fallback INSIDE the parens: a bare
+     var(--font-x) that cannot resolve is invalid at computed-value time and
+     poisons the whole declaration — the stack after it never applies, and
+     every screen silently drops to the browser default serif (shipped that
+     way P7 → 2026-08-07). With the fallback inside, a regression degrades to
+     Roboto: visibly not our type, never a silent Times. */
+  --mono: var(--font-plex-mono, "IBM Plex Mono"), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: var(--font-inter, "Inter"), Roboto, "Helvetica Neue", Helvetica, "Segoe UI", system-ui, sans-serif;
+  --display: var(--font-newsreader, "Newsreader"), Georgia, "Times New Roman", serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -404,6 +410,8 @@ main.site-wrap { overflow-x: clip; }
 .pv2 { top: 0; right: 0; width: 190px; rotate: 2deg; animation: floaty 4.5s ease-in-out infinite alternate; }
 .pv3 { bottom: 10px; left: 22px; width: 250px; rotate: -1.6deg; animation: floaty 6s ease-in-out .8s infinite alternate; }
 .pv .cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 12.5px; }
+/* a before→after pair is one object (DESIGN.md §6) — it never breaks mid-pair */
+.pv .cap .num { white-space: nowrap; }
 .pv .grade { display: flex; gap: 12px; align-items: center; margin-top: 4px; font-size: 12.5px; line-height: 1.45; }
 .pv .grade .mark {
   width: 40px; height: 40px; border-radius: 12px; flex: none;

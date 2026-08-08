@@ -138,7 +138,7 @@ export function AuthCard() {
               Email me a sign-in code
             </button>
           </form>
-          <div className="fine">One-week trial · no card · nothing is ever posted to your channel</div>
+          <div className="fine">Free while manfriday is in early access · no card · nothing is ever posted to your channel</div>
         </>
       )}
 

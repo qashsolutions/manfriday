@@ -521,7 +521,9 @@ export default function WhyDetailPage() {
           </span>
         </div>
 
-        {ret.state === "loading" && <p style={{ color: "var(--ink3)", fontSize: 13 }}>Reading your retention curve…</p>}
+        {ret.state === "loading" && (
+          <p className="quiet">{sentenceCase(TEAM.editor.name)} is reading how long viewers stayed…</p>
+        )}
         {ret.state === "ready" && (
           <>
             <RetentionChart points={ret.points} drops={ret.drops} durationSeconds={duration} />
