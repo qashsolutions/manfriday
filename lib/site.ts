@@ -21,7 +21,7 @@ export type Tier = {
   monthly: number;
   quarterly: number;
   annual: number;
-  threeYear: number; // Founding 100 only — pay today, no cancellation
+  threeYear: number; // Founding 200 only — pay today, no cancellation
   saves: number; // content saves (right-swipes rendered) per month
   credits: number; // AI studio credits per month
   workspaces: number;
@@ -35,7 +35,7 @@ export const TIERS: readonly Tier[] = [
     monthly: 20,
     quarterly: 50,
     annual: 150,
-    threeYear: 100,
+    threeYear: 200,
     saves: 20,
     credits: 300,
     workspaces: 2,
@@ -47,7 +47,7 @@ export const TIERS: readonly Tier[] = [
     monthly: 40,
     quarterly: 100,
     annual: 250,
-    threeYear: 200,
+    threeYear: 300,
     saves: 100,
     credits: 600,
     workspaces: 2,
@@ -56,7 +56,7 @@ export const TIERS: readonly Tier[] = [
 ] as const;
 
 /** The 3-year deal is scoped to the first N customers, pay-today, non-cancellable. */
-export const FOUNDING = { cap: 100, label: "Founding 100" } as const;
+export const FOUNDING = { cap: 200, label: "Founding 200" } as const;
 
 export const SHARED_FEATURES = [
   "Slideshows, faceless videos + 20 AI avatars",
