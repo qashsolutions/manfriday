@@ -1,0 +1,148 @@
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  text-align: center;
+  padding: 80px 0 48px;
+}
+
+.title {
+  font-size: clamp(36px, 6vw, 56px);
+  margin: 0;
+  text-wrap: balance;
+}
+
+.sub {
+  font-size: 18px;
+  color: var(--dim);
+  max-width: 560px;
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 18px;
+  padding: 28px 24px 24px;
+}
+
+.flagship {
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 50px rgba(255, 77, 109, 0.16);
+}
+
+.badge {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+.term {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  margin: 0;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+}
+
+.price {
+  font-size: 44px;
+}
+
+.unit {
+  font-size: 15px;
+  color: var(--dim);
+}
+
+.perMonth {
+  font-size: 12px;
+  color: var(--mint);
+  margin: 0;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 0 0 12px;
+  flex: 1;
+}
+
+.included {
+  margin: 48px auto 0;
+  max-width: 720px;
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.includedTitle {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  margin: 0;
+}
+
+.features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  font-size: 15px;
+}
+
+.features li::before {
+  content: "✓ ";
+  color: var(--mint);
+}
+
+.fine {
+  font-size: 13px;
+  color: var(--faint);
+  margin: 0;
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .features {
+    grid-template-columns: 1fr;
+  }
+}

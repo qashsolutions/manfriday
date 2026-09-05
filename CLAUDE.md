@@ -7,7 +7,7 @@ Short-form video content engine for solo builders, modeled on the category leade
 ## Working process (mandated)
 
 **Plan → Design → Build, with hard gates.** Build starts only after the design gate clears.
-Current status (4 Sep 2026): plan frozen, design phase nearly complete.
+Current status (4 Sep 2026, late): **BUILD STARTED** on user's go — order: marketing site + blog first (SEO lead time), then M1 → M2 → M3, language support built in from the schema up. Artboard pricing copy (Founding 500 / $34/mo) predates the 4 Sep pricing amendment below — code is source of truth; refresh artboards opportunistically.
 
 Source files live in-repo: `docs/project-viral-plan.html` (plan), `docs/friday-internals.html` (technical design), `design/*.dc.html` + `design/canvas.json` (the 9 design-canvas artboards; edit these and re-publish to the screens artifact via the design skill — never hand-edit the published artifact). Published versions:
 - Plan: https://claude.ai/code/artifact/57f0657b-a3b7-4da5-9c4f-e4c581c7afc9
@@ -19,8 +19,10 @@ Source files live in-repo: `docs/project-viral-plan.html` (plan), `docs/friday-i
 - **D1 Platforms:** TikTok + YouTube Shorts in v1. Instagram = fast follow. Slideshows are TikTok-only; hook/avatar videos cross-post to Shorts.
 - **D2 Formats:** slideshows, faceless hook videos, AI avatars (~20 curated stock characters; no build-your-own until v2). Avatar lipsync renders lazily on right-swipe only. Users pick a default character — the brand's recurring presenter; persona consistency is a named v1 feature ("your brand gets a face"), added 4 Sep from the competitor teardown.
 - **D3 Target user:** solo app/SaaS builders (the category's proven wedge).
-- **D4 Monetization:** private beta → paid at launch. Card required at signup; first 500 customers ("Founding 500") get 30 days free, then auto-billing.
-- **D5 Name + pricing:** Man Friday; pricing rule 0.7× the market leader → ladder $19/$34/$99 (20% off annual); beta single plan $34/mo. COGS target < ~30% of price (media credits are the margin dial).
+- **D4 Monetization (amended 4 Sep):** private beta → paid at launch. Card required at signup. **Founding 1,000** (was 500): launch discounts scoped to the first 1,000 customers. 30-day free trial on monthly; multi-year prepay skips the trial (paying upfront IS the commitment).
+- **D5 Name + pricing (amended 4 Sep, replaces the 0.7× ladder):** Man Friday; **one plan, four terms: $20/mo · $50/quarter · $150/year · $200 for 3 years upfront** (~56% off 3× annual $450 — the flagship Founding-1,000 hook, pay-today). COGS target < ~30% of price; media credits are the margin dial — the 3-year tier gets a modest monthly credit allowance, credit top-up packs are the upsell.
+- **D6 Languages (locked 4 Sep):** content language is a per-brand setting flowing through the whole pipeline (brief → slot-fill → captions → hashtag maps → TTS). Launch: **en, es-MX, pt-BR, id** (TikTok: Indonesia/Mexico/Brazil); **hi + Indic fast-follow via a Sarvam adapter** (Shorts: India). TTS sits behind a `TTSAdapter` whose hard requirement is word timestamps; launch provider = FAL multilingual, ElevenLabs slots in later as the premium voice, Sarvam for Indic. UI chrome stays English in v1 — content is localized, chrome isn't.
+- **Growth hooks (locked 4 Sep):** (1) **Blog** at manfriday.app/blog — MDX, daily-postable, full SEO plumbing (sitemap, RSS, OG images, structured data); ships before M1 with the marketing site. (2) The **$200/3-yr Founding-1,000 offer** above, framed as pay-today scarcity.
 - **Web app only** — responsive, PWA-grade; Picks screen mobile-first. No native apps in v1. (The market leader is also web-only as of Sep 2026 — no app-store presence; parity confirmed.)
 
 ## Stack (locked — founder-proven)
@@ -54,6 +56,7 @@ Marketing copy leads with click attribution ("see which post sent people to your
 
 ## Build milestones (start only after design gate)
 
+- M0 (now): marketing site + blog live on Vercel — landing, pricing (new terms), signup shell, MDX blog with SEO plumbing.
 - M1 (wk 1–3): headless pipeline — URL in → brand brief → 10 rendered concepts (all 3 formats). **If M1 output is weak, stop and fix before any UI.**
 - M2 (wk 4–5): Picks UI over the pipeline; lazy full-res render on right-swipe.
 - M3 (wk 6–7): TikTok + YouTube OAuth, calendar, scheduled publish (TikTok draft-to-inbox fallback until audit clears).

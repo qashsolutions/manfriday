@@ -1,0 +1,60 @@
+---
+title: "We hand-made three TikToks with zero AI in the render path. On purpose."
+description: "Before writing the product, we produced three real posts with our template spec and no model calls — and found three spec bugs a demo would have hidden. Notes from building a content engine deterministically."
+date: "2026-09-04"
+tags: ["build-in-public", "engineering"]
+---
+
+Most AI content tools have a dirty secret: nobody, including the founders, can say exactly
+what the AI will produce. The model writes the copy, picks the layout, times the cuts —
+and when a video comes out weird, there's no bug to fix, just a prompt to nudge.
+
+We're building Man Friday the opposite way, and last week we ran the test that proves the
+architecture: **produce three real, postable videos with zero AI calls in the render path.**
+Slots filled by hand, everything downstream plain code.
+
+## The rule: models write words. Code makes videos.
+
+Our pipeline confines the LLM to exactly two jobs: reading your product's website into a
+brand brief, and filling small text slots — a hook, five slide lines, a caption — inside a
+**template** that a human curated from a video that already went viral.
+
+Everything else is boring, deterministic code. The template declares the structure: slide
+count, timing, layout positions, style tokens, where your product screenshot goes, which
+backgrounds are allowed. A render worker executes it with an image library and ffmpeg. Same
+inputs, same video, every time. A weird video is a bug you can find.
+
+## Why hand-produce three posts first?
+
+Because a spec you haven't used is fiction. We wrote the slot text ourselves — no model —
+for one slideshow, one faceless hook video, and one avatar script, then rendered all three.
+The exercise caught three real spec bugs:
+
+1. **Our spec failed its own example.** The lint rule said every declared slot must appear
+   in the render plan — but the *caption* slot is consumed at publish time, not render
+   time. Every valid template failed. The spec now distinguishes render slots from publish
+   slots.
+2. **Video timing was undefined.** Voiceover length varies, so who decides how long each
+   shot holds? The fix: one "flex" shot per template absorbs the voiceover's real duration.
+   Templates never author a timeline, and sync falls out for free — the script's product
+   mention lands exactly as the CTA card cuts in.
+3. **Nothing said what happens when an asset is missing.** Stock footage now falls back to
+   a brand gradient instead of failing the render.
+
+None of these would have surfaced in a slideware demo. All three would have surfaced in
+production, at 2am, as a customer's broken video.
+
+## The part users actually feel
+
+Determinism isn't the pitch — it's the cost structure that pays for the pitch. Because a
+concept re-renders forever without touching a model, we can pre-generate your feed
+overnight in a cheap batch, keep previews instant, and spend real money only on the videos
+you approve. The experience gets the budget; the pipeline runs on arithmetic.
+
+The template spec, the lint, the renderer, and the three test posts are all in our repo's
+validation folder. More of these notes as we build — the pipeline goes headless-first over
+the next three weeks, and we'll publish what the first ten generated concepts look like,
+good or bad.
+
+*Man Friday posts to TikTok and YouTube Shorts for solo builders — [you approve with a
+swipe](/).*

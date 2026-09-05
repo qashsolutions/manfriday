@@ -1,0 +1,150 @@
+/* Broadcast design tokens — single source of truth (see CLAUDE.md visual identity) */
+:root {
+  --graphite: #0c0b10;
+  --panel: #14131a;
+  --panel-2: #1a1922;
+  --edge: #1f1d28;
+  --edge-2: #262430;
+  --ink: #f4f3f7;
+  --dim: #a5a1b2;
+  --faint: #6b677a;
+  --accent: #ff4d6d;
+  --accent-soft: #ff9bb0;
+  --accent-ink: #14060b; /* text on accent fills */
+  --mint: #45e0b0;
+  --amber: #f5c044;
+
+  --font-display: "Archivo", "Arial Black", sans-serif;
+  --font-body: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, monospace;
+
+  --glow-accent: 0 0 40px rgba(255, 77, 109, 0.45);
+  --glow-accent-soft: 0 0 24px rgba(255, 77, 109, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--graphite);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---------- shared primitives ---------- */
+
+.wrap {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 1.02;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.eyebrow--dim {
+  color: var(--faint);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 14px 30px;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn--accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--glow-accent-soft);
+}
+.btn--accent:hover {
+  color: var(--accent-ink);
+  box-shadow: var(--glow-accent);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--edge-2);
+  font-weight: 500;
+}
+.btn--ghost:hover {
+  color: var(--ink);
+  border-color: var(--faint);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .btn,
+  .btn:hover {
+    transition: none;
+    transform: none;
+  }
+}

@@ -1,0 +1,50 @@
+.header {
+  border-bottom: 1px solid var(--edge);
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--graphite) 88%, transparent);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+.brand:hover {
+  color: var(--ink);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.link {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--dim);
+}
+.link:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .nav {
+    gap: 18px;
+  }
+  .link:first-child {
+    display: none;
+  }
+}

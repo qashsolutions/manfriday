@@ -1,0 +1,26 @@
+.legal {
+  max-width: 720px;
+  padding-top: 80px;
+  padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.legal p {
+  margin: 0;
+  color: var(--dim);
+}
+
+.title {
+  font-size: clamp(32px, 5vw, 44px);
+  margin: 0;
+}
+
+.status {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+}

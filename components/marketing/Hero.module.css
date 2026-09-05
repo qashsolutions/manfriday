@@ -1,0 +1,37 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 26px;
+  padding: 104px 24px 64px;
+}
+
+.title {
+  font-size: clamp(52px, 9vw, 92px);
+  margin: 0;
+  max-width: 980px;
+  text-wrap: balance;
+}
+
+.sub {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--dim);
+  max-width: 640px;
+  margin: 0;
+}
+
+.ctas {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.fine {
+  font-size: 12.5px;
+  color: var(--faint);
+  margin: 0;
+}
