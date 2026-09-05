@@ -1,0 +1,246 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { TIERS, TRIAL, FOUNDING, LANGUAGES } from "@/lib/site";
+import styles from "./SettingsPanel.module.css";
+
+/* Static shell today: theme + language persist locally; every row marked M2/M4
+   wires to Clerk/Stripe/Convex at that milestone. */
+
+function Wire({ m }: { m: "M2" | "M4" }) {
+  return <span className={`mono ${styles.wire}`}>{m}</span>;
+}
+
+export function SettingsPanel() {
+  const [mode, setMode] = useState<"dark" | "light">("dark");
+  const [language, setLanguage] = useState("en");
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    try {
+      const m = localStorage.getItem("mf-mode");
+      if (m === "light" || m === "dark") setMode(m);
+      const l = localStorage.getItem("mf-lang");
+      if (l && LANGUAGES.some((x) => x.code === l)) setLanguage(l);
+    } catch {}
+  }, []);
+
+  const pick = (m: "dark" | "light") => {
+    setMode(m);
+    try {
+      localStorage.setItem("mf-mode", m);
+    } catch {}
+  };
+  const pickLang = (l: string) => {
+    setLanguage(l);
+    try {
+      localStorage.setItem("mf-lang", l);
+    } catch {}
+  };
+
+  const solo = TIERS[0];
+
+  return (
+    <div className={styles.scope} data-mode={mode}>
+      <div className={styles.wrap}>
+        <header className={styles.head}>
+          <p className="eyebrow">Settings</p>
+          <h1 className={`display ${styles.title}`}>Friday&apos;s back office</h1>
+        </header>
+
+        {/* Account */}
+        <section className={styles.section} aria-labelledby="s-account">
+          <h2 id="s-account" className={`mono ${styles.sectionTitle}`}>ACCOUNT</h2>
+          <div className={styles.panel}>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Email</p>
+                <p className={styles.rowSub}>you@yourproduct.com</p>
+              </div>
+              <Wire m="M2" />
+            </div>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Passkey</p>
+                <p className={styles.rowSub}>Sign in with Face ID, Touch ID, or a security key.</p>
+              </div>
+              <button className={styles.ghostBtn} type="button" disabled>
+                Add passkey <Wire m="M2" />
+              </button>
+            </div>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Connected sign-ins</p>
+                <p className={styles.rowSub}>Google · email + password</p>
+              </div>
+              <Wire m="M2" />
+            </div>
+          </div>
+        </section>
+
+        {/* Security */}
+        <section className={styles.section} aria-labelledby="s-security">
+          <h2 id="s-security" className={`mono ${styles.sectionTitle}`}>SECURITY</h2>
+          <div className={styles.panel}>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Two-factor authentication</p>
+                <p className={styles.rowSub}>Authenticator app (TOTP). Recommended for all accounts.</p>
+              </div>
+              <button className={styles.ghostBtn} type="button" disabled>
+                Enable 2FA <Wire m="M2" />
+              </button>
+            </div>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Automatic sign-out</p>
+                <p className={styles.rowSub}>
+                  You&apos;re signed out after {TRIAL.inactivityLogoutMinutes} minutes of inactivity.
+                </p>
+              </div>
+              <span className={`mono ${styles.fixed}`}>ALWAYS ON</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Appearance */}
+        <section className={styles.section} aria-labelledby="s-appearance">
+          <h2 id="s-appearance" className={`mono ${styles.sectionTitle}`}>APPEARANCE</h2>
+          <div className={styles.panel}>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Mode</p>
+                <p className={styles.rowSub}>Broadcast dark is the flagship; light is here when the sun is.</p>
+              </div>
+              <div className={styles.toggleGroup} role="radiogroup" aria-label="Color mode">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === "dark"}
+                  className={`${styles.toggleBtn} ${mode === "dark" ? styles.toggleOn : ""}`}
+                  onClick={() => pick("dark")}
+                >
+                  Dark
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === "light"}
+                  className={`${styles.toggleBtn} ${mode === "light" ? styles.toggleOn : ""}`}
+                  onClick={() => pick("light")}
+                >
+                  Light
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Plan & billing */}
+        <section className={styles.section} aria-labelledby="s-plan">
+          <h2 id="s-plan" className={`mono ${styles.sectionTitle}`}>PLAN &amp; BILLING</h2>
+          <div className={styles.panel}>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>
+                  Current plan <span className={`mono ${styles.trialChip}`}>TRIAL · DAY 1 OF {TRIAL.days} · ADD CARD BY DAY {TRIAL.cardByDay}</span>
+                </p>
+                <p className={styles.rowSub}>
+                  {solo.name} · ${solo.monthly}/mo after trial · {solo.saves} saves + {solo.credits} credits monthly · renews [DATE]
+                </p>
+              </div>
+              <Link href="/pricing" className={styles.ghostBtn}>
+                Change plan
+              </Link>
+            </div>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Billing</p>
+                <p className={styles.rowSub}>Card, invoices, and receipts — handled by Stripe.</p>
+              </div>
+              <button className={styles.ghostBtn} type="button" disabled>
+                Manage billing <Wire m="M4" />
+              </button>
+            </div>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Pause plan</p>
+                <p className={styles.rowSub}>
+                  Up to {TRIAL.pauseMaxDays} days — Friday holds the queue, and the paused days are
+                  added to your term.
+                </p>
+              </div>
+              <button
+                className={styles.ghostBtn}
+                type="button"
+                aria-pressed={paused}
+                onClick={() => setPaused(!paused)}
+              >
+                {paused ? "Resume now" : "Pause"} <Wire m="M4" />
+              </button>
+            </div>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>{FOUNDING.label}</p>
+                <p className={styles.rowSub}>
+                  3 years for ${solo.threeYear} ({TIERS[1].name} ${TIERS[1].threeYear}) — pay today,
+                  no cancellation. [NN] of {FOUNDING.cap} spots left.
+                </p>
+              </div>
+              <Link href="/pricing" className={styles.ghostBtn}>
+                View
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Language */}
+        <section className={styles.section} aria-labelledby="s-language">
+          <h2 id="s-language" className={`mono ${styles.sectionTitle}`}>CONTENT LANGUAGE</h2>
+          <div className={styles.panel}>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Friday writes and speaks in</p>
+                <p className={styles.rowSub}>
+                  Per workspace — hooks, captions, hashtags, and the voiceover all follow it.
+                </p>
+              </div>
+              <select
+                className={styles.select}
+                value={language}
+                onChange={(e) => pickLang(e.target.value)}
+                aria-label="Content language"
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </section>
+
+        {/* Data */}
+        <section className={styles.section} aria-labelledby="s-data">
+          <h2 id="s-data" className={`mono ${styles.sectionTitle}`}>YOUR DATA</h2>
+          <div className={`${styles.panel} ${styles.danger}`}>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Delete my data</p>
+                <p className={styles.rowSub}>
+                  Removes your account, brand briefs, concepts, and disconnects social accounts.
+                  Published posts stay on your own social channels. This cannot be undone.
+                </p>
+              </div>
+              <button className={styles.dangerBtn} type="button" disabled>
+                Delete… <Wire m="M2" />
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PRICING } from "@/lib/site";
+import { TRIAL, FOUNDING, TIERS } from "@/lib/site";
 import styles from "./Hero.module.css";
 
 export function Hero() {
@@ -25,7 +25,8 @@ export function Hero() {
         </Link>
       </div>
       <p className={`mono ${styles.fine}`}>
-        Card required · Founding {PRICING.foundingCap.toLocaleString()} get 3 years for ${PRICING.threeYear}
+        Free for {TRIAL.days} days — no card on day one · {FOUNDING.label}: 3 years from $
+        {TIERS[0].threeYear}
       </p>
     </section>
   );

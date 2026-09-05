@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PRICING } from "@/lib/site";
+import { TIERS, TRIAL, FOUNDING } from "@/lib/site";
 import styles from "../auth.module.css";
 
 export const metadata: Metadata = {
   title: "Hire Friday",
-  description: `Create your Man Friday account. Founding ${PRICING.foundingCap.toLocaleString()}: 3 years for $${PRICING.threeYear}, or $0 for ${PRICING.trialDays} days then $${PRICING.monthly}/mo.`,
+  description: `Create your Man Friday account. Free for ${TRIAL.days} days — no card on day one. ${FOUNDING.label}: 3 years from $${TIERS[0].threeYear}.`,
 };
 
 const PITCH = [
@@ -28,14 +28,15 @@ const PITCH = [
 ] as const;
 
 export default function SignupPage() {
+  const [solo] = TIERS;
   return (
     <div className={styles.grid}>
       <section className={styles.pitch}>
         <p className="eyebrow">Hire Friday</p>
         <h1 className={`display ${styles.title}`}>Friday starts today.</h1>
         <p className={styles.sub}>
-          Create the account, put a card on file, hand over the posting. Friday learns your
-          product next.
+          Create the account free, hand over the posting. Friday learns your product next — a
+          card only joins on day {TRIAL.cardByDay}.
         </p>
         <div className={styles.points}>
           {PITCH.map((p) => (
@@ -47,7 +48,7 @@ export default function SignupPage() {
         </div>
         <p className={`mono ${styles.founding}`}>
           <span className={styles.dot} />
-          FOUNDING {PRICING.foundingCap.toLocaleString()} · 3 YEARS FOR ${PRICING.threeYear} · [NNN] SPOTS LEFT
+          {FOUNDING.label.toUpperCase()} · 3 YEARS FROM ${solo.threeYear} · [NN] OF {FOUNDING.cap} SPOTS LEFT
         </p>
       </section>
 
@@ -56,33 +57,31 @@ export default function SignupPage() {
           <div>
             <h2 className={styles.cardTitle}>Create your account</h2>
             <p className={styles.cardSub}>
-              ${PRICING.threeYear} once for 3 years · or $0 for {PRICING.trialDays} days, then $
-              {PRICING.monthly}/mo
+              Free for {TRIAL.days} days — no card on day one · then from ${solo.monthly}/mo
             </p>
           </div>
-          {/* Clerk mounts here in M2; until then this is the private-beta waitlist state */}
+          {/* Clerk mounts here in M2 (passkey · Google · email, MFA) */}
           <div className={styles.betaNote}>
             <span className={`mono ${styles.betaLabel}`}>PRIVATE BETA</span>
             <p>
-              Friday is onboarding the Founding {PRICING.foundingCap.toLocaleString()} in small
-              batches. Accounts open here shortly — the pricing above is locked for the
-              founding cohort.
+              Friday is onboarding the {FOUNDING.label} in small batches. Accounts open here
+              shortly — founding pricing is locked for the first {FOUNDING.cap}.
             </p>
           </div>
           <div className={`mono ${styles.steps}`}>
             <span className={styles.stepDone}>1 ACCOUNT</span>
             <span>→</span>
-            <span>2 CARD ON FILE</span>
+            <span>2 CARD · DAY {TRIAL.cardByDay}</span>
             <span>→</span>
             <span>3 FRIDAY&apos;S BRIEF</span>
           </div>
           <p className={styles.cardFine}>
-            Card required. Monthly starts with {PRICING.trialDays} free days; prepaid terms
-            start the day you pay. Cancel monthly anytime.
+            No card needed today — add one on day {TRIAL.cardByDay} to keep the trial running.
+            3-year founding plans are pay-today, no cancellation.
           </p>
         </div>
         <p className={`mono ${styles.security}`}>
-          Secured by Clerk · two-factor authentication available in Settings → Security
+          Secured by Clerk · passkeys supported · two-factor authentication in Settings → Security
         </p>
         <p className={styles.signin}>
           Already hired Friday? <Link href="/login">Sign in</Link>

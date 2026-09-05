@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PRICING, PLAN_FEATURES } from "@/lib/site";
+import { TIERS, TRIAL, FOUNDING, SHARED_FEATURES } from "@/lib/site";
 import styles from "./FoundingOffer.module.css";
 
 function Check() {
@@ -11,23 +11,23 @@ function Check() {
 }
 
 export function FoundingOffer() {
+  const [solo, studio] = TIERS;
   return (
     <section className={styles.section} id="founding">
       <div className={`wrap ${styles.inner}`}>
         <article className={styles.offer}>
           <div className={styles.offerHead}>
-            <span className={`mono ${styles.label}`}>FOUNDING {PRICING.foundingCap.toLocaleString()}</span>
-            <span className={`mono ${styles.spots}`}>[NNN] spots left</span>
+            <span className={`mono ${styles.label}`}>{FOUNDING.label.toUpperCase()}</span>
+            <span className={`mono ${styles.spots}`}>[NN] of {FOUNDING.cap} spots left</span>
           </div>
           <div className={styles.priceRow}>
-            <span className={`display ${styles.price}`}>${PRICING.threeYear}</span>
+            <span className={`display ${styles.price}`}>${solo.threeYear}</span>
             <span className={styles.priceNote}>
-              once — <strong>3 full years</strong> of Friday{" "}
-              <s className={styles.strike}>${PRICING.threeYearList}</s>
+              once — <strong>3 full years</strong> of Friday · Studio tier ${studio.threeYear}
             </span>
           </div>
           <ul className={styles.features}>
-            {PLAN_FEATURES.map((f) => (
+            {SHARED_FEATURES.map((f) => (
               <li key={f}>
                 <Check />
                 {f}
@@ -35,10 +35,11 @@ export function FoundingOffer() {
             ))}
           </ul>
           <Link href="/signup" className="btn btn--accent" style={{ width: "100%" }}>
-            Hire Friday for 3 years →
+            Claim a founding spot →
           </Link>
           <p className={`mono ${styles.fine}`}>
-            or start monthly: $0 for {PRICING.trialDays} days, then ${PRICING.monthly}/mo · cancel anytime
+            pay today · no cancellation · first {FOUNDING.cap} customers only — or start free for{" "}
+            {TRIAL.days} days, then from ${solo.monthly}/mo
           </p>
         </article>
 
