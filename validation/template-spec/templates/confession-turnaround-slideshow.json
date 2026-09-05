@@ -1,0 +1,133 @@
+{
+  "specVersion": 1,
+  "slug": "confession-turnaround-slideshow",
+  "format": "slideshow",
+  "hookPattern": "confession-turn",
+  "niches": [
+    "build-in-public",
+    "productivity-tools"
+  ],
+  "platforms": [
+    "tiktok"
+  ],
+  "slots": [
+    {
+      "id": "hook",
+      "type": "text",
+      "maxChars": 90,
+      "guidance": "confession opener: a failure metric, hint that one thing changed"
+    },
+    {
+      "id": "slide_2",
+      "type": "text",
+      "maxChars": 60,
+      "guidance": "the low point \u2014 concrete number"
+    },
+    {
+      "id": "slide_3",
+      "type": "text",
+      "maxChars": 60,
+      "guidance": "the moment of change"
+    },
+    {
+      "id": "slide_4",
+      "type": "text",
+      "maxChars": 60,
+      "guidance": "what happened next \u2014 concrete"
+    },
+    {
+      "id": "slide_5",
+      "type": "text",
+      "maxChars": 60,
+      "guidance": "the lesson, punchy"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "soft CTA naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "guidance": "first person, brand tone, exactly 2 niche hashtags",
+      "use": "publish"
+    }
+  ],
+  "renderPlan": {
+    "kind": "slideshow",
+    "music": {
+      "mood": "lofi-build",
+      "source": "licensed_library"
+    },
+    "slides": [
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "hook",
+          "styleToken": "hook-xl",
+          "position": "lower-third"
+        }
+      },
+      {
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "hero"
+        },
+        "text": {
+          "slotRef": "slide_2",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "slide_3",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "stock",
+          "query": "person typing laptop night"
+        },
+        "text": {
+          "slotRef": "slide_4",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "slide_5",
+          "styleToken": "hook-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ]
+  }
+}

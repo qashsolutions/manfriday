@@ -1,0 +1,90 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 3400,
+      "title": "Landing"
+    },
+    {
+      "file": "Signup.dc.html",
+      "x": 0,
+      "y": 3540,
+      "w": 1440,
+      "h": 900,
+      "title": "Signup · hire Friday"
+    },
+    {
+      "file": "Onboarding.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Onboarding · brand brief"
+    },
+    {
+      "file": "Picks.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Picks · mobile"
+    },
+    {
+      "file": "Calendar.dc.html",
+      "x": 1560,
+      "y": 1040,
+      "w": 1440,
+      "h": 900,
+      "title": "Calendar"
+    },
+    {
+      "file": "Analytics.dc.html",
+      "x": 1560,
+      "y": 2080,
+      "w": 1440,
+      "h": 900,
+      "title": "Analytics"
+    },
+    {
+      "file": "Settings.dc.html",
+      "x": 3120,
+      "y": 1040,
+      "w": 1440,
+      "h": 900,
+      "title": "Settings · security"
+    },
+    {
+      "file": "Editor.dc.html",
+      "x": 3120,
+      "y": 2080,
+      "w": 1440,
+      "h": 900,
+      "title": "Light editor"
+    },
+    {
+      "file": "Prototype.dc.html",
+      "x": 3630,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Prototype · tap through",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "broadcast-brief",
+      "x": 0,
+      "y": -220,
+      "w": 460,
+      "text": "BROADCAST direction — locked 3 Sep.\nGraphite #0C0B10 · panels #14131A · accent #FF4D6D · live #45E0B0 · queued amber #F5C044 · chart muted #B23A52 · Archivo Expanded display, Instrument Sans body, Spline Sans Mono labels.\nStatic mockups: sample product is 'Loopnote' (fictional). Product: Man Friday · manfriday.app. Pricing locked at 0.7× the market leader — beta plan $34/mo after 30-day trial; remaining bracketed values ([NNN] spots, proof-band stats) await launch data. Picks (the swipe screen — renamed from 'Blitz' 4 Sep to avoid the competitor's term) is mobile-first; desktop screens share the left-rail shell. The PROTOTYPE artboard is clickable — tap through Friday's full loop: URL → brief → swipe → schedule → posted. Light editor rule: swap the hook, the voice, or a slide — never a timeline."
+    }
+  ],
+  "launch": {
+    "view": "focused",
+    "file": "Signup.dc.html"
+  }
+}

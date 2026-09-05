@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Spline+Sans+Mono:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "Instrument Sans", system-ui, sans-serif; background: #0C0B10; color: #F4F3F7; -webkit-font-smoothing: antialiased; }
+    a { color: #FF4D6D; text-decoration: none; } a:hover { color: #FF7590; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #0C0B10; display: flex; flex-direction: column;">
+
+  <!-- Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 36px; border-bottom: 1px solid #1F1D28;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 8px; color: #A5A1B2; font-size: 14px; font-weight: 500;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+        Back to Picks
+      </div>
+      <div style="width: 1px; height: 20px; background: #262430;"></div>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 800; font-size: 20px;">Light edit</div>
+      </div>
+    </div>
+    <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #6B677A;">SWAP THE HOOK, THE VOICE, OR A SLIDE — NO TIMELINE</div>
+  </div>
+
+  <!-- Body -->
+  <div style="flex: 1; display: flex; gap: 32px; padding: 26px 36px;">
+
+    <!-- Preview column -->
+    <div style="display: flex; flex-direction: column; gap: 14px; align-items: center;">
+      <div style="width: 316px; height: 546px; border-radius: 20px; background: linear-gradient(155deg, #3A1B2A 0%, #241019 55%, #150A10 100%); border: 1px solid #33202B; display: flex; flex-direction: column; justify-content: space-between; padding: 18px; box-sizing: border-box;">
+        <div style="display: flex; justify-content: space-between;">
+          <div style="background: rgba(12, 11, 16, 0.7); border-radius: 999px; padding: 5px 12px; font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #FF9BB0;">SLIDESHOW · 6 SLIDES</div>
+          <div style="background: rgba(12, 11, 16, 0.7); border-radius: 999px; padding: 5px 12px; font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #A5A1B2;">3 / 6</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-family: Archivo, 'Arial Black', sans-serif; font-weight: 800; font-size: 27px; line-height: 1.2;">month 6: still $0 MRR</div>
+          <div style="font-size: 13px; color: #A5A1B2;">slide 3 — selected below</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div style="width: 44px; height: 70px; border-radius: 8px; background: linear-gradient(150deg, #33202B, #1A1119); border: 1px solid #262430; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6B677A;">1</div>
+        <div style="width: 44px; height: 70px; border-radius: 8px; background: linear-gradient(150deg, #2B2338, #191420); border: 1px solid #262430; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6B677A;">2</div>
+        <div style="width: 44px; height: 70px; border-radius: 8px; background: linear-gradient(150deg, #3A1B2A, #1D0F17); border: 1.5px solid #FF4D6D; box-shadow: 0 0 14px rgba(255, 77, 109, 0.25); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #FF9BB0;">3</div>
+        <div style="width: 44px; height: 70px; border-radius: 8px; background: linear-gradient(150deg, #1F2B33, #121A20); border: 1px solid #262430; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6B677A;">4</div>
+        <div style="width: 44px; height: 70px; border-radius: 8px; background: linear-gradient(150deg, #232B26, #141A16); border: 1px solid #262430; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6B677A;">5</div>
+        <div style="width: 44px; height: 70px; border-radius: 8px; background: linear-gradient(150deg, #33202B, #1A1119); border: 1px solid #262430; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6B677A;">6</div>
+      </div>
+    </div>
+
+    <!-- Edit panel -->
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+
+      <!-- Hook -->
+      <div style="display: flex; flex-direction: column; gap: 12px; background: #14131A; border: 1px solid #1F1D28; border-radius: 14px; padding: 22px 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; color: #6B677A;">HOOK</div>
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #6B677A;">SLIDE 1 CARRIES IT</div>
+        </div>
+        <div style="background: #1A1922; border: 1px solid #262430; border-radius: 10px; padding: 14px 16px; font-family: Archivo, sans-serif; font-weight: 700; font-size: 18px; line-height: 1.35;">my app made $0 for 6 months. then I changed one thing</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <div style="border: 1px solid #262430; color: #A5A1B2; font-size: 13px; padding: 8px 14px; border-radius: 999px;">6 months of silence. one change broke it open</div>
+          <div style="border: 1px solid #262430; color: #A5A1B2; font-size: 13px; padding: 8px 14px; border-radius: 999px;">the day I stopped building and started posting</div>
+          <div style="border: 1px solid #FF4D6D; color: #FF4D6D; font-weight: 600; font-size: 13px; padding: 8px 14px; border-radius: 999px;">Friday, write 3 more</div>
+        </div>
+      </div>
+
+      <!-- Voiceover -->
+      <div style="display: flex; flex-direction: column; gap: 12px; background: #14131A; border: 1px solid #1F1D28; border-radius: 14px; padding: 22px 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; color: #6B677A;">VOICEOVER</div>
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #6B677A;">RE-RENDERS ON SAVE</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; background: #1A1922; border: 1.5px solid #FF4D6D; border-radius: 10px; padding: 12px 16px;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 14.5px; font-weight: 600;">Maya</div>
+              <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; color: #A5A1B2;">warm · casual</div>
+            </div>
+            <div style="width: 34px; height: 34px; border-radius: 999px; background: #FF4D6D; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#14060B"><path d="M8 5v14l11-7z"></path></svg></div>
+          </div>
+          <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; background: #1A1922; border: 1px solid #262430; border-radius: 10px; padding: 12px 16px;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 14.5px; font-weight: 600;">Dex</div>
+              <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; color: #A5A1B2;">punchy · deadpan</div>
+            </div>
+            <div style="width: 34px; height: 34px; border-radius: 999px; border: 1px solid #262430; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#A5A1B2"><path d="M8 5v14l11-7z"></path></svg></div>
+          </div>
+          <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; background: #1A1922; border: 1px solid #262430; border-radius: 10px; padding: 12px 16px;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 14.5px; font-weight: 600;">No voice</div>
+              <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; color: #A5A1B2;">music only</div>
+            </div>
+            <div style="width: 34px; height: 34px; border-radius: 999px; border: 1px solid #262430; display: flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected slide -->
+      <div style="display: flex; flex-direction: column; gap: 12px; background: #14131A; border: 1px solid #1F1D28; border-radius: 14px; padding: 22px 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; color: #6B677A;">SLIDE 3 OF 6</div>
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #6B677A;">PICK A SLIDE FROM THE STRIP</div>
+        </div>
+        <div style="background: #1A1922; border: 1px solid #262430; border-radius: 10px; padding: 14px 16px; font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">month 6: still $0 MRR</div>
+        <div style="display: flex; gap: 8px;">
+          <div style="border: 1px solid #262430; color: #F4F3F7; font-weight: 500; font-size: 13px; padding: 9px 16px; border-radius: 999px;">Friday, rewrite this line</div>
+          <div style="border: 1px solid #262430; color: #F4F3F7; font-weight: 500; font-size: 13px; padding: 9px 16px; border-radius: 999px;">Swap background</div>
+          <div style="border: 1px solid #262430; color: #6B677A; font-weight: 500; font-size: 13px; padding: 9px 16px; border-radius: 999px;">Remove slide</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 36px; border-top: 1px solid #1F1D28;">
+    <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12px; color: #6B677A;">FRIDAY RE-RENDERS IN ~40S AFTER YOU SAVE · 1 CREDIT</div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="border: 1px solid #262430; color: #A5A1B2; font-weight: 500; font-size: 14.5px; padding: 12px 24px; border-radius: 999px;">Discard</div>
+      <div style="background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 14.5px; padding: 12px 26px; border-radius: 999px; box-shadow: 0 0 28px rgba(255, 77, 109, 0.35);">Save — Friday re-renders →</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "template": "bold-claim-hook-video",
+  "brand": "manfriday",
+  "briefVersion": 1,
+  "specVersion": 1,
+  "slotValues": {
+    "hook_text": "your app doesn't have a marketing problem. it has a consistency problem",
+    "vo_script": "Your app doesn't have a marketing problem. It has a consistency problem. The builders you envy aren't better at content. They post every single day, even when nothing works yet. You can't do that and ship at the same time. So stop trying to be two people. You build. Friday posts.",
+    "cta": "You build. Friday posts.",
+    "caption": "shipping and posting are two full-time jobs. I only kept one. #buildinpublic #indiehackers"
+  }
+}

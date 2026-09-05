@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Spline+Sans+Mono:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "Instrument Sans", system-ui, sans-serif; background: #0C0B10; color: #F4F3F7; -webkit-font-smoothing: antialiased; }
+    a { color: #FF4D6D; text-decoration: none; } a:hover { color: #FF7590; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #0C0B10; display: flex; flex-direction: column;">
+
+  <!-- Slim header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 56px; border-bottom: 1px solid #1F1D28;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#FF4D6D"></path></svg>
+      <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 15px; letter-spacing: 0.04em;">MAN FRIDAY</div>
+    </div>
+    <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12px; color: #6B677A;">FRIDAY'S FIRST DAY · STEP 1 OF 2</div>
+  </div>
+
+  <!-- Two columns -->
+  <div style="flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0;">
+
+    <!-- Left: URL input -->
+    <div style="display: flex; flex-direction: column; justify-content: center; gap: 24px; padding: 0 80px; border-right: 1px solid #1F1D28;">
+      <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; color: #FF4D6D;">START HERE</div>
+      <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 800; font-size: 44px; line-height: 1.08;">Where does your product live?</div>
+      <div style="font-size: 17px; line-height: 1.6; color: #A5A1B2;">Friday reads your site to learn the product, your audience, and your voice. Everything Friday makes starts from this.</div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="flex: 1; display: flex; align-items: center; gap: 10px; background: #14131A; border: 1.5px solid #FF4D6D; border-radius: 14px; padding: 16px 20px; box-shadow: 0 0 32px rgba(255, 77, 109, 0.18);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B677A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <div style="font-size: 17px; font-weight: 500;">loopnote.app</div>
+        </div>
+        <div style="background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 16px; padding: 16px 28px; border-radius: 14px; box-shadow: 0 0 28px rgba(255, 77, 109, 0.35);">Analyze →</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; font-family: 'Spline Sans Mono', monospace; font-size: 12px; color: #45E0B0;">
+        <div style="width: 8px; height: 8px; border-radius: 999px; background: #45E0B0;"></div>
+        Friday read it in 34 seconds · brief ready on the right
+      </div>
+    </div>
+
+    <!-- Right: brand brief review -->
+    <div style="display: flex; flex-direction: column; justify-content: center; gap: 18px; padding: 0 80px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; color: #6B677A;">FRIDAY'S BRIEF ON YOU</div>
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #6B677A;">fix anything — Friday remembers</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; background: #14131A; border: 1px solid #1F1D28; border-radius: 18px; padding: 28px;">
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 14px; border-bottom: 1px solid #1F1D28;">
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #6B677A;">PRODUCT</div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 22px;">Loopnote</div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B677A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>
+          </div>
+          <div style="font-size: 15px; color: #A5A1B2;">Voice notes that become tweet threads</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid #1F1D28;">
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #6B677A;">AUDIENCE</div>
+          <div style="display: flex; gap: 8px;">
+            <div style="border: 1px solid #FF4D6D; color: #FF9BB0; font-size: 13.5px; font-weight: 500; padding: 6px 14px; border-radius: 999px;">Indie hackers</div>
+            <div style="border: 1px solid #FF4D6D; color: #FF9BB0; font-size: 13.5px; font-weight: 500; padding: 6px 14px; border-radius: 999px;">Content creators</div>
+            <div style="border: 1px solid #262430; color: #6B677A; font-size: 13.5px; font-weight: 500; padding: 6px 14px; border-radius: 999px;">+ add</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid #1F1D28;">
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #6B677A;">TONE</div>
+          <div style="display: flex; gap: 8px;">
+            <div style="background: #FF4D6D; color: #14060B; font-size: 13.5px; font-weight: 600; padding: 6px 14px; border-radius: 999px;">Casual</div>
+            <div style="background: #FF4D6D; color: #14060B; font-size: 13.5px; font-weight: 600; padding: 6px 14px; border-radius: 999px;">Direct</div>
+            <div style="border: 1px solid #262430; color: #6B677A; font-size: 13.5px; font-weight: 500; padding: 6px 14px; border-radius: 999px;">Playful</div>
+            <div style="border: 1px solid #262430; color: #6B677A; font-size: 13.5px; font-weight: 500; padding: 6px 14px; border-radius: 999px;">Expert</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #6B677A;">NICHE</div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 16px; font-weight: 500;">Build-in-public · productivity tools</div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B677A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="flex: 1; background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 16px; padding: 15px 0; border-radius: 999px; text-align: center; box-shadow: 0 0 32px rgba(255, 77, 109, 0.35);">Looks right — put Friday to work →</div>
+        <div style="border: 1px solid #262430; color: #A5A1B2; font-weight: 500; font-size: 15px; padding: 14px 24px; border-radius: 999px;">Re-analyze</div>
+      </div>
+      <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #6B677A; text-align: center;">Friday's only as good as the brief — 20 seconds here pays for itself</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "template": "confession-turnaround-slideshow",
+  "brand": "manfriday",
+  "briefVersion": 1,
+  "specVersion": 1,
+  "slotValues": {
+    "hook":    "I posted every day for 6 months and gained 41 followers. then I changed one thing",
+    "slide_2": "180 videos. 41 followers. $0 from content.",
+    "slide_3": "I stopped making the videos myself.",
+    "slide_4": "posting kept going while I shipped product.",
+    "slide_5": "consistency was never a talent. it's a job.",
+    "cta":     "the job's taken — manfriday.app",
+    "caption": "I didn't get better at content. I gave the job to Friday. #buildinpublic #solofounder"
+  }
+}

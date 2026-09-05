@@ -1,0 +1,98 @@
+{
+  "specVersion": 1,
+  "slug": "bold-claim-hook-video",
+  "format": "hook_video",
+  "hookPattern": "bold-claim-receipts",
+  "niches": [
+    "build-in-public",
+    "solo-saas"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "slots": [
+    {
+      "id": "hook_text",
+      "type": "text",
+      "maxChars": 80,
+      "guidance": "on-screen bold claim, present tense, second person, no product name yet"
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 22,
+      "guidance": "voiceover: restate the claim, then 3 short proof beats, then one soft product mention at the end; short declarative sentences, no filler"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "closing card line naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "guidance": "first person, brand tone, exactly 2 niche hashtags",
+      "use": "publish"
+    }
+  ],
+  "renderPlan": {
+    "kind": "hook_video",
+    "durationCapSeconds": 30,
+    "music": {
+      "mood": "tense-build",
+      "source": "licensed_library"
+    },
+    "voice": {
+      "slotRef": "vo_script",
+      "tts": "brand_default"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "shots": [
+      {
+        "holdSeconds": 3.0,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "hook_text",
+          "styleToken": "hook-xl",
+          "position": "center"
+        }
+      },
+      {
+        "flex": true,
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "hero"
+        }
+      },
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        }
+      },
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ]
+  }
+}

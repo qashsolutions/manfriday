@@ -1,0 +1,12 @@
+{
+  "template": "hot-take-avatar",
+  "brand": "manfriday",
+  "briefVersion": 1,
+  "specVersion": 1,
+  "slotValues": {
+    "hook_overlay": "unpopular opinion from a solo builder",
+    "vo_script": "Unpopular opinion: your daily build-in-public post is procrastination. Feels like work. Isn't the work. Every hour you spend writing hooks is an hour your product didn't ship. But going silent isn't the answer either, because nobody finds an app that nobody talks about. So delegate it. Software can hold a posting streak better than you can. Mine's called Friday.",
+    "cta": "hire Friday — manfriday.app",
+    "caption": "your posting streak shouldn't cost you your shipping streak. #buildinpublic #solofounder"
+  }
+}

@@ -1,0 +1,464 @@
+<title>Project Viral</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#FAF9FB; --card:#FFFFFF; --ink:#17151A; --muted:#5F5A66;
+    --line:#E4E0E9; --accent:#D62653; --accent-soft:#FBEBEF;
+    --teal:#0E8C96; --teal-soft:#E6F4F5; --gate:#8A5A00; --gate-soft:#FBF3E2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#141218; --card:#1C1922; --ink:#F1EDF4; --muted:#A79FB0;
+      --line:#2F2A38; --accent:#FF5C82; --accent-soft:#3A1622;
+      --teal:#3FC6CF; --teal-soft:#0E2E31; --gate:#E8B75B; --gate-soft:#2E2412;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#141218; --card:#1C1922; --ink:#F1EDF4; --muted:#A79FB0;
+    --line:#2F2A38; --accent:#FF5C82; --accent-soft:#3A1622;
+    --teal:#3FC6CF; --teal-soft:#0E2E31; --gate:#E8B75B; --gate-soft:#2E2412;
+  }
+  *{box-sizing:border-box}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"Instrument Sans",system-ui,sans-serif;
+    font-size:16px; line-height:1.6; margin:0;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:56px 24px 96px}
+  h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",sans-serif; text-wrap:balance; line-height:1.15; margin:0}
+  h1{font-size:clamp(34px,6vw,52px); font-weight:800; letter-spacing:-.01em}
+  h2{font-size:26px; font-weight:700; margin-bottom:14px}
+  h3{font-size:17px; font-weight:700; margin-bottom:6px}
+  p{margin:0 0 14px; max-width:70ch}
+  .mono{font-family:"Spline Sans Mono",ui-monospace,monospace}
+  .eyebrow{
+    font-family:"Spline Sans Mono",ui-monospace,monospace; font-size:12px; font-weight:600;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 10px;
+  }
+  .lede{font-size:19px; color:var(--muted); max-width:62ch}
+  header.hero{padding-bottom:36px; border-bottom:1px solid var(--line); margin-bottom:44px}
+  .meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:20px}
+  .chip{
+    font-family:"Spline Sans Mono",ui-monospace,monospace; font-size:11.5px; letter-spacing:.02em;
+    border:1px solid var(--line); border-radius:999px; padding:4px 11px; color:var(--muted); background:var(--card);
+  }
+  section{margin-bottom:56px}
+  figure{margin:22px 0; border:1px solid var(--line); border-radius:10px; background:var(--card); padding:18px 14px 8px}
+  .scrollx{overflow-x:auto}
+  figure svg{display:block; min-width:820px; max-width:100%; height:auto; margin:0 auto}
+  figcaption{font-size:13.5px; color:var(--muted); padding:10px 8px 6px; border-top:1px solid var(--line); margin-top:12px}
+  svg text{font-family:"Instrument Sans",system-ui,sans-serif}
+  svg .lbl{font-family:"Spline Sans Mono",ui-monospace,monospace}
+  table{border-collapse:collapse; width:100%; font-size:14.5px}
+  th{font-family:"Spline Sans Mono",ui-monospace,monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); text-align:left; font-weight:600; padding:8px 12px; border-bottom:2px solid var(--line)}
+  td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  td:first-child{white-space:nowrap; font-weight:600}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--card); padding:6px 10px 10px}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media (max-width:680px){.cols{grid-template-columns:1fr}}
+  .panel{border:1px solid var(--line); border-radius:10px; background:var(--card); padding:18px 20px}
+  .panel.in{border-top:3px solid var(--teal)}
+  .panel.out{border-top:3px solid var(--accent)}
+  .panel ul{margin:8px 0 0; padding-left:20px}
+  .panel li{margin-bottom:7px}
+  .panel li small{color:var(--muted)}
+  .tag{
+    display:inline-block; font-family:"Spline Sans Mono",ui-monospace,monospace; font-size:11px; font-weight:600;
+    letter-spacing:.08em; border-radius:5px; padding:2px 8px; margin-right:6px;
+  }
+  .tag.keep{background:var(--teal-soft); color:var(--teal)}
+  .tag.cut{background:var(--accent-soft); color:var(--accent)}
+  .facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:20px 0 8px}
+  .fact{border:1px solid var(--line); border-radius:10px; background:var(--card); padding:14px 16px}
+  .fact b{font-family:"Bricolage Grotesque",sans-serif; font-size:24px; font-weight:800; display:block; font-variant-numeric:tabular-nums}
+  .fact span{font-size:12.5px; color:var(--muted)}
+  .decision{border:1px solid var(--line); border-left:4px solid var(--gate); border-radius:8px; background:var(--card); padding:14px 18px; margin-bottom:12px}
+  .decision .mono{color:var(--gate); font-size:12px; font-weight:600; letter-spacing:.1em}
+  .decision.locked{border-left-color:var(--teal)}
+  .decision.locked .mono{color:var(--teal)}
+  .decision ul{margin:8px 0 0; padding-left:20px}
+  .decision li{margin-bottom:6px}
+  .decision p{margin:6px 0 0}
+  .rec{color:var(--teal); font-weight:600}
+  .callout{border:1px solid var(--line); border-radius:10px; background:var(--gate-soft); padding:16px 20px; margin-top:18px}
+  .callout p{margin:0}
+  blockquote{margin:18px 0; padding:2px 0 2px 18px; border-left:3px solid var(--accent); color:var(--muted); font-style:italic; max-width:64ch}
+  a{color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">Build plan · v1.3 · 4 Sep 2026 · scope frozen · determinism-first locked</p>
+  <h1>Project Viral</h1>
+  <p class="lede" style="margin-top:14px">A short-form content engine built on the category's proven model: paste a product URL, swipe through trend-anchored video concepts, publish straight to TikTok and YouTube Shorts. This document is the <strong>plan</strong> — all four decisions are locked and the scope is frozen. Design is next; only after design sign-off does the build start.</p>
+  <div class="meta">
+    <span class="chip">source: category research · Sep 2026</span>
+    <span class="chip">source: founder interview, Starter Story (17 min)</span>
+    <span class="chip">product: Man Friday · manfriday.app</span>
+  </div>
+</header>
+
+<section>
+  <p class="eyebrow">The reference</p>
+  <h2>The proven model, and why it works</h2>
+  <p>The category leader is a content factory plus scheduler for TikTok, Instagram Reels, and YouTube Shorts. You enter your website URL; it learns the product, audience, and tone, then generates thousands of short-form video concepts seeded from a library of 25,000+ tagged trending videos. A Tinder-style swipe interface lets you swipe through them — the trending reference video on the left, your generated version in the middle. Swipe right, pick platforms, let AI write the caption, and the post is live within five minutes. Analytics feed back in so you generate more of whatever worked.</p>
+  <div class="facts">
+    <div class="fact"><b>$69K</b><span>MRR, 2 months after public launch (Mar 23)</span></div>
+    <div class="fact"><b>1,000+</b><span>paid users; $1M+ ARR across the business</span></div>
+    <div class="fact"><b>2,000</b><span>customer calls by two founders, ~20/week</span></div>
+    <div class="fact"><b>~5 mo</b><span>from first vertical code (Oct) to public launch</span></div>
+  </div>
+  <p>From the founder interview, four things actually made it win — and they shape this plan:</p>
+  <p><strong>1 · Reference-anchored generation.</strong> Every concept is shown next to the real trending video it copies (e.g. a 3M-view slideshow), same format applied to your product. The user trusts the output because they can see the proof.</p>
+  <p><strong>2 · Swipe as the entire UX.</strong> Curation costs one flick of the thumb. No timeline editor, no blank canvas.</p>
+  <p><strong>3 · The loop closes in one app.</strong> Generate → approve → schedule → publish → measure, without leaving.</p>
+  <p><strong>4 · Relentless customer discovery.</strong> A "book a call, get 7 extra days of access" button, Mum-Test questions, silent usability tests, PostHog power-user tracking, and a customer-intelligence dashboard driving the roadmap. Started horizontal ("do all of marketing"), niched to short-form only after the calls demanded it.</p>
+  <blockquote>"Most startups don't die because the ideas are bad. They die because founders skip customer discovery."</blockquote>
+</section>
+
+<section>
+  <p class="eyebrow">Razor scope</p>
+  <h2>What v1 is — and is not</h2>
+  <p>The v1 test, in one sentence: <strong>a user pastes a URL, swipes through ten trend-anchored concepts, publishes one to TikTok, and sees its view count — all in a single session.</strong> Everything below is judged against that sentence. Video formats also cross-post to YouTube Shorts (D1); slideshows are TikTok-only.</p>
+  <div class="cols">
+    <div class="panel in">
+      <h3><span class="tag keep">IN</span>Version 1</h3>
+      <ul>
+        <li>URL ingestion → <strong>brand brief</strong> (product, audience, tone, niche) via LLM</li>
+        <li>Seeded <strong>trend library</strong>: 300–500 hand-tagged trending formats across 3–5 niches <small>— not 25k; curation is the moat, volume comes later</small></li>
+        <li>Three formats: <strong>photo slideshows</strong>, <strong>faceless hook videos</strong> (b-roll + AI voiceover + captions), and <strong>AI avatar talking-head videos</strong> from a curated set of ~20 stock characters <small>— avatars render full-res only on right-swipe to contain cost (D2)</small></li>
+        <li><strong>Picks</strong> — the swipe review screen — reference left, yours center <small>— our own name for the category's proven swipe pattern</small></li>
+        <li>Schedule + direct publish to <strong>TikTok + YouTube Shorts</strong> (D1) <small>— slideshows are TikTok photo-mode only; hook and avatar videos cross-post to Shorts</small></li>
+        <li>Post-level analytics + "make more like this"</li>
+        <li>Auth, waitlist, a <strong>book-a-call button</strong>, and <strong>Stripe card-on-file at signup</strong> with a 30-day free window for the first 500 customers (D4)</li>
+        <li><strong>Web app only</strong> — responsive, PWA-grade on mobile, Picks screen designed mobile-first <small>— matches the market leader; native apps are v2+ only if beta calls demand</small></li>
+      </ul>
+    </div>
+    <div class="panel out">
+      <h3><span class="tag cut">OUT</span>Deferred or never</h3>
+      <ul>
+        <li>AI Studio build-your-own characters + a 1,000-character catalog <small>— v1 ships ~20 curated avatars; custom is v2</small></li>
+        <li>Meme generator, hook-only tool <small>— v2+</small></li>
+        <li>Human UGC clip marketplace <small>— a supply-side business, not software</small></li>
+        <li>Instagram publishing <small>— fast follow once the loop is proven; needs Business-account conversion + Meta app review</small></li>
+        <li>Public API / MCP, multi-workspace, teams <small>— later</small></li>
+        <li>Warmed-accounts / follower sales <small>— never; violates platform ToS</small></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Phase 0 → 1 → 2</p>
+  <h2>The delivery flow</h2>
+  <p>Three phases, two hard gates. Nothing downstream starts until the gate before it clears — and customer calls run continuously from the first design-phase interview onward, feeding both design and build.</p>
+  <figure>
+    <div class="scrollx">
+    <svg viewBox="0 0 940 252" role="img" aria-label="Delivery flow: Plan phase, then a scope-freeze gate, then Design, then a sign-off gate, then Build milestones M1 to M4, then Beta. A continuous customer-calls track runs beneath Design and Build, feeding back into both.">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"/>
+        </marker>
+      </defs>
+      <!-- Plan (done) -->
+      <rect x="20" y="70" width="140" height="64" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="34" y="90" class="lbl" font-size="10" fill="var(--teal)">PHASE 0 · DONE</text>
+      <text x="34" y="110" font-size="15" font-weight="600" fill="currentColor">Plan</text>
+      <text x="34" y="126" font-size="11" fill="currentColor" opacity=".6">this document</text>
+      <line x1="160" y1="102" x2="224" y2="102" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Gate 1 -->
+      <polygon points="252,80 274,102 252,124 230,102" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.5"/>
+      <text x="252" y="65" class="lbl" font-size="10" fill="var(--teal)" text-anchor="middle">GATE ✓</text>
+      <text x="252" y="145" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">scope frozen</text>
+      <text x="252" y="160" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">D1–D4 locked 3 Sep</text>
+      <line x1="274" y1="102" x2="312" y2="102" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Design (current) -->
+      <rect x="316" y="70" width="150" height="64" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="330" y="90" class="lbl" font-size="10" fill="var(--accent)">PHASE 1 · NEXT · ~2 WKS</text>
+      <text x="330" y="110" font-size="15" font-weight="600" fill="currentColor">Design</text>
+      <text x="330" y="126" font-size="11" fill="currentColor" opacity=".6">flows · schema · spec</text>
+      <line x1="466" y1="102" x2="528" y2="102" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Gate 2 -->
+      <polygon points="556,80 578,102 556,124 534,102" fill="var(--gate-soft)" stroke="var(--gate)" stroke-width="1.5"/>
+      <text x="556" y="65" class="lbl" font-size="10" fill="var(--gate)" text-anchor="middle">GATE</text>
+      <text x="556" y="145" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">prototype +</text>
+      <text x="556" y="160" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">spec sign-off</text>
+      <line x1="578" y1="102" x2="616" y2="102" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Build -->
+      <rect x="620" y="70" width="190" height="64" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="634" y="90" class="lbl" font-size="10" fill="currentColor" opacity=".55">PHASE 2 · ~9 WKS</text>
+      <text x="634" y="110" font-size="15" font-weight="600" fill="currentColor">Build</text>
+      <text x="634" y="126" class="lbl" font-size="11" fill="currentColor" opacity=".6">M1 → M2 → M3 → M4</text>
+      <line x1="810" y1="102" x2="848" y2="102" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Beta -->
+      <rect x="852" y="70" width="72" height="64" rx="8" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.5"/>
+      <text x="888" y="98" font-size="15" font-weight="600" fill="currentColor" text-anchor="middle">Beta</text>
+      <text x="888" y="116" font-size="11" fill="currentColor" opacity=".6" text-anchor="middle">waitlist</text>
+      <!-- customer calls track -->
+      <rect x="316" y="196" width="608" height="38" rx="8" fill="none" stroke="var(--teal)" stroke-width="1.4" stroke-dasharray="5 4"/>
+      <text x="620" y="219" class="lbl" font-size="11.5" fill="var(--teal)" text-anchor="middle">CUSTOMER CALLS · Mum-Test interviews → usability tests → success calls · ~20/wk</text>
+      <line x1="400" y1="196" x2="400" y2="140" stroke="var(--teal)" stroke-width="1.4" marker-end="url(#arrT)"/>
+      <text x="408" y="172" font-size="10.5" fill="var(--teal)">validates scope</text>
+      <line x1="716" y1="196" x2="716" y2="140" stroke="var(--teal)" stroke-width="1.4" marker-end="url(#arrT)"/>
+      <text x="724" y="172" font-size="10.5" fill="var(--teal)">reshapes UI</text>
+    </svg>
+    </div>
+    <figcaption>The first gate cleared on 3 Sep — all four scope decisions locked. The remaining amber gate is a hard stop: build starts only when the clickable prototype and the template spec are signed off. The teal track is the playbook's actual secret weapon, adopted here as a standing work stream, not a phase.</figcaption>
+  </figure>
+
+  <h3>What each phase must produce</h3>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Phase</th><th>Outputs</th><th>Exit gate</th></tr>
+    <tr><td>0 · Plan</td><td>This document; decisions D1–D4 answered; beta success metric agreed (see below)</td><td><strong>Scope freeze.</strong> The in/out lists stop moving.</td></tr>
+    <tr><td>1 · Design</td><td>UX flows + wireframes for 7 surfaces: marketing landing, onboard/analyze, Picks, light editor, calendar, analytics, and settings (account, auth incl. MFA, billing, connected TikTok/YouTube accounts). App chrome: header with logo + collapsible tools bar + pricing + login/signup; footer with privacy + terms. Convex data model; <strong>template spec</strong> (how a trend format is encoded and turned into a render plan); render-pipeline contract; visual identity <em>(locked 3 Sep: "Broadcast" — dark-first studio look, near-black graphite, one electric accent, big grotesque type, light-mode toggle; one flagship theme, no user-selectable themes — the funky/trendy variance lives in the generated content, not the chrome)</em>. Plus ~15 Mum-Test discovery calls with target users.</td><td><strong>Sign-off.</strong> Clickable prototype approved, and the template spec proven by hand-producing 3 real posts with it.</td></tr>
+    <tr><td>2 · Build</td><td>Milestones M1–M4 below, ending in a private beta to the waitlist</td><td>Beta metric hit</td></tr>
+  </table>
+  </div>
+  <div class="callout"><p><strong>Proposed beta success metric:</strong> within 4 weeks of beta, ≥10 users each publish ≥3 posts/week through the tool, at least one post crosses 50k organic views, and every beta user has taken one call with us. With card-on-file at signup (D4) and beta pricing set at $34/mo (D5), <strong>trial→paid conversion</strong> becomes the commercial signal. <strong>North star (locked 4 Sep):</strong> options so laser-focused the user swipes right, uploads, and makes more money — measured as right-swipe rate (≥30% by week 4) and tracked clicks to the user's product per week (see the learning loop in Friday Internals). If those hold, we build v2; if not, the calls tell us why.</p></div>
+</section>
+
+<section>
+  <p class="eyebrow">The product</p>
+  <h2>Core loop the design phase must specify</h2>
+  <p>One pipeline, seven stages, two feedback loops. Each arrow carries a concrete artifact — these artifacts are exactly the data model the design phase has to pin down.</p>
+  <figure>
+    <div class="scrollx">
+    <svg viewBox="0 0 940 292" role="img" aria-label="Product core loop: Analyze URL produces a brand brief, Match produces a trend format, Generate produces a rendered concept, Swipe produces keepers, Schedule produces a queued post, Publish produces a live post, Analytics produces metrics. Metrics loop back into Match as more-of-what-worked; a swipe left loops back into Generate as next concept.">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arr2T" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"/>
+        </marker>
+        <marker id="arr2A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+      <!-- boxes: y=110 h=56, w=100, x = 20,150,280,410,540,670,800 -->
+      <g font-size="13.5" font-weight="600" fill="currentColor" text-anchor="middle">
+        <rect x="20"  y="110" width="100" height="56" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+        <text x="70" y="134">Analyze</text><text x="70" y="150" font-size="10.5" font-weight="400" opacity=".6">URL scrape + LLM</text>
+        <rect x="150" y="110" width="100" height="56" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+        <text x="200" y="134">Match</text><text x="200" y="150" font-size="10.5" font-weight="400" opacity=".6">trend library</text>
+        <rect x="280" y="110" width="100" height="56" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="330" y="134">Generate</text><text x="330" y="150" font-size="10.5" font-weight="400" opacity=".6">render pipeline</text>
+        <rect x="410" y="110" width="100" height="56" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+        <text x="460" y="134">Swipe</text><text x="460" y="150" font-size="10.5" font-weight="400" opacity=".6">Picks UI</text>
+        <rect x="540" y="110" width="100" height="56" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+        <text x="590" y="134">Schedule</text><text x="590" y="150" font-size="10.5" font-weight="400" opacity=".6">calendar</text>
+        <rect x="670" y="110" width="100" height="56" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+        <text x="720" y="134">Publish</text><text x="720" y="150" font-size="10.5" font-weight="400" opacity=".6">TikTok · Shorts</text>
+        <rect x="800" y="110" width="100" height="56" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+        <text x="850" y="134">Analytics</text><text x="850" y="150" font-size="10.5" font-weight="400" opacity=".6">views · likes</text>
+      </g>
+      <!-- forward arrows + artifact labels -->
+      <g stroke="currentColor" stroke-width="1.4">
+        <line x1="120" y1="138" x2="146" y2="138" marker-end="url(#arr2)"/>
+        <line x1="250" y1="138" x2="276" y2="138" marker-end="url(#arr2)"/>
+        <line x1="380" y1="138" x2="406" y2="138" marker-end="url(#arr2)"/>
+        <line x1="510" y1="138" x2="536" y2="138" marker-end="url(#arr2)"/>
+        <line x1="640" y1="138" x2="666" y2="138" marker-end="url(#arr2)"/>
+        <line x1="770" y1="138" x2="796" y2="138" marker-end="url(#arr2)"/>
+      </g>
+      <g class="lbl" font-size="10" fill="currentColor" opacity=".65" text-anchor="middle">
+        <text x="133" y="186">brand</text><text x="133" y="198">brief</text>
+        <text x="263" y="186">trend</text><text x="263" y="198">format</text>
+        <text x="393" y="186">rendered</text><text x="393" y="198">concept</text>
+        <text x="523" y="186">keeper</text>
+        <text x="653" y="186">queued</text><text x="653" y="198">post</text>
+        <text x="783" y="186">live</text><text x="783" y="198">post</text>
+      </g>
+      <!-- feedback: analytics -> match (top) -->
+      <path d="M 850 110 L 850 52 L 200 52 L 200 106" fill="none" stroke="var(--teal)" stroke-width="1.5" marker-end="url(#arr2T)"/>
+      <text x="525" y="42" class="lbl" font-size="11" fill="var(--teal)" text-anchor="middle">metrics → generate more of what worked</text>
+      <!-- feedback: swipe -> generate (bottom) -->
+      <path d="M 460 166 L 460 232 L 330 232 L 330 170" fill="none" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr2A)"/>
+      <text x="395" y="252" class="lbl" font-size="11" fill="var(--accent)" text-anchor="middle">swipe left → next concept</text>
+      <!-- input pill -->
+      <text x="20" y="96" class="lbl" font-size="11" fill="currentColor" opacity=".65">IN: product URL</text>
+    </svg>
+    </div>
+    <figcaption>Generate (highlighted) is the hard part and the moat — M1 builds it first, headless. The teal loop is why retention exists; the red loop is why the swipe UI can be this simple.</figcaption>
+  </figure>
+  <p>Two design-phase notes that fall out of the founder interview: the Picks screen must always show the <em>reference</em> trending video beside the generated one (that pairing is the trust mechanism), and the light editor is deliberately not a timeline — swap the hook, the voiceover, or a slide, nothing more.</p>
+</section>
+
+<section>
+  <p class="eyebrow">The system</p>
+  <h2>Architecture — the founder's proven stack, almost verbatim</h2>
+  <p>The category leader's founder listed their stack on camera. It is cheap, fast to ship with, and already proven at $1M ARR for exactly this workload, so v1 copies it rather than innovating on infrastructure.</p>
+  <figure>
+    <div class="scrollx">
+    <svg viewBox="0 0 940 348" role="img" aria-label="Architecture: a Next.js browser app on Vercel talks to Convex with live queries and mutations. Convex dispatches render jobs to a Railway worker, which calls FAL for media and Claude for copy, and returns assets. Convex scheduled functions publish to the TikTok and YouTube APIs and poll metrics back. Clerk handles auth, PostHog captures events, Resend sends emails.">
+      <defs>
+        <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <!-- Browser -->
+      <rect x="40" y="60" width="210" height="90" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="56" y="84" font-size="14" font-weight="600" fill="currentColor">Web app</text>
+      <text x="56" y="102" font-size="11.5" fill="currentColor" opacity=".6">Next.js on Vercel</text>
+      <text x="56" y="118" font-size="11.5" fill="currentColor" opacity=".6">Picks · calendar · analytics</text>
+      <!-- Convex -->
+      <rect x="370" y="50" width="210" height="110" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="386" y="74" font-size="14" font-weight="600" fill="currentColor">Convex</text>
+      <text x="386" y="92" font-size="11.5" fill="currentColor" opacity=".6">database + live queries</text>
+      <text x="386" y="108" font-size="11.5" fill="currentColor" opacity=".6">job queue + scheduler</text>
+      <text x="386" y="124" font-size="11.5" fill="currentColor" opacity=".6">brand briefs · concepts · posts</text>
+      <!-- Worker (accent) -->
+      <rect x="690" y="50" width="210" height="110" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="706" y="74" font-size="14" font-weight="600" fill="currentColor">Render worker</text>
+      <text x="706" y="92" font-size="11.5" fill="currentColor" opacity=".65">Python on Railway</text>
+      <text x="706" y="108" font-size="11.5" fill="currentColor" opacity=".65">template → render plan →</text>
+      <text x="706" y="124" font-size="11.5" fill="currentColor" opacity=".65">assemble video (ffmpeg)</text>
+      <!-- browser <-> convex -->
+      <line x1="250" y1="95" x2="366" y2="95" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)" marker-start="url(#arr3)"/>
+      <text x="308" y="86" class="lbl" font-size="10.5" fill="currentColor" opacity=".7" text-anchor="middle">queries · mutations</text>
+      <!-- convex <-> worker -->
+      <line x1="580" y1="82" x2="686" y2="82" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <text x="633" y="73" class="lbl" font-size="10.5" fill="currentColor" opacity=".7" text-anchor="middle">render jobs</text>
+      <line x1="686" y1="128" x2="580" y2="128" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <text x="633" y="146" class="lbl" font-size="10.5" fill="currentColor" opacity=".7" text-anchor="middle">assets + status</text>
+      <!-- FAL + LLM under worker -->
+      <rect x="690" y="230" width="98" height="62" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="739" y="256" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">FAL</text>
+      <text x="739" y="272" font-size="10.5" fill="currentColor" opacity=".6" text-anchor="middle">image · video · TTS</text>
+      <rect x="802" y="230" width="98" height="62" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="851" y="256" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">Claude</text>
+      <text x="851" y="272" font-size="10.5" fill="currentColor" opacity=".6" text-anchor="middle">briefs · hooks · captions</text>
+      <line x1="739" y1="160" x2="739" y2="226" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <text x="748" y="196" class="lbl" font-size="10.5" fill="currentColor" opacity=".7">media</text>
+      <line x1="851" y1="160" x2="851" y2="226" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <text x="860" y="196" class="lbl" font-size="10.5" fill="currentColor" opacity=".7">copy</text>
+      <!-- publish APIs under convex -->
+      <rect x="370" y="230" width="210" height="62" rx="8" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.4"/>
+      <text x="475" y="256" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">TikTok + YouTube publish APIs</text>
+      <text x="475" y="272" font-size="10.5" fill="currentColor" opacity=".6" text-anchor="middle">TikTok audit · YT quota approval</text>
+      <line x1="440" y1="160" x2="440" y2="226" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <text x="330" y="196" class="lbl" font-size="10.5" fill="currentColor" opacity=".7">scheduled publish</text>
+      <line x1="512" y1="226" x2="512" y2="160" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <text x="522" y="196" class="lbl" font-size="10.5" fill="currentColor" opacity=".7">metrics · status</text>
+      <!-- Clerk / PostHog under browser -->
+      <rect x="40" y="230" width="98" height="62" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="89" y="256" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">Clerk</text>
+      <text x="89" y="272" font-size="10.5" fill="currentColor" opacity=".6" text-anchor="middle">auth</text>
+      <rect x="152" y="230" width="98" height="62" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="201" y="256" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">PostHog</text>
+      <text x="201" y="272" font-size="10.5" fill="currentColor" opacity=".6" text-anchor="middle">product events</text>
+      <line x1="89" y1="226" x2="89" y2="154" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <line x1="201" y1="154" x2="201" y2="226" stroke="currentColor" stroke-width="1.4" marker-end="url(#arr3)"/>
+      <!-- Resend -->
+      <rect x="264" y="230" width="82" height="62" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.2"/>
+      <text x="305" y="256" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">Resend</text>
+      <text x="305" y="272" font-size="10.5" fill="currentColor" opacity=".6" text-anchor="middle">email</text>
+      <line x1="370" y1="180" x2="316" y2="226" stroke="currentColor" stroke-width="1.2" marker-end="url(#arr3)" opacity=".7"/>
+      <!-- caption strip -->
+      <text x="40" y="330" class="lbl" font-size="10.5" fill="currentColor" opacity=".6">+ Axiom for logs · Stripe for billing at launch · Claude Code as the build tool throughout</text>
+    </svg>
+    </div>
+    <figcaption>The render worker (highlighted) is the only custom-infrastructure piece: it turns a trend template plus a brand brief into a finished vertical video. Everything else is managed services — the same ones the proven stack runs on.</figcaption>
+  </figure>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Layer</th><th>Choice</th><th>Why</th></tr>
+    <tr><td>Frontend</td><td>Next.js on Vercel</td><td>Founder-proven; fast swipe UI with prefetched media</td></tr>
+    <tr><td>Backend + DB</td><td>Convex</td><td>Live queries fit the Picks feed; built-in scheduler covers post timing; job state without extra infra</td></tr>
+    <tr><td>Render worker</td><td>Python + ffmpeg on Railway <em>(Railway confirmed over Cloud Run 3 Sep; Python confirmed 4 Sep)</em></td><td>Always-on process long-polls the Convex queue — no cold starts in the swipe path, no push infra; Python for its media ecosystem (Pillow, ffmpeg bindings) since deterministic composition is this component's whole job; stateless behind the queue, so a Cloud Run migration stays cheap post-beta</td></tr>
+    <tr><td>Media generation</td><td>FAL AI</td><td>One API for image, video, and TTS models; per-call pricing</td></tr>
+    <tr><td>Copy generation</td><td>Claude API — two call sites only</td><td>Brand brief: Claude Opus 5, one call per URL, cached forever. Creative slot-fill (hooks, slide lines, captions): Claude Haiku 4.5, one batched call per 10+ concepts. See "Determinism first" below.</td></tr>
+    <tr><td>Publishing</td><td>TikTok Content Posting API + YouTube Data API</td><td>Both in v1 (D1); OAuth per user account per platform; slideshows publish to TikTok only</td></tr>
+    <tr><td>Auth / email / logs</td><td>Clerk · Resend · Axiom</td><td>Commodity choices, zero maintenance; Clerk ships MFA (TOTP/SMS) out of the box — no custom auth code</td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Determinism first</p>
+  <h2>Where Claude is allowed — and where Python does the job</h2>
+  <p>Principle, locked 4 Sep: <strong>every pipeline stage runs as deterministic code unless creative language generation is unavoidable.</strong> Claude is confined to exactly two call sites. Everything else is Python in the render worker, or plain application code.</p>
+  <p><strong>UX guardrail (also locked 4 Sep): determinism is a cost tactic, never a UX tactic.</strong> The experience stays cutting-edge — optimize only where the user can't feel it. In practice the two goals reinforce each other: overnight Batch-API pre-generation is what makes the swipe feed feel instant; deterministic Pillow/ffmpeg assembly is what makes previews render in seconds instead of minutes; and the money saved is what funds the wow moments — 60fps swipe physics, live-publish confetti, avatar renders — where spending IS the right call.</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Stage</th><th>Runs on</th><th>Why</th></tr>
+    <tr><td>URL scrape + extraction</td><td>Python — trafilatura / readability, OG + JSON-LD parsing</td><td>Structure extraction, not creativity</td></tr>
+    <tr><td>Brand brief synthesis</td><td><strong>Claude — call site 1</strong> (Opus 5)</td><td>Tone and audience inference is genuine language understanding. One call per URL, ~$0.08, cached forever, user edits the result in onboarding</td></tr>
+    <tr><td>Trend library + matching</td><td>Hand curation + rule-based tag scoring</td><td>Tags are authored metadata; niche/format/recency scoring is arithmetic. No embeddings in v1</td></tr>
+    <tr><td>Concept copy — hooks, slide lines, captions</td><td><strong>Claude — call site 2</strong> (Haiku 4.5)</td><td>Templates are deterministic Mad-Libs: structure, timing, and layout are encoded in the template spec; Claude only fills the small creative slots. One batched call fills 10+ concepts for under a cent</td></tr>
+    <tr><td>Video assembly</td><td>Python — Pillow + ffmpeg</td><td>Slideshow frames are typographic composition + scraped product screenshots — <strong>no generative images at all</strong></td></tr>
+    <tr><td>Voiceover + caption timing</td><td>TTS API (not an LLM) + its word timestamps</td><td>Timing alignment is arithmetic on returned timestamps</td></tr>
+    <tr><td>B-roll</td><td>Stock footage APIs (Pexels / Pixabay)</td><td>Search beats generation on cost and authenticity</td></tr>
+    <tr><td>Avatar lipsync</td><td>FAL — right-swipe only</td><td>The one truly generative media call, gated behind human approval</td></tr>
+    <tr><td>Hashtags, best-time, scheduling</td><td>Lookup tables + heuristics</td><td>Niche→hashtag maps and posting-time tables; per-account stats refine them later</td></tr>
+    <tr><td>Analytics + "more like this"</td><td>Plain statistics</td><td>Winner selection is ranking over format attributes; only the fresh slot text reuses call site 2</td></tr>
+    <tr><td>Moderation</td><td>Deterministic blocklists + the right-swipe itself</td><td>Nothing publishes without human approval — the swipe is the gate</td></tr>
+  </table>
+  </div>
+  <div class="callout"><p><strong>Cost levers on the two Claude call sites:</strong> prompt caching (stable system + template prefix, per-brief content after the cache breakpoint), the Batch API at 50% off for overnight feed pre-generation (concept refresh is not latency-sensitive), structured outputs to eliminate parse retries, per-user credit caps (already in the product design), and cost-per-concept telemetry in Axiom. Expected LLM spend: <strong>well under $1 per user per month.</strong> The dominant variable cost is media APIs — TTS and avatar lipsync — which is exactly why lazy rendering on right-swipe is this plan's most important cost decision, not anything about the LLM.</p></div>
+</section>
+
+<section>
+  <p class="eyebrow">Phase 2 preview</p>
+  <h2>Build milestones — each one proves something</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Milestone</th><th>Weeks</th><th>Ships</th><th>Proves</th></tr>
+    <tr><td>M1 · The magic</td><td>1–3</td><td>Headless pipeline: URL in → brand brief → 10 rendered concepts out across all three formats (slideshow, hook video, avatar), no UI</td><td>The generated content is actually good enough to post. <strong>If M1 output is weak, we stop and fix it before writing any UI.</strong></td></tr>
+    <tr><td>M2 · The swipe</td><td>4–5</td><td>Picks UI over the pipeline: reference + generated side by side, swipe, save, light edit; full-res avatar renders trigger on right-swipe</td><td>Curation feels effortless; concepts load fast enough to swipe through</td></tr>
+    <tr><td>M3 · The loop</td><td>6–7</td><td>TikTok + YouTube OAuth, calendar, scheduled direct publish to both</td><td>A post goes from swipe to live without leaving the app</td></tr>
+    <tr><td>M4 · The flywheel</td><td>8–9</td><td>Metrics ingestion, "more like this", waitlist beta invite, book-a-call button; Stripe card-on-file + 30-day trial logic with a first-500 counter</td><td>The feedback loop retains users; beta and conversion metrics become measurable</td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Known risks</p>
+  <h2>What can hurt us, and the mitigation in the plan</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Risk</th><th>Reality</th><th>Mitigation</th></tr>
+    <tr><td>TikTok API audit</td><td>Unaudited apps can only post to drafts/private; direct publish needs approval</td><td>Apply during design phase; M3 ships draft-mode publishing as fallback</td></tr>
+    <tr><td>YouTube API quota</td><td>A video upload costs ~1,600 of a default 10,000 units/day — roughly 6 uploads/day across <em>all</em> users until Google grants an increase; uploads from unaudited apps can be locked private</td><td>Apply for the quota increase and API audit during design phase, in parallel with TikTok's</td></tr>
+    <tr><td>Generation cost</td><td>FAL video + TTS per concept adds up when users swipe through dozens; avatar lipsync is the priciest render of the three formats</td><td>Slideshows render cheaply up front; hook videos and avatar lipsync render full-res lazily, on right-swipe only — the swipe feed previews avatars as stills + script</td></tr>
+    <tr><td>Trend library sourcing</td><td>Reference videos are other creators' content</td><td>Store links + metadata and embed/preview only — never rehost; tagging is manual curation in v1</td></tr>
+    <tr><td>Output quality on thin sites</td><td>Weak input URL → weak brand brief → generic content (the market leader's own known weakness)</td><td>Brand-brief review step in onboarding: user confirms/edits the brief before generation</td></tr>
+    <tr><td>Content safety</td><td>Auto-generated claims about a user's product can be wrong or non-compliant</td><td>Nothing publishes without a right-swipe; user approval is a hard gate in the loop</td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Scope frozen</p>
+  <h2>All four decisions, locked</h2>
+  <p>Locked 3 Sep 2026. Recorded here with their implications; changing any of them reopens the scope freeze.</p>
+  <div class="decision locked">
+    <span class="mono">D1 · PLATFORM ORDER — LOCKED</span>
+    <p><strong>TikTok + YouTube Shorts in v1; Instagram is the fast follow.</strong> YouTube's Data API is openly available, so the second platform is cheap to add — OAuth + upload is far simpler than Instagram's Business-account-conversion + Meta-review path. Three implications the design phase carries: <strong>(1)</strong> slideshows are TikTok photo-mode only — Shorts gets hook and avatar videos, and whether slideshows auto-convert to video montages for Shorts is a design-phase call; <strong>(2)</strong> YouTube's quota increase and TikTok's audit both get applied for during design (see risks); <strong>(3)</strong> the metrics loop normalizes two platforms' analytics from M4, so the publish and metrics layers are specified platform-agnostic.</p>
+  </div>
+  <div class="decision locked">
+    <span class="mono">D2 · V1 FORMATS — LOCKED</span>
+    <p><strong>AI avatars are in</strong>, alongside slideshows and faceless hook videos. Constrained to keep the scope razor-thin: ~20 curated stock characters (not 1,000, no build-your-own until v2), previewed in the swipe feed as still + script, with the expensive lipsync render triggered only on right-swipe. Adds ~1 week to the build (now ~9 weeks).</p>
+  </div>
+  <div class="decision locked">
+    <span class="mono">D3 · TARGET USER — LOCKED</span>
+    <p><strong>Solo app/SaaS builders</strong> — the category's proven wedge. The trend library, onboarding copy, and the first 15 discovery calls all target this niche.</p>
+  </div>
+  <div class="decision locked">
+    <span class="mono">D4 · MONETIZATION — LOCKED</span>
+    <p><strong>Private beta → paid at launch, card required at signup.</strong> The first 500 customers enter a 30-day free window, then billing starts automatically; signups after the first 500 pay from day one. Stripe card-on-file, trial logic, and the first-500 counter ship in M4. Card-at-signup will shrink raw signup volume, but it filters for intent and makes trial→paid conversion a real metric from the first beta cohort. The 7-extra-days-for-a-call mechanic stays, granted as trial extensions.</p>
+  </div>
+  <div class="decision locked">
+    <span class="mono">D5 · NAME + PRICING — LOCKED</span>
+    <p><strong>Product name: Man Friday</strong> (manfriday.app) — the dependable content sidekick; "Project Viral" stays the internal codename. <strong>Pricing rule: 0.7× the market leader.</strong> The leader anchors at $29 / $49 / $149; Man Friday ladders at <strong>$19 / $34 / $99</strong>, 20% off annual. The beta runs a single plan: Founding 500 → 30-day trial → <strong>$34/mo</strong> (the Growth-equivalent anchor). Margins hold at 0.7× because variable cost is credits, not seats: LLM spend is under $1/user/mo under determinism-first, and media credits (TTS, lipsync) are the margin dial — allowances sized so COGS stays under ~30% of price.</p>
+  </div>
+  <div class="callout"><p><strong>Scope is frozen.</strong> Next: the design phase — wireframes for the 5 screens, Convex schema, template spec, a platform-agnostic publish-layer contract covering TikTok + YouTube, both API applications, and the first 15 discovery calls. Build does not start until the design gate clears.</p></div>
+</section>
+
+</div>

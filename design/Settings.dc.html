@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Spline+Sans+Mono:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "Instrument Sans", system-ui, sans-serif; background: #0C0B10; color: #F4F3F7; -webkit-font-smoothing: antialiased; }
+    a { color: #FF4D6D; text-decoration: none; } a:hover { color: #FF7590; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #0C0B10; display: flex;">
+
+  <!-- Left rail -->
+  <div style="width: 220px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #1F1D28; padding: 24px 16px;">
+    <div style="display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; align-items: center; gap: 9px; padding: 0 10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#FF4D6D"></path></svg>
+        <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 14px; letter-spacing: 0.04em;">MAN FRIDAY</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+          Picks
+        </div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>
+          Calendar
+        </div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M7 13l3-3 4 4 5-6"></path></svg>
+          Analytics
+        </div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; background: #1A1922; color: #F4F3F7; font-size: 14.5px; font-weight: 600;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF4D6D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Settings
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; background: #14131A; border: 1px solid #1F1D28; border-radius: 12px; padding: 16px;">
+      <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 14.5px; line-height: 1.35;">Book a call, get +7 days</div>
+      <div style="font-size: 12.5px; line-height: 1.5; color: #A5A1B2;">20 min with Friday's makers.</div>
+      <div style="border: 1px solid #45E0B0; color: #45E0B0; font-weight: 600; font-size: 12.5px; padding: 8px 0; border-radius: 999px; text-align: center;">Book a call</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div style="flex: 1; display: flex; flex-direction: column; padding: 28px 36px; gap: 22px;">
+    <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 800; font-size: 28px;">Settings</div>
+
+    <!-- Tabs -->
+    <div style="display: flex; gap: 6px; border-bottom: 1px solid #1F1D28; padding-bottom: 0;">
+      <div style="font-size: 14.5px; font-weight: 500; color: #A5A1B2; padding: 10px 18px;">Account</div>
+      <div style="font-size: 14.5px; font-weight: 600; color: #F4F3F7; padding: 10px 18px; border-bottom: 2px solid #FF4D6D;">Security</div>
+      <div style="font-size: 14.5px; font-weight: 500; color: #A5A1B2; padding: 10px 18px;">Billing</div>
+      <div style="font-size: 14.5px; font-weight: 500; color: #A5A1B2; padding: 10px 18px;">Connected accounts</div>
+    </div>
+
+    <!-- Two columns -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px;">
+
+      <!-- Security -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 18px; background: #14131A; border: 1px solid #1F1D28; border-radius: 14px; padding: 26px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">Two-factor authentication</div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 8px; height: 8px; border-radius: 999px; background: #45E0B0;"></div>
+                <div style="font-size: 13.5px; color: #A5A1B2;">On · authenticator app</div>
+              </div>
+            </div>
+            <div style="width: 46px; height: 26px; border-radius: 999px; background: #45E0B0; display: flex; align-items: center; justify-content: flex-end; padding: 0 3px;">
+              <div style="width: 20px; height: 20px; border-radius: 999px; background: #0C0B10;"></div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div style="border: 1px solid #262430; color: #F4F3F7; font-weight: 500; font-size: 13.5px; padding: 9px 18px; border-radius: 999px;">View backup codes</div>
+            <div style="border: 1px solid #262430; color: #F4F3F7; font-weight: 500; font-size: 13.5px; padding: 9px 18px; border-radius: 999px;">Change method</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; background: #14131A; border: 1px solid #1F1D28; border-radius: 14px; padding: 26px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">Password</div>
+              <div style="font-size: 13.5px; color: #A5A1B2;">Last changed 12 days ago</div>
+            </div>
+            <div style="border: 1px solid #262430; color: #F4F3F7; font-weight: 500; font-size: 13.5px; padding: 9px 18px; border-radius: 999px;">Change password</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; background: #14131A; border: 1px solid #1F1D28; border-radius: 14px; padding: 26px;">
+          <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">Active sessions</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #1F1D28;">
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 14.5px; font-weight: 500;">MacBook Pro · Chrome</div>
+              <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #45E0B0;">THIS DEVICE</div>
+            </div>
+            <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #6B677A;">San Jose, US</div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 14.5px; font-weight: 500;">iPhone · Safari</div>
+              <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #6B677A;">2 HOURS AGO</div>
+            </div>
+            <div style="font-size: 13px; color: #FF4D6D; font-weight: 500;">Revoke</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right rail: plan + connected -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 14px; background: #14131A; border: 1.5px solid #FF4D6D; border-radius: 14px; padding: 26px; box-shadow: 0 0 40px rgba(255, 77, 109, 0.12);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em; color: #FF4D6D;">FOUNDING 500 · TRIAL</div>
+            <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #6B677A;">#217</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 30px;">23 days left</div>
+            <div style="font-size: 14px; color: #A5A1B2;">then $34/mo · cancel anytime before</div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #1A1922; border: 1px solid #262430; border-radius: 10px; padding: 12px 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+              <div style="font-family: 'Spline Sans Mono', monospace; font-size: 13px;">Visa ···· 4242</div>
+            </div>
+            <div style="font-size: 13px; color: #FF4D6D; font-weight: 500;">Update</div>
+          </div>
+          <div style="border: 1px solid #262430; color: #F4F3F7; font-weight: 500; font-size: 13.5px; padding: 10px 0; border-radius: 999px; text-align: center;">Manage billing →</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px; background: #14131A; border: 1px solid #1F1D28; border-radius: 14px; padding: 26px;">
+          <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">Connected accounts</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid #1F1D28;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: #1A1922; border: 1px solid #262430; display: flex; align-items: center; justify-content: center;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F4F3F7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <div style="font-size: 14.5px; font-weight: 600;">TikTok</div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <div style="width: 7px; height: 7px; border-radius: 999px; background: #45E0B0;"></div>
+                  <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #A5A1B2;">@loopnote</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size: 13px; color: #6B677A; font-weight: 500;">Disconnect</div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: #1A1922; border: 1px solid #262430; display: flex; align-items: center; justify-content: center;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F4F3F7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10 8 6 4-6 4z"></path><rect x="2" y="4" width="20" height="16" rx="4"></rect></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <div style="font-size: 14.5px; font-weight: 600;">YouTube</div>
+                <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; color: #6B677A;">Friday can't post here yet</div>
+              </div>
+            </div>
+            <div style="background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 13px; padding: 8px 18px; border-radius: 999px;">Connect</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

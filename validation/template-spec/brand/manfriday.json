@@ -1,0 +1,25 @@
+{
+  "brand": "manfriday",
+  "name": "Man Friday",
+  "url": "https://manfriday.app",
+  "palette": {
+    "graphite": "#0C0B10",
+    "panel": "#14131A",
+    "panelEdge": "#1F1D28",
+    "accent": "#FF4D6D",
+    "accentSoft": "#FF7590",
+    "mint": "#45E0B0",
+    "amber": "#F5C044",
+    "text": "#F4F3F7",
+    "textDim": "#A5A1B2"
+  },
+  "screenshots": {
+    "hero": "brand/hero.png",
+    "product": "brand/product.png"
+  },
+  "fonts": {
+    "display": "fonts/Archivo.ttf",
+    "body": "fonts/InstrumentSans.ttf",
+    "mono": "fonts/SplineSansMono.ttf"
+  }
+}

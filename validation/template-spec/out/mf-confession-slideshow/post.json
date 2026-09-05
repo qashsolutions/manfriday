@@ -1,0 +1,19 @@
+{
+  "format": "slideshow",
+  "platforms": [
+    "tiktok"
+  ],
+  "caption": "I didn't get better at content. I gave the job to Friday. #buildinpublic #solofounder",
+  "music": {
+    "mood": "lofi-build",
+    "source": "licensed_library"
+  },
+  "slides": [
+    "slide_1.png",
+    "slide_2.png",
+    "slide_3.png",
+    "slide_4.png",
+    "slide_5.png",
+    "slide_6.png"
+  ]
+}

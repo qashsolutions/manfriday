@@ -1,0 +1,6 @@
+# working files — post.mp4 / slide PNGs / post.json are the committed proof
+out/*/seg_*.png
+out/*/vo.wav
+out/_hook_*.png
+out/_avatar_*.png
+fonts/*.ttf
