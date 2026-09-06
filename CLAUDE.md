@@ -77,3 +77,17 @@ Marketing copy leads with click attribution ("see which post sent people to your
 
 Customer calls are a standing work stream, not a phase: book-a-call button ships day one
 (+7 trial days per call), ~20 calls/week target, Mum-Test questions, silent usability tests.
+
+<!-- convex-ai-start -->
+
+This project uses [Convex](https://convex.dev) as its backend.
+
+When working on Convex code, **always read
+`convex/_generated/ai/guidelines.md` first** for important guidelines on
+how to correctly use Convex APIs and patterns. The file contains rules that
+override what you may have learned about Convex from training data.
+
+Convex agent skills for common tasks can be installed by running
+`npx convex ai-files install`.
+
+<!-- convex-ai-end -->
