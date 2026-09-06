@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Waitlist } from "@clerk/nextjs";
 import { TIERS, TRIAL, FOUNDING } from "@/lib/site";
 import styles from "../auth.module.css";
 
@@ -60,14 +61,12 @@ export default function SignupPage() {
               Free for {TRIAL.days} days — no card on day one · then from ${solo.monthly}/mo
             </p>
           </div>
-          {/* Clerk mounts here in M2 (passkey · Google · email, MFA) */}
-          <div className={styles.betaNote}>
-            <span className={`mono ${styles.betaLabel}`}>PRIVATE BETA</span>
-            <p>
-              Friday is onboarding the {FOUNDING.label} in small batches. Accounts open here
-              shortly — founding pricing is locked for the first {FOUNDING.cap}.
-            </p>
-          </div>
+          {/* Waitlist mode until the beta opens; swap <Waitlist/> → <SignUp/> then. */}
+          <Waitlist />
+          <p className={styles.cardFine}>
+            Friday is onboarding the {FOUNDING.label} in small batches — join the list and
+            founding pricing is locked for the first {FOUNDING.cap}.
+          </p>
           <div className={`mono ${styles.steps}`}>
             <span className={styles.stepDone}>1 ACCOUNT</span>
             <span>→</span>

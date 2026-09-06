@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Archivo, Instrument_Sans, Spline_Sans_Mono } from "next/font/google";
 import { SITE } from "@/lib/site";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
 
 const display = Archivo({
@@ -38,7 +40,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <ClerkProvider appearance={clerkAppearance}>{children}</ClerkProvider>
+      </body>
     </html>
   );
 }
