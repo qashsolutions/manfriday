@@ -38,7 +38,7 @@ Claude is confined to **exactly two call sites**:
 1. **Brand brief synthesis** — Claude Opus 5, one call per URL, cached forever, user edits result.
 2. **Creative slot-fill** (hooks, slide lines, captions) — **Claude Opus (user directive 6 Sep: at least Opus 4.8 — use `claude-opus-5`; never Haiku)**, one batched call per 10+ concepts, structured outputs, prompt caching, Batch API for overnight pre-generation. ~1-2¢/video; still <2% of price under determinism-first.
 
-Everything else is deterministic code: scraping (trafilatura/OG/JSON-LD), trend matching (tag scoring, no embeddings), video assembly (Pillow + ffmpeg; backgrounds = brand screenshots / gradients / stock only — **never generative images**), caption timing (TTS word timestamps), hashtags/best-time (lookup tables), analytics ("plain stats").
+Everything else is deterministic code: scraping (trafilatura/OG/JSON-LD), trend matching (tag scoring, no embeddings), trend-reference ingestion (page-fetch baseline via worker/pipeline/curate.py — always free/works; vidIQ is an optional paid enrichment layer at launch, never a dependency; decided 7 Sep), video assembly (Pillow + ffmpeg; backgrounds = brand screenshots / gradients / stock only — **never generative images**), caption timing (TTS word timestamps), hashtags/best-time (lookup tables), analytics ("plain stats").
 **UX guardrail:** determinism is a cost tactic, never a UX tactic — optimize only where the user can't feel it.
 
 ## North star
