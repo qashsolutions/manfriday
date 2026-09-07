@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TRIAL, FOUNDING, TIERS } from "@/lib/site";
+import { FOUNDING, TIERS } from "@/lib/site";
 import styles from "./Hero.module.css";
 
 export function Hero() {
@@ -25,8 +25,7 @@ export function Hero() {
         </Link>
       </div>
       <p className={`mono ${styles.fine}`}>
-        Free for {TRIAL.days} days — no card on day one · {FOUNDING.label}: 3 years from $
-        {TIERS[0].threeYear}
+        Start free — no card · {FOUNDING.label}: 3 years from ${TIERS[0].threeYear}
       </p>
     </section>
   );

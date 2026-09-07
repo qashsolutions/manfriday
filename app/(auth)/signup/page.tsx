@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Waitlist } from "@clerk/nextjs";
-import { TIERS, TRIAL, FOUNDING } from "@/lib/site";
+import { TIERS, FREE, FOUNDING } from "@/lib/site";
 import styles from "../auth.module.css";
 
 export const metadata: Metadata = {
   title: "Hire Friday",
-  description: `Create your Man Friday account. Free for ${TRIAL.days} days — no card on day one. ${FOUNDING.label}: 3 years from $${TIERS[0].threeYear}.`,
+  description: `Create your Man Friday account free — no card, ${FREE.videosTotal} videos on us. ${FOUNDING.label}: 3 years from $${TIERS[0].threeYear}.`,
 };
 
 const PITCH = [
@@ -36,8 +36,8 @@ export default function SignupPage() {
         <p className="eyebrow">Hire Friday</p>
         <h1 className={`display ${styles.title}`}>Friday starts today.</h1>
         <p className={styles.sub}>
-          Create the account free, hand over the posting. Friday learns your product next — a
-          card only joins on day {TRIAL.cardByDay}.
+          Create the account free — no card. Friday learns your product, makes your first{" "}
+          {FREE.videosTotal} videos on the house, and you upgrade only when you want volume.
         </p>
         <div className={styles.points}>
           {PITCH.map((p) => (
@@ -58,7 +58,7 @@ export default function SignupPage() {
           <div>
             <h2 className={styles.cardTitle}>Create your account</h2>
             <p className={styles.cardSub}>
-              Free for {TRIAL.days} days — no card on day one · then from ${solo.monthly}/mo
+              Start free · {FREE.videosTotal} videos on us · from ${solo.monthly}/mo when ready
             </p>
           </div>
           {/* Waitlist mode until the beta opens; swap <Waitlist/> → <SignUp/> then. */}
@@ -70,13 +70,13 @@ export default function SignupPage() {
           <div className={`mono ${styles.steps}`}>
             <span className={styles.stepDone}>1 ACCOUNT</span>
             <span>→</span>
-            <span>2 CARD · DAY {TRIAL.cardByDay}</span>
+            <span>2 FRIDAY&apos;S BRIEF</span>
             <span>→</span>
-            <span>3 FRIDAY&apos;S BRIEF</span>
+            <span>3 FIRST VIDEOS FREE</span>
           </div>
           <p className={styles.cardFine}>
-            No card needed today — add one on day {TRIAL.cardByDay} to keep the trial running.
-            3-year founding plans are pay-today, no cancellation.
+            No card until you subscribe. 3-year founding plans are pay-today, no
+            cancellation — first {FOUNDING.cap} customers only.
           </p>
         </div>
         <p className={`mono ${styles.security}`}>

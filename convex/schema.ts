@@ -2,8 +2,8 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 // Friday Internals · contract 1 (+ learning-loop tables from contract 4),
-// updated for D4v3/D5v4: two tiers × four terms, Founding 200, 7-day trial
-// with card-by-day-2, pause. Key choices: publications are normalized away
+// updated for D4v4/D5v5: Free tier (no timed trial; card only at checkout),
+// two tiers × four terms, videos/month as the visible unit, Founding 200, pause. Key choices: publications are normalized away
 // from posts (one post → N platform publications); the render queue lives in
 // the DB (Python worker long-polls renderJobs); credits are an append-only
 // ledger with users.credits as cache; YouTube's daily quota gets its own
@@ -24,6 +24,7 @@ export default defineSchema({
       ),
     ),
     plan: v.union(
+      v.literal("free"),
       v.literal("trial"),
       v.literal("active"),
       v.literal("paused"),
@@ -31,11 +32,12 @@ export default defineSchema({
       v.literal("none"),
     ),
     trialEndsAt: v.optional(v.number()),
-    cardAddedAt: v.optional(v.number()), // D4v3: required by day 2 of trial
+    cardAddedAt: v.optional(v.number()), // D4v4: card appears only at paid checkout
     pausedUntil: v.optional(v.number()), // pause ≤3 days; days added to term
     stripeCustomerId: v.optional(v.string()),
-    credits: v.number(), // cached sum of creditLedger
-    savesUsedThisPeriod: v.number(), // content saves consumed this period
+    credits: v.number(), // cached sum of creditLedger (internal metering)
+    videosUsedThisPeriod: v.number(), // rendered videos this period (the visible unit)
+    avatarVideosUsedThisPeriod: v.number(), // avatar sub-cap consumption
     timezone: v.string(), // IANA; publish slots resolve here
   }).index("by_clerkId", ["clerkId"]),
 

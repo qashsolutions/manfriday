@@ -192,3 +192,64 @@
     gap: 12px;
   }
 }
+
+.planGridRow {
+  padding: 4px 22px 18px;
+  border-bottom: 1px solid var(--edge);
+}
+
+.planTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.planTable th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  font-weight: 600;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--edge);
+}
+
+.planTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--edge);
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.planTable td strong {
+  color: var(--ink);
+}
+
+.planHi {
+  color: var(--accent) !important;
+}
+
+.planFoundingRow td {
+  border-bottom: 0;
+}
+
+.planBadge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 1px 7px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.planFine {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  margin: 10px 0 0;
+}

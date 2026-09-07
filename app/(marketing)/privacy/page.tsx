@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TRIAL } from "@/lib/site";
+import { POLICY } from "@/lib/site";
 import styles from "../legal.module.css";
 
 export const metadata: Metadata = { title: "Privacy Policy", robots: { index: false } };
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       <p>
         <strong>Account data</strong> — email and sign-in methods (passkeys, Google, password)
         and optional two-factor settings, handled by our auth provider, Clerk. Sessions expire
-        after {TRIAL.inactivityLogoutMinutes} minutes of inactivity.
+        after {POLICY.inactivityLogoutMinutes} minutes of inactivity.
       </p>
       <p>
         <strong>Your product&apos;s public website</strong> — read once to write your brand

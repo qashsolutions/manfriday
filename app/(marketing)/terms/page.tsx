@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TIERS, TRIAL, FOUNDING } from "@/lib/site";
+import { TIERS, FREE, TOPUP, POLICY, FOUNDING } from "@/lib/site";
 import styles from "../legal.module.css";
 
 export const metadata: Metadata = { title: "Terms of Service", robots: { index: false } };
@@ -18,9 +18,9 @@ export default function TermsPage() {
         with each platform&apos;s rules and with the law in your market.
       </p>
       <p>
-        <strong>Trial.</strong> Every plan starts with a {TRIAL.days}-day free trial. No card
-        is required on day one; a valid card must be added by day {TRIAL.cardByDay} for the
-        trial to continue. Billing starts when the trial ends.
+        <strong>Free plan.</strong> Accounts start free with no card: browse the full Picks
+        feed and render {FREE.videosTotal} videos on us (one-time allowance). A card is
+        required only when you subscribe to a paid plan.
       </p>
       <p>
         <strong>Plans and billing.</strong> Two tiers ({TIERS[0].name} and {TIERS[1].name}),
@@ -28,17 +28,17 @@ export default function TermsPage() {
         anytime, effective at period end. Quarterly and annual prepaid terms are refundable
         within the first 14 days, then non-refundable. The <strong>{FOUNDING.label} 3-year
         plan is pay-today, non-cancellable, and non-refundable</strong> — it is limited to the
-        first {FOUNDING.cap} customers and priced accordingly. Monthly allowances (content
-        saves and studio credits) reset each month and don&apos;t roll over; top-up packs are
-        available.
+        first {FOUNDING.cap} customers and priced accordingly. Monthly video allowances (including the avatar sub-cap)
+        reset each month and don&apos;t roll over; top-up packs (+{TOPUP.videos} videos for $
+        {TOPUP.price}) are available.
       </p>
       <p>
-        <strong>Pausing.</strong> Any plan can be paused for up to {TRIAL.pauseMaxDays} days;
+        <strong>Pausing.</strong> Any paid plan can be paused for up to {POLICY.pauseMaxDays} days;
         paused days are added to the end of your current term.
       </p>
       <p>
         <strong>Sessions and security.</strong> Sessions sign out automatically after{" "}
-        {TRIAL.inactivityLogoutMinutes} minutes of inactivity. Keep your sign-in methods
+        {POLICY.inactivityLogoutMinutes} minutes of inactivity. Keep your sign-in methods
         (passkeys, password, 2FA) to yourself; you&apos;re responsible for activity under your
         account.
       </p>

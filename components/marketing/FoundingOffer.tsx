@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TIERS, TRIAL, FOUNDING, SHARED_FEATURES } from "@/lib/site";
+import { TIERS, FOUNDING, SHARED_FEATURES } from "@/lib/site";
 import styles from "./FoundingOffer.module.css";
 
 function Check() {
@@ -38,8 +38,8 @@ export function FoundingOffer() {
             Claim a founding spot →
           </Link>
           <p className={`mono ${styles.fine}`}>
-            pay today · no cancellation · first {FOUNDING.cap} customers only — or start free for{" "}
-            {TRIAL.days} days, then from ${solo.monthly}/mo
+            pay today · no cancellation · first {FOUNDING.cap} customers only — or start
+            free with no card, from ${solo.monthly}/mo when you&apos;re ready
           </p>
         </article>
 

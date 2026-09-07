@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { TIERS, TRIAL, FOUNDING, LANGUAGES } from "@/lib/site";
+import { TIERS, FREE, POLICY, FOUNDING, LANGUAGES } from "@/lib/site";
 import styles from "./SettingsPanel.module.css";
 
 /* Static shell today: theme + language persist locally; every row marked M2/M4
@@ -96,7 +96,7 @@ export function SettingsPanel() {
               <div>
                 <p className={styles.rowTitle}>Automatic sign-out</p>
                 <p className={styles.rowSub}>
-                  You&apos;re signed out after {TRIAL.inactivityLogoutMinutes} minutes of inactivity.
+                  You&apos;re signed out after {POLICY.inactivityLogoutMinutes} minutes of inactivity.
                 </p>
               </div>
               <span className={`mono ${styles.fixed}`}>ALWAYS ON</span>
@@ -144,15 +144,64 @@ export function SettingsPanel() {
             <div className={styles.row}>
               <div>
                 <p className={styles.rowTitle}>
-                  Current plan <span className={`mono ${styles.trialChip}`}>TRIAL · DAY 1 OF {TRIAL.days} · ADD CARD BY DAY {TRIAL.cardByDay}</span>
+                  Current plan <span className={`mono ${styles.trialChip}`}>FREE · {FREE.videosTotal} VIDEOS INCLUDED · NO CARD</span>
                 </p>
                 <p className={styles.rowSub}>
-                  {solo.name} · ${solo.monthly}/mo after trial · {solo.saves} saves + {solo.credits} credits monthly · renews [DATE]
+                  Browse the full feed, render {FREE.videosTotal} videos on us — upgrade below
+                  when you want volume.
                 </p>
               </div>
               <Link href="/pricing" className={styles.ghostBtn}>
-                Change plan
+                Compare
               </Link>
+            </div>
+            <div className={styles.planGridRow}>
+              <table className={styles.planTable}>
+                <thead>
+                  <tr>
+                    <th></th>
+                    {TIERS.map((t) => (
+                      <th key={t.id} className={t.highlight ? styles.planHi : undefined}>
+                        {t.name} · {t.videos} videos/mo
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Monthly</td>
+                    {TIERS.map((t) => (
+                      <td key={t.id}>${t.monthly}/mo</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Quarterly</td>
+                    {TIERS.map((t) => (
+                      <td key={t.id}>${t.quarterly}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Annual</td>
+                    {TIERS.map((t) => (
+                      <td key={t.id}>${t.annual}</td>
+                    ))}
+                  </tr>
+                  <tr className={styles.planFoundingRow}>
+                    <td>
+                      3 years <span className={styles.planBadge}>{FOUNDING.label.toUpperCase()}</span>
+                    </td>
+                    {TIERS.map((t) => (
+                      <td key={t.id}>
+                        <strong>${t.threeYear} once</strong>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+              <p className={styles.planFine}>
+                {FOUNDING.label}: first {FOUNDING.cap} customers · pay today · no cancellation ·
+                [NN] spots left
+              </p>
             </div>
             <div className={styles.row}>
               <div>
@@ -167,8 +216,8 @@ export function SettingsPanel() {
               <div>
                 <p className={styles.rowTitle}>Pause plan</p>
                 <p className={styles.rowSub}>
-                  Up to {TRIAL.pauseMaxDays} days — Friday holds the queue, and the paused days are
-                  added to your term.
+                  Up to {POLICY.pauseMaxDays} days — Friday holds the queue, and the paused days are
+                  added to your term. Paid plans only.
                 </p>
               </div>
               <button

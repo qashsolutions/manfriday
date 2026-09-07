@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TIERS, TRIAL, FOUNDING, SHARED_FEATURES, LANGUAGES } from "@/lib/site";
+import {
+  TIERS,
+  FREE,
+  TOPUP,
+  POLICY,
+  FOUNDING,
+  SHARED_FEATURES,
+  LANGUAGES,
+} from "@/lib/site";
 import styles from "./pricing.module.css";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: `Solo from $${TIERS[0].monthly}/mo, Studio from $${TIERS[1].monthly}/mo — free for ${TRIAL.days} days, no card on day one. ${FOUNDING.label}: 3 years from $${TIERS[0].threeYear}.`,
+  description: `Start free — no card. Solo $${TIERS[0].monthly}/mo for ${TIERS[0].videos} videos, Studio $${TIERS[1].monthly}/mo for ${TIERS[1].videos}. ${FOUNDING.label}: 3 years for $${TIERS[0].threeYear}.`,
 };
 
 function perMonth(n: number, months: number) {
@@ -18,14 +26,36 @@ export default function PricingPage() {
     <div className="wrap">
       <header className={styles.head}>
         <p className="eyebrow">Pricing</p>
-        <h1 className={`display ${styles.title}`}>Two ways to hire Friday.</h1>
+        <h1 className={`display ${styles.title}`}>Videos per month. That&apos;s the whole unit.</h1>
         <p className={styles.sub}>
-          Same product on both — every format, both platforms, all {LANGUAGES.length}{" "}
-          languages. The tiers differ only in how much Friday makes for you each month.
+          Every plan gets every feature — all formats, both platforms, all {LANGUAGES.length}{" "}
+          languages. You&apos;re only choosing how many videos Friday makes for you.
         </p>
       </header>
 
       <div className={styles.grid}>
+        {/* Free */}
+        <article className={styles.card}>
+          <h2 className={`display ${styles.tierName}`}>{FREE.name}</h2>
+          <p className={styles.priceRow}>
+            <span className={`display ${styles.price}`}>$0</span>
+          </p>
+          <ul className={styles.entitlements}>
+            <li>
+              <strong>{FREE.videosTotal}</strong> videos to try — one-time
+            </li>
+            <li>Browse the full Picks feed</li>
+            <li>
+              <strong>{FREE.workspaces}</strong> workspace
+            </li>
+            <li>No card required</li>
+          </ul>
+          <div className={styles.spacer} />
+          <Link href="/signup" className="btn btn--ghost" style={{ width: "100%", fontSize: 15 }}>
+            Start free →
+          </Link>
+        </article>
+
         {TIERS.map((t) => (
           <article key={t.id} className={`${styles.card} ${t.highlight ? styles.flagship : ""}`}>
             {t.highlight && <span className={`mono ${styles.badge}`}>MOST FRIDAY</span>}
@@ -36,14 +66,15 @@ export default function PricingPage() {
             </p>
             <ul className={styles.entitlements}>
               <li>
-                <strong>{t.saves}</strong> content saves / month
+                <strong>{t.videos}</strong> videos / month, any format
               </li>
               <li>
-                <strong>{t.credits}</strong> AI studio credits / month
+                up to <strong>{t.avatarVideos}</strong> with your AI presenter
               </li>
               <li>
                 <strong>{t.workspaces}</strong> workspaces
               </li>
+              <li>Publishes on schedule, hands-free</li>
             </ul>
             <div className={styles.terms}>
               <div className={styles.termRow}>
@@ -69,7 +100,7 @@ export default function PricingPage() {
               className={`btn ${t.highlight ? "btn--accent" : "btn--ghost"}`}
               style={{ width: "100%", fontSize: 15 }}
             >
-              Start {t.name} free →
+              Start {t.name} →
             </Link>
           </article>
         ))}
@@ -82,15 +113,14 @@ export default function PricingPage() {
             <li key={f}>{f}</li>
           ))}
         </ul>
-        <p className={styles.langs}>
-          {LANGUAGES.map((l) => l.name).join(" · ")}
-        </p>
+        <p className={styles.langs}>{LANGUAGES.map((l) => l.name).join(" · ")}</p>
         <p className={styles.fine}>
-          Every plan starts with <strong>{TRIAL.days} free days — no card on day one</strong>;
-          add a card on day {TRIAL.cardByDay} to keep the trial running. The 3-year{" "}
+          <strong>Start free, no card</strong> — a card only appears when you subscribe. Video
+          allowances reset monthly and don&apos;t roll over; need more, add{" "}
+          <strong>+{TOPUP.videos} videos for ${TOPUP.price}</strong> anytime. The 3-year{" "}
           {FOUNDING.label} plan is pay-today, no cancellation, first {FOUNDING.cap} customers
-          only. Need more volume? Credit top-ups are available on any plan. Pause any plan for
-          up to {TRIAL.pauseMaxDays} days — paused days are added to your term.
+          only. Pause any paid plan for up to {POLICY.pauseMaxDays} days — paused days are
+          added to your term.
         </p>
       </section>
     </div>
