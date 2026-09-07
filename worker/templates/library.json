@@ -1,0 +1,39 @@
+{
+  "_comment": "Curation metadata per template slug. refUrl/views are hand-curated from real trend references; [PLACEHOLDER] entries await the trend-curation pass (design-gate item). References are linked, never rehosted.",
+  "confession-turnaround-slideshow": {
+    "refUrl": "[PLACEHOLDER-TREND-REF]",
+    "platform": "tiktok",
+    "views": 2900000,
+    "engagementScore": 92
+  },
+  "bold-claim-hook-video": {
+    "refUrl": "[PLACEHOLDER-TREND-REF]",
+    "platform": "tiktok",
+    "views": 1400000,
+    "engagementScore": 85
+  },
+  "hot-take-avatar": {
+    "refUrl": "[PLACEHOLDER-TREND-REF]",
+    "platform": "youtube",
+    "views": 2100000,
+    "engagementScore": 88
+  },
+  "listicle-tools-slideshow": {
+    "refUrl": "[PLACEHOLDER-TREND-REF]",
+    "platform": "tiktok",
+    "views": 3600000,
+    "engagementScore": 90
+  },
+  "pov-hook-video": {
+    "refUrl": "[PLACEHOLDER-TREND-REF]",
+    "platform": "tiktok",
+    "views": 5200000,
+    "engagementScore": 94
+  },
+  "wish-i-knew-avatar": {
+    "refUrl": "[PLACEHOLDER-TREND-REF]",
+    "platform": "youtube",
+    "views": 1800000,
+    "engagementScore": 84
+  }
+}

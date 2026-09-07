@@ -1,0 +1,34 @@
+{
+  "specVersion": 1,
+  "slug": "pov-hook-video",
+  "format": "hook_video",
+  "hookPattern": "pov",
+  "niches": ["build-in-public", "solo-saas", "productivity-tools"],
+  "platforms": ["tiktok", "youtube"],
+  "slots": [
+    { "id": "hook_text", "type": "text", "maxChars": 80,
+      "guidance": "POV: opener putting the viewer inside the desirable after-state of using the product" },
+    { "id": "vo_script", "type": "script", "targetSeconds": 20,
+      "guidance": "voiceover from inside the POV moment: what changed, what it feels like, one concrete number, soft product mention last; present tense, second person" },
+    { "id": "cta", "type": "text", "maxChars": 40, "guidance": "closing card naming the product" },
+    { "id": "caption", "type": "text", "maxChars": 150, "use": "publish",
+      "guidance": "the POV line restated, exactly 2 niche hashtags" }
+  ],
+  "renderPlan": {
+    "kind": "hook_video",
+    "durationCapSeconds": 30,
+    "music": { "mood": "dreamy-build", "source": "licensed_library" },
+    "voice": { "slotRef": "vo_script", "tts": "brand_default" },
+    "captions": { "from": "vo_script", "styleToken": "caption-md", "position": "center-low" },
+    "shots": [
+      { "holdSeconds": 2.5,
+        "bg": { "kind": "gradient", "styleToken": "brand-dark-2" },
+        "text": { "slotRef": "hook_text", "styleToken": "hook-xl", "position": "center" } },
+      { "flex": true,
+        "bg": { "kind": "brand_screenshot", "pick": "product" } },
+      { "holdSeconds": 2.5,
+        "bg": { "kind": "gradient", "styleToken": "brand-dark-1" },
+        "text": { "slotRef": "cta", "styleToken": "cta-md", "position": "center" } }
+    ]
+  }
+}

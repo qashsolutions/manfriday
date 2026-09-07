@@ -1,0 +1,80 @@
+{
+  "specVersion": 1,
+  "slug": "hot-take-avatar",
+  "format": "avatar",
+  "hookPattern": "unpopular-opinion",
+  "niches": [
+    "build-in-public",
+    "solo-saas"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "slots": [
+    {
+      "id": "hook_overlay",
+      "type": "text",
+      "maxChars": 60,
+      "guidance": "on-screen label framing the take, lowercase, no punctuation"
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 25,
+      "guidance": "a contrarian take the target user half-agrees with already; open with the take in one sentence, defend it with 2 concrete beats, land on what to do instead; conversational, first person"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "closing card line naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "guidance": "restate the take as a statement, exactly 2 niche hashtags",
+      "use": "publish"
+    }
+  ],
+  "renderPlan": {
+    "kind": "avatar",
+    "durationCapSeconds": 35,
+    "music": {
+      "mood": "none",
+      "source": "licensed_library"
+    },
+    "character": {
+      "pick": "user_default"
+    },
+    "speech": {
+      "slotRef": "vo_script",
+      "tts": "character_voice",
+      "lipsync": "lazy_on_right_swipe"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "overlay": {
+      "slotRef": "hook_overlay",
+      "styleToken": "label-sm",
+      "position": "upper-third",
+      "showSeconds": 4.0
+    },
+    "endCard": {
+      "holdSeconds": 2.5,
+      "bg": {
+        "kind": "brand_screenshot",
+        "pick": "product"
+      },
+      "text": {
+        "slotRef": "cta",
+        "styleToken": "cta-md",
+        "position": "center"
+      }
+    }
+  }
+}

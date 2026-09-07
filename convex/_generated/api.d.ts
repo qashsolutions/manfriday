@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as crons from "../crons.js";
 import type * as dev from "../dev.js";
+import type * as pipeline from "../pipeline.js";
 import type * as worker from "../worker.js";
 
 import type {
@@ -18,7 +20,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   dev: typeof dev;
+  pipeline: typeof pipeline;
   worker: typeof worker;
 }>;
 

@@ -1,0 +1,34 @@
+{
+  "specVersion": 1,
+  "slug": "listicle-tools-slideshow",
+  "format": "slideshow",
+  "hookPattern": "listicle",
+  "niches": ["build-in-public", "productivity-tools", "solo-saas"],
+  "platforms": ["tiktok"],
+  "slots": [
+    { "id": "hook", "type": "text", "maxChars": 80,
+      "guidance": "numbered-list promise with a twist, e.g. tools/habits nobody talks about; no product name yet" },
+    { "id": "item_1", "type": "text", "maxChars": 70, "guidance": "list item 1 — name a real pain it kills, punchy" },
+    { "id": "item_2", "type": "text", "maxChars": 70, "guidance": "list item 2 — different pain, concrete" },
+    { "id": "item_3", "type": "text", "maxChars": 70, "guidance": "list item 3 — the surprising one; this is the user's product, described by outcome not name" },
+    { "id": "cta", "type": "text", "maxChars": 45, "guidance": "reveal the product name as item 3's answer" },
+    { "id": "caption", "type": "text", "maxChars": 150, "use": "publish",
+      "guidance": "restate the list promise, exactly 2 niche hashtags" }
+  ],
+  "renderPlan": {
+    "kind": "slideshow",
+    "music": { "mood": "upbeat-clean", "source": "licensed_library" },
+    "slides": [
+      { "bg": { "kind": "gradient", "styleToken": "brand-dark-1" },
+        "text": { "slotRef": "hook", "styleToken": "hook-xl", "position": "center" } },
+      { "bg": { "kind": "gradient", "styleToken": "brand-dark-2" },
+        "text": { "slotRef": "item_1", "styleToken": "body-lg", "position": "center" } },
+      { "bg": { "kind": "stock", "query": "desk setup developer minimal" },
+        "text": { "slotRef": "item_2", "styleToken": "body-lg", "position": "center" } },
+      { "bg": { "kind": "gradient", "styleToken": "brand-dark-1" },
+        "text": { "slotRef": "item_3", "styleToken": "hook-lg", "position": "center" } },
+      { "bg": { "kind": "brand_screenshot", "pick": "hero" },
+        "text": { "slotRef": "cta", "styleToken": "cta-md", "position": "center" } }
+    ]
+  }
+}
