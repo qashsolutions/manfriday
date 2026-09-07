@@ -35,5 +35,12 @@
     "platform": "youtube",
     "views": 1800000,
     "engagementScore": 84
+  },
+  "mystery-reveal-hook-video": {
+    "refUrl": "https://www.youtube.com/shorts/kH6fTAY5DtI",
+    "platform": "youtube",
+    "views": 1800000,
+    "engagementScore": 93,
+    "_note": "6.5x outlier per vidIQ, ~1.8M views day one, 4.4% engagement. Source is third-party TV-clip content \u2014 we adapt the curiosity-gap-reveal HOOK PATTERN only (link, never rehost). First user-curated reference, 7 Sep 2026."
   }
 }

@@ -1,0 +1,34 @@
+{
+  "specVersion": 1,
+  "slug": "mystery-reveal-hook-video",
+  "format": "hook_video",
+  "hookPattern": "curiosity-gap-reveal",
+  "niches": ["build-in-public", "solo-saas", "productivity-tools"],
+  "platforms": ["tiktok", "youtube"],
+  "slots": [
+    { "id": "hook_text", "type": "text", "maxChars": 80,
+      "guidance": "curiosity-gap tease: an ordinary event + 'what I found/what happened next' withholding the reveal; no product name" },
+    { "id": "vo_script", "type": "script", "targetSeconds": 22,
+      "guidance": "story arc with escalation: ordinary setup, rising specifics, the reveal (a surprising concrete number or fact), then the product as what the reveal led to; short sentences, hold the reveal until past the midpoint" },
+    { "id": "cta", "type": "text", "maxChars": 40, "guidance": "closing card naming the product" },
+    { "id": "caption", "type": "text", "maxChars": 150, "use": "publish",
+      "guidance": "restate the tease without spoiling the reveal, exactly 2 niche hashtags" }
+  ],
+  "renderPlan": {
+    "kind": "hook_video",
+    "durationCapSeconds": 30,
+    "music": { "mood": "tense-build", "source": "licensed_library" },
+    "voice": { "slotRef": "vo_script", "tts": "brand_default" },
+    "captions": { "from": "vo_script", "styleToken": "caption-md", "position": "center-low" },
+    "shots": [
+      { "holdSeconds": 3.0,
+        "bg": { "kind": "gradient", "styleToken": "brand-dark-2" },
+        "text": { "slotRef": "hook_text", "styleToken": "hook-xl", "position": "center" } },
+      { "flex": true,
+        "bg": { "kind": "brand_screenshot", "pick": "hero" } },
+      { "holdSeconds": 2.5,
+        "bg": { "kind": "gradient", "styleToken": "brand-dark-1" },
+        "text": { "slotRef": "cta", "styleToken": "cta-md", "position": "center" } }
+    ]
+  }
+}
