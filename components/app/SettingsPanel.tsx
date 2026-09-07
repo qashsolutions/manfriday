@@ -109,7 +109,7 @@ export function SettingsPanel() {
             <div className={styles.row}>
               <div>
                 <p className={styles.rowTitle}>Two-factor authentication</p>
-                <p className={styles.rowSub}>Authenticator app (TOTP). Recommended for all accounts.</p>
+                <p className={styles.rowSub}>Authenticator app (TOTP) or a passkey. Required before Friday can connect to your social accounts.</p>
               </div>
               <Show when="signed-in">
                 <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
