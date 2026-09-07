@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SignedIn, SignedOut, UserButton, useClerk, useUser } from "@clerk/nextjs";
+import { Show, UserButton, useClerk, useUser } from "@clerk/nextjs";
 import { TIERS, FREE, POLICY, FOUNDING, LANGUAGES } from "@/lib/site";
 import styles from "./SettingsPanel.module.css";
 
@@ -56,7 +56,7 @@ export function SettingsPanel() {
         <section className={styles.section} aria-labelledby="s-account">
           <h2 id="s-account" className={`mono ${styles.sectionTitle}`}>ACCOUNT</h2>
           <div className={styles.panel}>
-            <SignedOut>
+            <Show when="signed-out">
               <div className={styles.row}>
                 <div>
                   <p className={styles.rowTitle}>You&apos;re not signed in</p>
@@ -71,8 +71,8 @@ export function SettingsPanel() {
                   </Link>
                 </div>
               </div>
-            </SignedOut>
-            <SignedIn>
+            </Show>
+            <Show when="signed-in">
               <div className={styles.row}>
                 <div>
                   <p className={styles.rowTitle}>Signed in</p>
@@ -98,7 +98,7 @@ export function SettingsPanel() {
                   Manage
                 </button>
               </div>
-            </SignedIn>
+            </Show>
           </div>
         </section>
 
@@ -111,11 +111,11 @@ export function SettingsPanel() {
                 <p className={styles.rowTitle}>Two-factor authentication</p>
                 <p className={styles.rowSub}>Authenticator app (TOTP). Recommended for all accounts.</p>
               </div>
-              <SignedIn>
+              <Show when="signed-in">
                 <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
                   Enable 2FA
                 </button>
-              </SignedIn>
+              </Show>
             </div>
             <div className={styles.row}>
               <div>
@@ -308,14 +308,14 @@ export function SettingsPanel() {
                   Published posts stay on your own social channels. This cannot be undone.
                 </p>
               </div>
-              <SignedIn>
+              <Show when="signed-in">
                 <button className={styles.dangerBtn} type="button" onClick={() => clerk.openUserProfile()}>
                   Delete…
                 </button>
-              </SignedIn>
-              <SignedOut>
+              </Show>
+              <Show when="signed-out">
                 <span className={`mono ${styles.fixed}`}>SIGN IN FIRST</span>
-              </SignedOut>
+              </Show>
             </div>
           </div>
         </section>
