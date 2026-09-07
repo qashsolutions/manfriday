@@ -8,7 +8,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env.local")
+# override=True: the repo's .env.local is the source of truth — a stale
+# ANTHROPIC_API_KEY exported in someone's shell profile must not shadow it.
+load_dotenv(Path(__file__).resolve().parent.parent / ".env.local", override=True)
 
 CONVEX_URL = os.environ.get("CONVEX_URL") or os.environ.get("NEXT_PUBLIC_CONVEX_URL")
 WORKER_TOKEN = os.environ.get("WORKER_TOKEN")

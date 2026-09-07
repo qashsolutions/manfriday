@@ -22,9 +22,17 @@ LANGUAGE_NAMES = {
 }
 
 
+class SlotValue(BaseModel):
+    id: str = Field(description="the slot id exactly as listed in the request")
+    text: str = Field(description="the creative text for this slot, within its limit")
+
+
 class ConceptFill(BaseModel):
     concept_index: int = Field(description="index of the concept being filled, from the request")
-    slots: Dict[str, str] = Field(description="slot id -> text, every listed slot filled")
+    slots: List[SlotValue] = Field(description="one entry per listed slot — every slot filled")
+
+    def slot_dict(self) -> Dict[str, str]:
+        return {s.id: s.text for s in self.slots}
 
 
 class BatchFill(BaseModel):
@@ -61,8 +69,9 @@ def _prompt(brief: dict, language: str, batch: list[tuple[dict, int]]) -> str:
 def _violations(fill: ConceptFill, structure: dict) -> list[str]:
     problems = []
     slots = {s["id"]: s for s in structure.get("slots", [])}
+    values = fill.slot_dict()
     for sid, spec in slots.items():
-        val = fill.slots.get(sid)
+        val = values.get(sid)
         if not val:
             problems.append(f"missing slot '{sid}'")
         elif "maxChars" in spec and len(val) > spec["maxChars"]:
@@ -104,7 +113,7 @@ def fill_batch(brief: dict, language: str, batch: list[tuple[dict, int]]) -> tup
             retry.append(i)
             out.append(None)
         else:
-            out.append(fill.slots)
+            out.append(fill.slot_dict())
 
     if retry:
         retry_batch = [batch[i] for i in retry]
@@ -118,7 +127,7 @@ def fill_batch(brief: dict, language: str, batch: list[tuple[dict, int]]) -> tup
         for pos, orig_i in enumerate(retry):
             fill = by_index2.get(pos)
             if fill and not _violations(fill, batch[orig_i][0]["structure"]):
-                out[orig_i] = fill.slots
+                out[orig_i] = fill.slot_dict()
             # still failing -> stays None: dropped from the batch, never truncated
 
     return out, max(cost, 1)

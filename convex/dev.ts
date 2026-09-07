@@ -66,3 +66,26 @@ export const seedTestJob = internalMutation({
     return { jobId, conceptId };
   },
 });
+
+/** Dev: put failed jobs back in the queue after a worker-side bug fix.
+ *  Run: npx convex run dev:resetFailedJobs */
+export const resetFailedJobs = internalMutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const rows = await ctx.db
+      .query("renderJobs")
+      .withIndex("by_status_and_priority", (q) => q.eq("status", "failed"))
+      .take(100);
+    for (const job of rows) {
+      await ctx.db.patch("renderJobs", job._id, {
+        status: "pending",
+        attempts: 0,
+        error: undefined,
+        claimedBy: undefined,
+        claimedAt: undefined,
+      });
+      await ctx.db.patch("concepts", job.conceptId, { status: "draft" });
+    }
+    return rows.length;
+  },
+});

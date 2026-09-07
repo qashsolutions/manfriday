@@ -8,7 +8,6 @@ per-brand palettes ship).
 from __future__ import annotations
 
 import io
-import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -54,12 +53,15 @@ def hx(c: str) -> tuple[int, int, int]:
 
 
 def ensure_fonts() -> None:
+    import requests  # certifi-backed TLS (macOS system Python's urllib lacks CAs)
+
     FONT_DIR.mkdir(exist_ok=True)
     for kind, url in FONT_URLS.items():
         dest = FONT_DIR / f"{kind}.ttf"
         if not dest.exists():
-            with urllib.request.urlopen(url, timeout=60) as resp:
-                dest.write_bytes(resp.read())
+            r = requests.get(url, timeout=60)
+            r.raise_for_status()
+            dest.write_bytes(r.content)
 
 
 _font_cache: dict = {}
