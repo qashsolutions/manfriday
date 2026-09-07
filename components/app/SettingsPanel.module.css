@@ -253,3 +253,19 @@
   color: var(--accent);
   margin: 10px 0 0;
 }
+
+.btnRow {
+  display: flex;
+  gap: 10px;
+}
+
+.accentBtn {
+  composes: ghostBtn;
+  background: var(--accent);
+  color: var(--accent-ink, #14060b);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.accentBtn:hover {
+  color: var(--accent-ink, #14060b);
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { SignedIn, SignedOut, UserButton, useClerk, useUser } from "@clerk/nextjs";
 import { TIERS, FREE, POLICY, FOUNDING, LANGUAGES } from "@/lib/site";
 import styles from "./SettingsPanel.module.css";
 
@@ -13,6 +14,8 @@ function Wire({ m }: { m: "M2" | "M4" }) {
 }
 
 export function SettingsPanel() {
+  const { user } = useUser();
+  const clerk = useClerk();
   const [mode, setMode] = useState<"dark" | "light">("dark");
   const [language, setLanguage] = useState("en");
   const [paused, setPaused] = useState(false);
@@ -53,29 +56,49 @@ export function SettingsPanel() {
         <section className={styles.section} aria-labelledby="s-account">
           <h2 id="s-account" className={`mono ${styles.sectionTitle}`}>ACCOUNT</h2>
           <div className={styles.panel}>
-            <div className={styles.row}>
-              <div>
-                <p className={styles.rowTitle}>Email</p>
-                <p className={styles.rowSub}>you@yourproduct.com</p>
+            <SignedOut>
+              <div className={styles.row}>
+                <div>
+                  <p className={styles.rowTitle}>You&apos;re not signed in</p>
+                  <p className={styles.rowSub}>Sign in to manage your account — or hire Friday free, no card.</p>
+                </div>
+                <div className={styles.btnRow}>
+                  <Link href="/login" className={styles.ghostBtn}>
+                    Log in
+                  </Link>
+                  <Link href="/signup" className={styles.accentBtn}>
+                    Create account
+                  </Link>
+                </div>
               </div>
-              <Wire m="M2" />
-            </div>
-            <div className={styles.row}>
-              <div>
-                <p className={styles.rowTitle}>Passkey</p>
-                <p className={styles.rowSub}>Sign in with Face ID, Touch ID, or a security key.</p>
+            </SignedOut>
+            <SignedIn>
+              <div className={styles.row}>
+                <div>
+                  <p className={styles.rowTitle}>Signed in</p>
+                  <p className={styles.rowSub}>{user?.primaryEmailAddress?.emailAddress ?? "…"}</p>
+                </div>
+                <UserButton />
               </div>
-              <button className={styles.ghostBtn} type="button" disabled>
-                Add passkey <Wire m="M2" />
-              </button>
-            </div>
-            <div className={styles.row}>
-              <div>
-                <p className={styles.rowTitle}>Connected sign-ins</p>
-                <p className={styles.rowSub}>Google · email + password</p>
+              <div className={styles.row}>
+                <div>
+                  <p className={styles.rowTitle}>Passkey</p>
+                  <p className={styles.rowSub}>Sign in with Face ID, Touch ID, or a security key.</p>
+                </div>
+                <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
+                  Manage
+                </button>
               </div>
-              <Wire m="M2" />
-            </div>
+              <div className={styles.row}>
+                <div>
+                  <p className={styles.rowTitle}>Connected sign-ins</p>
+                  <p className={styles.rowSub}>Google · email + password</p>
+                </div>
+                <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
+                  Manage
+                </button>
+              </div>
+            </SignedIn>
           </div>
         </section>
 
@@ -88,9 +111,11 @@ export function SettingsPanel() {
                 <p className={styles.rowTitle}>Two-factor authentication</p>
                 <p className={styles.rowSub}>Authenticator app (TOTP). Recommended for all accounts.</p>
               </div>
-              <button className={styles.ghostBtn} type="button" disabled>
-                Enable 2FA <Wire m="M2" />
-              </button>
+              <SignedIn>
+                <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
+                  Enable 2FA
+                </button>
+              </SignedIn>
             </div>
             <div className={styles.row}>
               <div>
@@ -277,15 +302,20 @@ export function SettingsPanel() {
           <div className={`${styles.panel} ${styles.danger}`}>
             <div className={styles.row}>
               <div>
-                <p className={styles.rowTitle}>Delete my data</p>
+                <p className={styles.rowTitle}>Delete account &amp; data</p>
                 <p className={styles.rowSub}>
                   Removes your account, brand briefs, concepts, and disconnects social accounts.
                   Published posts stay on your own social channels. This cannot be undone.
                 </p>
               </div>
-              <button className={styles.dangerBtn} type="button" disabled>
-                Delete… <Wire m="M2" />
-              </button>
+              <SignedIn>
+                <button className={styles.dangerBtn} type="button" onClick={() => clerk.openUserProfile()}>
+                  Delete…
+                </button>
+              </SignedIn>
+              <SignedOut>
+                <span className={`mono ${styles.fixed}`}>SIGN IN FIRST</span>
+              </SignedOut>
             </div>
           </div>
         </section>
