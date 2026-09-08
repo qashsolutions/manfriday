@@ -1,19 +1,22 @@
-import { dark } from "@clerk/themes";
 import type { Appearance } from "@clerk/types";
 
-/** Broadcast-styled Clerk components — matches lib/tokens in globals.css. */
+/** Broadcast-styled Clerk components — matches tokens in globals.css.
+ *  Uses Core 3 variable names (colorForeground family); the full dark palette
+ *  is declared here directly, so no baseTheme import is needed. */
 export const clerkAppearance: Appearance = {
-  baseTheme: dark,
   variables: {
     colorPrimary: "#FF4D6D",
     colorBackground: "#14131A",
-    colorInputBackground: "#0C0B10",
-    colorText: "#F4F3F7",
-    colorInputText: "#F4F3F7",
-    colorTextSecondary: "#A5A1B2",
+    colorForeground: "#F4F3F7",
+    colorMutedForeground: "#A5A1B2",
+    colorInput: "#0C0B10",
+    colorInputForeground: "#F4F3F7",
+    colorBorder: "#262430",
+    colorNeutral: "#F4F3F7",
     colorDanger: "#FF4D6D",
     colorSuccess: "#45E0B0",
     colorWarning: "#F5C044",
+    colorModalBackdrop: "rgba(6, 5, 8, 0.7)",
     borderRadius: "12px",
     fontFamily: "var(--font-body), system-ui, sans-serif",
   },
