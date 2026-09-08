@@ -1,0 +1,55 @@
+# TikTok developer app — canonical config
+
+App: **Man Friday**, ID `7683180632180279303`, portal account qash.dallas@gmail.com.
+Sandbox: **"Man Friday Test"**, ID `7683193682031429650` (creds = the `sb`-prefixed pair in `.env.local`).
+
+## ⚠️ Why this file exists
+
+TikTok's portal will **not save the Production draft until a demo video is uploaded**
+("Please upload at least one video" blocks Save, not just Submit). Any config typed
+without the video is silently lost on navigation — this wiped our 5–7 Sep setup once
+already. **Fill the entire production form in ONE sitting, video included**, from the
+values below. The Sandbox has no such rule (Apply changes works) and is already saved.
+
+## Form values (both Production and Sandbox)
+
+| Field | Value |
+|---|---|
+| App icon | `scratchpad/manfriday-icon-1024.png` (regenerate: 1024×1024 PNG, graphite `#0C0B10` → panel gradient, accent `#FF4D6D` bolt) |
+| App name | Man Friday |
+| Category | Business |
+| Description | Man Friday turns your product's website into short videos you schedule and post to TikTok. You build. Friday posts. |
+| Terms of Service URL | https://manfriday.app/terms |
+| Privacy Policy URL | https://manfriday.app/privacy |
+| Platforms | Web only |
+| Web/Desktop URL | `https://manfriday.app/` — **trailing slash required**; without it the field fails "URL not verified" against the verified URL-prefix property |
+
+Domain verification: URL-prefix property `https://manfriday.app/` is verified and persists
+(signature file `public/tiktok Xt64z…​.txt` lives in the repo and is live).
+
+## Products & scopes
+
+- **Login Kit** — redirect URI (Web): `https://manfriday.app/api/oauth/tiktok/callback` → grants `user.info.basic`
+- **Content Posting API** — **Direct Post toggle ON** → grants `video.upload` + `video.publish`
+- Domain "Verify" inside Content Posting is only for pull_by_url — we push by file; skip.
+
+## Review explanation (paste into "Explain how each product and scope works", 891 ch)
+
+Man Friday (manfriday.app) is a web app that helps solo founders turn their product's website into short marketing videos, then schedule and publish them to their own TikTok account.
+
+Login Kit (user.info.basic): users connect their TikTok account on our Settings page. We show the connected account's display name and avatar so users can confirm which account Friday posts to.
+
+Content Posting API (video.upload, video.publish): from the app's Calendar, users pick a video they created and schedule it. At the scheduled time our server uploads that video. video.upload delivers it as a draft to the user's TikTok inbox for final review in the TikTok app; video.publish enables direct posting of the user's scheduled content at the time they chose. Users only ever post their own videos to their own connected account, and nothing is posted without an explicit scheduling action by the user.
+
+## Demo video requirements (from the form)
+
+mp4/mov, ≤50 MB, max 5 files. Must be recorded against the **Sandbox**, show manfriday.app
+(domain must match the Web URL), show the full flow: Settings → Connect TikTok → TikTok
+authorize screen → back with handle shown → Calendar → schedule → draft arriving in the
+TikTok app inbox. All selected products/scopes must appear in the video.
+
+## Credential environments
+
+- Production pair: `TIKTOK_CLIENT_KEY_PROD` / `TIKTOK_CLIENT_SECRET_PROD` in `.env.local`. Useless for OAuth until the review is approved.
+- Sandbox pair (active): `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` in `.env.local` **and Convex env** — Convex is what `convex/oauth.ts` reads. After audit approval, swap the `_PROD` values back into both.
+- Sandbox OAuth only works for accounts added under Sandbox settings → Target Users.
