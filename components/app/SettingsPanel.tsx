@@ -113,9 +113,18 @@ export function SettingsPanel() {
                 <p className={styles.rowSub}>Authenticator app (TOTP) or a passkey. Required before Friday can connect to your social accounts.</p>
               </div>
               <Show when="signed-in">
-                <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
-                  Enable 2FA
-                </button>
+                {user?.twoFactorEnabled || (user?.passkeys?.length ?? 0) > 0 ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span className={`mono ${styles.fixed}`}>ENABLED ✓</span>
+                    <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
+                      Manage
+                    </button>
+                  </div>
+                ) : (
+                  <button className={styles.ghostBtn} type="button" onClick={() => clerk.openUserProfile()}>
+                    Enable 2FA
+                  </button>
+                )}
               </Show>
             </div>
             <div className={styles.row}>
