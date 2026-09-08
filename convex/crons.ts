@@ -38,4 +38,5 @@ export const reapStaleClaims = internalMutation({
 
 const crons = cronJobs();
 crons.interval("reap stale render claims", { minutes: 2 }, internal.crons.reapStaleClaims, {});
+crons.interval("publish due publications", { minutes: 1 }, internal.publishing.publishDue, {});
 export default crons;

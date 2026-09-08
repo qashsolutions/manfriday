@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Show, UserButton, useClerk, useUser } from "@clerk/nextjs";
 import { TIERS, FREE, POLICY, FOUNDING, LANGUAGES } from "@/lib/site";
+import { ConnectedAccounts } from "./ConnectedAccounts";
 import styles from "./SettingsPanel.module.css";
 
 /* Static shell today: theme + language persist locally; every row marked M2/M4
@@ -267,6 +268,14 @@ export function SettingsPanel() {
               </Link>
             </div>
           </div>
+        </section>
+
+        {/* Connected accounts (M3) */}
+        <section className={styles.section} aria-labelledby="s-connected">
+          <h2 id="s-connected" className={`mono ${styles.sectionTitle}`}>CONNECTED ACCOUNTS</h2>
+          <Suspense fallback={null}>
+            <ConnectedAccounts />
+          </Suspense>
         </section>
 
         {/* Language */}

@@ -146,10 +146,20 @@ export default defineSchema({
     error: v.optional(v.string()),
   }).index("by_status_and_priority", ["status", "priority"]),
 
+  oauthStates: defineTable({
+    // CSRF state for platform OAuth; minted per attempt, single-use, short-lived
+    userId: v.id("users"),
+    provider: v.union(v.literal("tiktok"), v.literal("youtube")),
+    state: v.string(),
+    used: v.boolean(),
+  }).index("by_state", ["state"]),
+
   socialAccounts: defineTable({
     userId: v.id("users"),
     platform: v.union(v.literal("tiktok"), v.literal("youtube")),
     handle: v.string(),
+    platformUserId: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
     accessToken: v.string(), // encrypted; touched only in actions
     refreshToken: v.string(),
     expiresAt: v.number(),
