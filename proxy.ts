@@ -1,8 +1,19 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// No protected routes yet — marketing + waitlist are public. Route protection
-// arrives with the app surfaces in M2 (picks/calendar/analytics/settings).
-export default clerkMiddleware();
+// App surfaces require sign-in; marketing + auth + blog stay public.
+const isAppRoute = createRouteMatcher([
+  "/picks(.*)",
+  "/calendar(.*)",
+  "/analytics(.*)",
+  "/onboarding(.*)",
+  "/settings(.*)",
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isAppRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: [

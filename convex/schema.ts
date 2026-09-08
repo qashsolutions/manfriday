@@ -106,6 +106,28 @@ export default defineSchema({
     swipedAt: v.optional(v.number()),
   }).index("by_userId_and_status", ["userId", "status"]),
 
+  pipelineRequests: defineTable({
+    // "Friday's first day": user submits a URL; the Python worker runs
+    // scrape -> brief -> match -> slot-fill -> concepts (reusing M1 code).
+    userId: v.id("users"),
+    url: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("claimed"),
+      v.literal("analyzing"),
+      v.literal("drafting"),
+      v.literal("done"),
+      v.literal("failed"),
+    ),
+    brandId: v.optional(v.id("brands")),
+    batchId: v.optional(v.string()),
+    error: v.optional(v.string()),
+    claimedBy: v.optional(v.string()),
+    claimedAt: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_userId", ["userId"]),
+
   renderJobs: defineTable({
     // the Python worker's queue
     conceptId: v.id("concepts"),

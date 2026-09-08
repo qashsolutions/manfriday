@@ -20,6 +20,7 @@ import requests
 import cvx
 from config import POLL_SECONDS
 from render.dispatch import render_job
+from pipeline.generate import generate_for_user
 
 WORKER_ID = f"{platform.node()}-{uuid.uuid4().hex[:6]}"
 
@@ -51,14 +52,36 @@ def process(job: dict) -> None:
         cvx.mutation("worker:failJob", {"jobId": job_id, "error": str(exc)[:500]})
 
 
+def process_pipeline_request(req: dict) -> None:
+    rid = req["requestId"]
+    print(f"[{WORKER_ID}] pipeline request {rid}: {req['url']}")
+    try:
+        result = generate_for_user(req["userId"], req["url"], request_id=rid)
+        cvx.mutation(
+            "worker:completePipelineRequest",
+            {"requestId": rid, "brandId": result["brandId"], "batchId": result["batchId"]},
+        )
+        print(f"[{WORKER_ID}] pipeline done {rid}: {result['conceptCount']} concepts queued")
+    except Exception as exc:
+        print(f"[{WORKER_ID}] pipeline FAILED {rid}: {exc}", file=sys.stderr)
+        cvx.mutation("worker:failPipelineRequest", {"requestId": rid, "error": str(exc)[:500]})
+
+
 def main() -> None:
     once = "--once" in sys.argv
     drain = "--drain" in sys.argv
     print(f"[{WORKER_ID}] polling")
     while True:
+        did_work = False
+        req = cvx.mutation("worker:claimPipelineRequest", {"workerId": WORKER_ID})
+        if req is not None:
+            process_pipeline_request(req)
+            did_work = True
         job = cvx.mutation("worker:claimJob", {"workerId": WORKER_ID})
         if job is not None:
             process(job)
+            did_work = True
+        if did_work:
             if once:
                 return
         else:

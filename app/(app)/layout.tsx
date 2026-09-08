@@ -1,30 +1,14 @@
-import Link from "next/link";
-import { Bolt, Wordmark } from "@/components/ui/Logo";
+import type { Metadata } from "next";
+import { AppProviders } from "@/components/app/Providers";
+import { AppNav } from "@/components/app/AppNav";
+
+export const metadata: Metadata = { robots: { index: false } }; // app surfaces never index
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 32px",
-          borderBottom: "1px solid var(--edge)",
-        }}
-      >
-        <Link href="/" aria-label="Man Friday home" style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--ink)" }}>
-          <Bolt size={18} />
-          <Wordmark size={15} />
-        </Link>
-        <nav className="mono" style={{ display: "flex", gap: 24, fontSize: 12, letterSpacing: "0.08em" }} aria-label="App">
-          <span style={{ color: "var(--faint)" }}>PICKS</span>
-          <span style={{ color: "var(--faint)" }}>CALENDAR</span>
-          <span style={{ color: "var(--faint)" }}>ANALYTICS</span>
-          <span style={{ color: "var(--ink)" }}>SETTINGS</span>
-        </nav>
-      </header>
+    <AppProviders>
+      <AppNav />
       <main>{children}</main>
-    </>
+    </AppProviders>
   );
 }

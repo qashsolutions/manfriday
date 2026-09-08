@@ -10,7 +10,10 @@
 
 import type * as crons from "../crons.js";
 import type * as dev from "../dev.js";
+import type * as feed from "../feed.js";
+import type * as onboarding from "../onboarding.js";
 import type * as pipeline from "../pipeline.js";
+import type * as users from "../users.js";
 import type * as worker from "../worker.js";
 
 import type {
@@ -22,7 +25,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   dev: typeof dev;
+  feed: typeof feed;
+  onboarding: typeof onboarding;
   pipeline: typeof pipeline;
+  users: typeof users;
   worker: typeof worker;
 }>;
 

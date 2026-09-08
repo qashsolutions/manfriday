@@ -129,3 +129,67 @@ export const failJob = mutation({
     return null;
   },
 });
+
+// ── pipeline requests (M2 onboarding → worker) ─────────────────────────────
+
+export const claimPipelineRequest = mutation({
+  args: { token: v.string(), workerId: v.string() },
+  handler: async (ctx: MutationCtx, args) => {
+    requireWorker(args.token);
+    const req = await ctx.db
+      .query("pipelineRequests")
+      .withIndex("by_status", (q) => q.eq("status", "pending"))
+      .first();
+    if (!req) return null;
+    await ctx.db.patch("pipelineRequests", req._id, {
+      status: "claimed",
+      claimedBy: args.workerId,
+      claimedAt: Date.now(),
+    });
+    return { requestId: req._id, userId: req.userId, url: req.url };
+  },
+});
+
+export const updatePipelineRequest = mutation({
+  args: {
+    token: v.string(),
+    requestId: v.id("pipelineRequests"),
+    status: v.union(v.literal("analyzing"), v.literal("drafting")),
+    brandId: v.optional(v.id("brands")),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    requireWorker(args.token);
+    await ctx.db.patch("pipelineRequests", args.requestId, {
+      status: args.status,
+      ...(args.brandId ? { brandId: args.brandId } : {}),
+    });
+    return null;
+  },
+});
+
+export const completePipelineRequest = mutation({
+  args: {
+    token: v.string(),
+    requestId: v.id("pipelineRequests"),
+    brandId: v.id("brands"),
+    batchId: v.string(),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    requireWorker(args.token);
+    await ctx.db.patch("pipelineRequests", args.requestId, {
+      status: "done",
+      brandId: args.brandId,
+      batchId: args.batchId,
+    });
+    return null;
+  },
+});
+
+export const failPipelineRequest = mutation({
+  args: { token: v.string(), requestId: v.id("pipelineRequests"), error: v.string() },
+  handler: async (ctx: MutationCtx, args) => {
+    requireWorker(args.token);
+    await ctx.db.patch("pipelineRequests", args.requestId, { status: "failed", error: args.error });
+    return null;
+  },
+});
