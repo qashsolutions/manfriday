@@ -80,7 +80,7 @@ export default function SignupPage() {
           </p>
         </div>
         <p className={`mono ${styles.security}`}>
-          Secured by Clerk · passkeys supported · two-factor authentication in Settings → Security
+          Secured by Clerk · passkeys · Google · GitHub · any email · 2FA in Settings → Security
         </p>
         <p className={styles.signin}>
           Already hired Friday? <Link href="/login">Sign in</Link>
