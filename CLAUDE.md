@@ -64,7 +64,7 @@ Marketing copy leads with click attribution ("see which post sent people to your
 
 ## Launch checklist (accumulating)
 
-- [ ] Clerk production instance: custom OAuth credentials required for Google AND GitHub (dev uses Clerk shared creds; ~5 min per provider) + production pk/sk into Vercel
+- [ ] Clerk production instance: custom OAuth credentials required for Google AND GitHub (dev uses Clerk shared creds; ~5 min per provider) + production pk/sk into Vercel + **Clerk Pro plan (~$25/mo) — passkeys and MFA/TOTP are Pro features** (free on dev instance; the connect-step MFA gate depends on them)
 - [ ] Final Terms/Privacy counsel review (drafts live)
 - [ ] Google Search Console + Bing Webmaster: verify domain, submit sitemap
 
