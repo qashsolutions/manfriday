@@ -11,7 +11,7 @@ export const clerkAppearance: Appearance = {
     colorMutedForeground: "#A5A1B2",
     colorInput: "#0C0B10",
     colorInputForeground: "#F4F3F7",
-    colorBorder: "#262430",
+    colorBorder: "rgba(244, 243, 247, 0.18)",
     colorNeutral: "#F4F3F7",
     colorDanger: "#FF4D6D",
     colorSuccess: "#45E0B0",
@@ -26,6 +26,8 @@ export const clerkAppearance: Appearance = {
       fontWeight: 600,
       textTransform: "none",
     },
-    card: { border: "1px solid #1F1D28" },
+    card: { border: "1px solid rgba(244, 243, 247, 0.18)" },
+    cardBox: { border: "1px solid rgba(244, 243, 247, 0.18)" },
+    formFieldInput: { border: "1px solid rgba(244, 243, 247, 0.22)" },
   },
 };
