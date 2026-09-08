@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Sign in" };
 export default function LoginPage() {
   return (
     <div className={styles.authCol} style={{ minHeight: "calc(100vh - 61px)" }}>
-      <SignIn routing="hash" signUpUrl="/signup" />
+      <SignIn routing="hash" signUpUrl="/signup" fallbackRedirectUrl="/picks" />
       <p className={styles.signin}>
         New here? <Link href="/signup">Hire Friday</Link>
       </p>
