@@ -10,3 +10,4 @@ dist/
 .next/
 .vercel/
 .fonts/
+client_secret*.json
