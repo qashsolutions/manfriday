@@ -32,6 +32,8 @@ export function SettingsPanel() {
 
   const pick = (m: "dark" | "light") => {
     setMode(m);
+    if (m === "light") document.documentElement.dataset.mode = "light";
+    else delete document.documentElement.dataset.mode;
     try {
       localStorage.setItem("mf-mode", m);
     } catch {}

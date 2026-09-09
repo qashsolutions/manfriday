@@ -40,8 +40,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
       <body>
+        {/* mode must be on <html> before first paint or light users get a dark flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("mf-mode")==="light")document.documentElement.dataset.mode="light"}catch(e){}`,
+          }}
+        />
         <ClerkProvider appearance={clerkAppearance}>{children}</ClerkProvider>
       </body>
     </html>

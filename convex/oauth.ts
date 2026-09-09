@@ -9,8 +9,15 @@ import { currentUserId } from "./users";
 // the Next.js callback route never sees the client secret, it just forwards
 // code+state to the exchange action below.
 
-const TIKTOK_SCOPES = "user.info.basic,video.upload,video.publish";
+// video.publish joins this list after the Content Posting audit clears —
+// TikTok's sandbox refuses the scope outright (invalid_scope), and inbox
+// draft delivery (our pre-audit publish path) only needs video.upload.
+const TIKTOK_SCOPES = "user.info.basic,video.upload";
 const REDIRECT_URI = "https://manfriday.app/api/oauth/tiktok/callback";
+
+const GOOGLE_SCOPES =
+  "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
+const GOOGLE_REDIRECT_URI = "https://manfriday.app/api/oauth/google/callback";
 
 function randomState(): string {
   const bytes = new Uint8Array(24);
@@ -36,6 +43,30 @@ export const startTikTok = mutation({
       `&scope=${encodeURIComponent(TIKTOK_SCOPES)}` +
       "&response_type=code" +
       `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+      `&state=${state}`;
+    return { url };
+  },
+});
+
+export const startGoogle = mutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new Error("not signed in");
+    const clientId = env.GOOGLE_CLIENT_ID;
+    if (!clientId) throw new Error("YouTube is not configured yet");
+    const state = randomState();
+    await ctx.db.insert("oauthStates", { userId, provider: "google", state, used: false });
+    // access_type=offline + prompt=consent forces a refresh_token every time —
+    // without it Google only issues one on the very first grant.
+    const url =
+      "https://accounts.google.com/o/oauth2/v2/auth" +
+      `?client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}` +
+      "&response_type=code" +
+      `&scope=${encodeURIComponent(GOOGLE_SCOPES)}` +
+      "&access_type=offline" +
+      "&prompt=consent" +
       `&state=${state}`;
     return { url };
   },
@@ -153,6 +184,105 @@ export const exchangeTikTok = action({
       expiresAt: Date.now() + (data.expires_in ?? 86400) * 1000,
     });
     return { ok: true };
+  },
+});
+
+/** Called by the Next.js callback route with Google's code+state. Same shape
+ *  as exchangeTikTok: public action, inert without a valid single-use state. */
+export const exchangeGoogle = action({
+  args: { code: v.string(), state: v.string() },
+  handler: async (ctx: ActionCtx, args): Promise<{ ok: boolean; error?: string }> => {
+    const stateRow: { userId: string; provider: string } | null = await ctx.runMutation(
+      internal.oauth.consumeState,
+      { state: args.state },
+    );
+    if (!stateRow || stateRow.provider !== "google") return { ok: false, error: "invalid or expired state" };
+
+    const clientId = env.GOOGLE_CLIENT_ID;
+    const clientSecret = env.GOOGLE_CLIENT_SECRET;
+    if (!clientId || !clientSecret) return { ok: false, error: "not configured" };
+
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code: args.code,
+      grant_type: "authorization_code",
+      redirect_uri: GOOGLE_REDIRECT_URI,
+    });
+    const resp = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    const data = (await resp.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+      error?: string;
+      error_description?: string;
+    };
+    if (!resp.ok || !data.access_token) {
+      return { ok: false, error: data.error_description ?? data.error ?? `token exchange failed (${resp.status})` };
+    }
+
+    let handle = "YouTube channel";
+    let platformUserId: string | undefined;
+    let avatarUrl: string | undefined;
+    try {
+      const chResp = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true", {
+        headers: { Authorization: `Bearer ${data.access_token}` },
+      });
+      const ch = (await chResp.json()) as {
+        items?: Array<{
+          id?: string;
+          snippet?: { title?: string; thumbnails?: { default?: { url?: string } } };
+        }>;
+      };
+      const item = ch.items?.[0];
+      if (item) {
+        handle = item.snippet?.title ?? handle;
+        platformUserId = item.id;
+        avatarUrl = item.snippet?.thumbnails?.default?.url;
+      }
+    } catch {
+      // cosmetic; the connection still stands
+    }
+
+    await ctx.runMutation(internal.oauth.storeAccount, {
+      userId: stateRow.userId as never,
+      platform: "youtube",
+      handle,
+      platformUserId,
+      avatarUrl,
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token ?? "",
+      expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
+    });
+    return { ok: true };
+  },
+});
+
+/** Google access tokens die hourly — the publish adapter refreshes through here. */
+export const updateTokens = internalMutation({
+  args: {
+    accountId: v.id("socialAccounts"),
+    accessToken: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    await ctx.db.patch("socialAccounts", args.accountId, {
+      accessToken: args.accessToken,
+      expiresAt: args.expiresAt,
+    });
+    return null;
+  },
+});
+
+export const markAuthExpired = internalMutation({
+  args: { accountId: v.id("socialAccounts") },
+  handler: async (ctx: MutationCtx, args) => {
+    await ctx.db.patch("socialAccounts", args.accountId, { status: "expired" });
+    return null;
   },
 });
 

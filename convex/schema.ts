@@ -149,7 +149,7 @@ export default defineSchema({
   oauthStates: defineTable({
     // CSRF state for platform OAuth; minted per attempt, single-use, short-lived
     userId: v.id("users"),
-    provider: v.union(v.literal("tiktok"), v.literal("youtube")),
+    provider: v.union(v.literal("tiktok"), v.literal("youtube"), v.literal("google")),
     state: v.string(),
     used: v.boolean(),
   }).index("by_state", ["state"]),

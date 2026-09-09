@@ -11,6 +11,7 @@ export function ConnectedAccounts() {
   const { user } = useUser();
   const accounts = useQuery(api.oauth.myAccounts);
   const startTikTok = useMutation(api.oauth.startTikTok);
+  const startGoogle = useMutation(api.oauth.startGoogle);
   const disconnect = useMutation(api.oauth.disconnect);
   const params = useSearchParams();
   const connectResult = params.get("connect");
@@ -19,9 +20,14 @@ export function ConnectedAccounts() {
     !!user && (user.twoFactorEnabled || (user.passkeys?.length ?? 0) > 0);
 
   const tiktok = accounts?.find((a) => a.platform === "tiktok" && a.status === "connected");
+  const youtube = accounts?.find((a) => a.platform === "youtube" && a.status === "connected");
 
   const onConnect = async () => {
     const { url } = await startTikTok();
+    window.location.href = url;
+  };
+  const onConnectYouTube = async () => {
+    const { url } = await startGoogle();
     window.location.href = url;
   };
 
@@ -38,6 +44,20 @@ export function ConnectedAccounts() {
         <div className={styles.row}>
           <p className={styles.rowSub} style={{ color: "var(--accent)" }}>
             TikTok connection didn&apos;t complete — try again.
+          </p>
+        </div>
+      )}
+      {connectResult === "youtube_ok" && (
+        <div className={styles.row}>
+          <p className={styles.rowSub} style={{ color: "var(--mint)" }}>
+            YouTube connected — Friday can post Shorts now.
+          </p>
+        </div>
+      )}
+      {(connectResult === "youtube_failed" || connectResult === "youtube_denied") && (
+        <div className={styles.row}>
+          <p className={styles.rowSub} style={{ color: "var(--accent)" }}>
+            YouTube connection didn&apos;t complete — try again.
           </p>
         </div>
       )}
@@ -70,10 +90,24 @@ export function ConnectedAccounts() {
         <div>
           <p className={styles.rowTitle}>YouTube Shorts</p>
           <p className={styles.rowSub}>
-            Arrives when the Google Cloud credentials land — same rules, same gate.
+            {youtube
+              ? `Connected as ${youtube.handle}. Hook and avatar videos cross-post here.`
+              : "Friday can't post here yet."}
           </p>
         </div>
-        <span className={`mono ${styles.fixed}`}>SOON</span>
+        {youtube ? (
+          <button className={styles.dangerBtn} type="button" onClick={() => disconnect({ accountId: youtube.id })}>
+            Disconnect
+          </button>
+        ) : mfaSatisfied ? (
+          <button className={styles.ghostBtn} type="button" onClick={onConnectYouTube}>
+            Connect YouTube
+          </button>
+        ) : (
+          <span className={`mono ${styles.fixed}`} style={{ color: "var(--amber)" }}>
+            ADD A PASSKEY OR 2FA FIRST
+          </span>
+        )}
       </div>
 
       {!mfaSatisfied && (

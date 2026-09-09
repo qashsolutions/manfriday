@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { env, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -27,27 +27,35 @@ export const schedulePost = mutation({
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("status"), "connected"))
       .take(10);
-    const tiktok = accounts.find((a) => a.platform === "tiktok");
-    if (!tiktok) throw new Error("connect a TikTok account first");
+    // D1: slideshows are TikTok-only; hook/avatar videos cross-post to Shorts.
+    const template = await ctx.db.get("trendTemplates", concept.templateId);
+    const targets = accounts.filter(
+      (a) => a.platform === "tiktok" || (a.platform === "youtube" && template?.format !== "slideshow"),
+    );
+    if (targets.length === 0) throw new Error("connect a TikTok or YouTube account first");
 
     const caption: string = (concept.slots as Record<string, string>).caption ?? "";
     const postId = await ctx.db.insert("posts", {
       userId,
       conceptId: args.conceptId,
       publishAt: args.publishAt,
-      captionByPlatform: { tiktok: caption },
+      captionByPlatform: { tiktok: caption, youtube: caption },
     });
-    const publicationId = await ctx.db.insert("publications", {
-      postId,
-      accountId: tiktok._id,
-      platform: "tiktok",
-      status: "queued",
-      publishAt: args.publishAt,
-      attempts: 0,
-      idempotencyKey: "",
-    });
-    await ctx.db.patch("publications", publicationId, { idempotencyKey: publicationId });
-    return { postId, publicationId };
+    const publicationIds = [];
+    for (const account of targets) {
+      const publicationId = await ctx.db.insert("publications", {
+        postId,
+        accountId: account._id,
+        platform: account.platform,
+        status: "queued",
+        publishAt: args.publishAt,
+        attempts: 0,
+        idempotencyKey: "",
+      });
+      await ctx.db.patch("publications", publicationId, { idempotencyKey: publicationId });
+      publicationIds.push(publicationId);
+    }
+    return { postId, publicationIds };
   },
 });
 
@@ -111,10 +119,13 @@ export const markPublishing = internalMutation({
     const post = await ctx.db.get("posts", pub.postId);
     const concept = post ? await ctx.db.get("concepts", post.conceptId) : null;
     const videoUrl = concept?.videoId ? await ctx.storage.getUrl(concept.videoId) : null;
+    const slots = (concept?.slots as Record<string, string>) ?? {};
     return {
       accountId: pub.accountId,
+      platform: pub.platform,
       attempts: pub.attempts + 1,
-      caption: post ? ((post.captionByPlatform as Record<string, string>).tiktok ?? "") : "",
+      caption: post ? ((post.captionByPlatform as Record<string, string>)[pub.platform] ?? "") : "",
+      title: slots.hook ?? slots.hook_text ?? "",
       videoUrl,
       idempotencyKey: pub.idempotencyKey,
     };
@@ -185,6 +196,90 @@ export const publishOne = internalAction({
 
       const videoResp = await fetch(job.videoUrl);
       const video = await videoResp.arrayBuffer();
+
+      if (account.platform === "youtube") {
+        // Google access tokens expire hourly — refresh when near-dead.
+        let accessToken = account.accessToken;
+        if (account.expiresAt < Date.now() + 60_000) {
+          if (!account.refreshToken) {
+            await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
+            return await fail("fatal", "AUTH_EXPIRED: no refresh token"), null;
+          }
+          const rBody = new URLSearchParams({
+            client_id: env.GOOGLE_CLIENT_ID ?? "",
+            client_secret: env.GOOGLE_CLIENT_SECRET ?? "",
+            refresh_token: account.refreshToken,
+            grant_type: "refresh_token",
+          });
+          const rResp = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: rBody.toString(),
+          });
+          const r = (await rResp.json()) as { access_token?: string; expires_in?: number; error?: string };
+          if (!rResp.ok || !r.access_token) {
+            await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
+            return await fail("fatal", `AUTH_EXPIRED: refresh failed (${r.error ?? rResp.status})`), null;
+          }
+          accessToken = r.access_token;
+          await ctx.runMutation(internal.oauth.updateTokens, {
+            accountId: account._id,
+            accessToken,
+            expiresAt: Date.now() + (r.expires_in ?? 3600) * 1000,
+          });
+        }
+
+        // Resumable upload. ≤3min vertical video lands as a Short automatically.
+        // Unverified-OAuth apps get uploads locked to private — expected pre-launch.
+        const title = (job.title || job.caption || "Man Friday post").slice(0, 95);
+        const initResp = await fetch(
+          "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+              "X-Upload-Content-Type": "video/mp4",
+              "X-Upload-Content-Length": String(video.byteLength),
+            },
+            body: JSON.stringify({
+              snippet: { title, description: job.caption, categoryId: "22" },
+              status: { privacyStatus: "private", selfDeclaredMadeForKids: false },
+            }),
+          },
+        );
+        if (!initResp.ok) {
+          const text = (await initResp.text()).slice(0, 300);
+          if (initResp.status === 401) {
+            await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
+            return await fail("fatal", `AUTH_EXPIRED: ${text}`), null;
+          }
+          if (initResp.status === 403) {
+            // daily quota exhausts and refills at midnight PT — retry later
+            return await fail("retryable", `QUOTA_EXCEEDED: ${text}`), null;
+          }
+          return await fail(initResp.status >= 500 ? "retryable" : "fatal", `${initResp.status}: ${text}`), null;
+        }
+        const uploadUrl = initResp.headers.get("Location");
+        if (!uploadUrl) {
+          return await fail("retryable", "TRANSIENT: no resumable upload URL"), null;
+        }
+        const putResp = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": "video/mp4", "Content-Length": String(video.byteLength) },
+          body: video,
+        });
+        if (!putResp.ok) {
+          return await fail("retryable", `TRANSIENT: upload ${putResp.status}`), null;
+        }
+        const uploaded = (await putResp.json()) as { id?: string };
+        await ctx.runMutation(internal.publishing.finishPublish, {
+          publicationId: args.publicationId,
+          outcome: "live",
+          platformPostId: uploaded.id,
+        });
+        return null;
+      }
 
       // inbox (draft) upload init
       const initResp = await fetch("https://open.tiktokapis.com/v2/post/publish/inbox/video/init/", {

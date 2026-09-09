@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Show, UserButton } from "@clerk/nextjs";
 import { Bolt, Wordmark } from "@/components/ui/Logo";
+import { ModeToggle } from "@/components/ui/ModeToggle";
 import styles from "./Header.module.css";
 
 export function Header() {
@@ -18,6 +19,7 @@ export function Header() {
           <Link href="/pricing" className={styles.link}>
             Pricing
           </Link>
+          <ModeToggle />
           <Show when="signed-out">
             <Link href="/login" className={styles.link}>
               Log in

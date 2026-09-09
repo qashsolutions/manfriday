@@ -1,5 +1,8 @@
-/* Broadcast design tokens — single source of truth (see CLAUDE.md visual identity) */
+/* Broadcast design tokens — single source of truth (see CLAUDE.md visual identity).
+   Dark is the flagship; html[data-mode="light"] (set from localStorage "mf-mode"
+   before paint, toggled in the header and in Settings) re-skins every token. */
 :root {
+  color-scheme: dark;
   --graphite: #0c0b10;
   --panel: #14131a;
   --panel-2: #1a1922;
@@ -7,7 +10,7 @@
   --edge-2: #262430;
   --ink: #f4f3f7;
   --dim: #a5a1b2;
-  --faint: #6b677a;
+  --faint: #8d89a0; /* was #6b677a — too dim for small mono labels on graphite */
   --accent: #ff4d6d;
   --accent-soft: #ff9bb0;
   --accent-ink: #14060b; /* text on accent fills */
@@ -20,6 +23,26 @@
 
   --glow-accent: 0 0 40px rgba(255, 77, 109, 0.45);
   --glow-accent-soft: 0 0 24px rgba(255, 77, 109, 0.3);
+}
+
+html[data-mode="light"] {
+  color-scheme: light;
+  --graphite: #f7f6fa;
+  --panel: #ffffff;
+  --panel-2: #f1eff6;
+  --edge: #e6e3ef;
+  --edge-2: #d9d5e5;
+  --ink: #16151c;
+  --dim: #4d4960;
+  --faint: #77728c;
+  --accent: #e63e5c; /* a notch deeper so it holds contrast on white */
+  --accent-soft: #c22f4a;
+  --accent-ink: #ffffff;
+  --mint: #0e9f74;
+  --amber: #a97b10;
+
+  --glow-accent: 0 6px 24px rgba(230, 62, 92, 0.25);
+  --glow-accent-soft: 0 4px 16px rgba(230, 62, 92, 0.18);
 }
 
 * {
