@@ -60,7 +60,7 @@ Marketing copy leads with click attribution ("see which post sent people to your
 - M1 (wk 1–3): headless pipeline — URL in → brand brief → 10 rendered concepts (all 3 formats). **If M1 output is weak, stop and fix before any UI.**
 - M2 (wk 4–5): Picks UI over the pipeline; lazy full-res render on right-swipe.
 - M3 (wk 6–7): TikTok + YouTube OAuth, calendar, scheduled publish (TikTok draft-to-inbox fallback until audit clears).
-- M4 (wk 8–9): metrics ingestion, "more like this", Stripe billing (Free tier → paid checkout; card only at subscribe) + Founding-200 counter + pause/top-ups, beta invites, book-a-call button, free calculator pages on manfriday.app (engagement-rate + creator-earnings; static, deterministic, zero COGS — SEO doors into the trial, from the competitor teardown).
+- M4 (wk 8–9): metrics ingestion, "more like this", Stripe billing (Free tier → paid checkout; card only at subscribe) + Founding-200 counter + pause/top-ups, beta invites, free calculator pages on manfriday.app (engagement-rate + creator-earnings; static, deterministic, zero COGS — SEO doors into the trial, from the competitor teardown).
 
 ## Launch checklist (accumulating)
 
@@ -81,8 +81,8 @@ Marketing copy leads with click attribution ("see which post sent people to your
 
 ## Operating principle (from the category leader's founder playbook)
 
-Customer calls are a standing work stream, not a phase: book-a-call button ships day one
-(+7 trial days per call), ~20 calls/week target, Mum-Test questions, silent usability tests.
+Customer calls are a standing work stream, not a phase: ~20 calls/week target, Mum-Test questions,
+silent usability tests. **No in-product "book a call / +7 days" offer** — user removed it 10 Sep 2026; calls are booked by outreach, not a site feature.
 
 <!-- convex-ai-start -->
 
