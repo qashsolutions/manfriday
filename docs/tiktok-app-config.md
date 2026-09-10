@@ -53,3 +53,13 @@ TikTok app inbox. All selected products/scopes must appear in the video.
 - Production pair: `TIKTOK_CLIENT_KEY_PROD` / `TIKTOK_CLIENT_SECRET_PROD` in `.env.local`. Useless for OAuth until the review is approved.
 - Sandbox pair (active): `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` in `.env.local` **and Convex env** — Convex is what `convex/oauth.ts` reads. After audit approval, swap the `_PROD` values back into both.
 - Sandbox OAuth only works for accounts added under Sandbox settings → Target Users.
+
+## Demo video — recorded 10 Sep 2026 (`docs/tiktok-demo.mp4`, gitignored)
+
+Recipe, for a re-take:
+- `ffmpeg -f avfoundation -i "4:none"` (device 4 = Capture screen 0; needs Screen Recording permission for Terminal — relaunch Terminal after granting). Chrome window at bounds `{204,30,1715,1001}`, crop `3004:1616:418:300` → 1920×1032, then a further 82px off the top to drop Chrome's "Claude started debugging this browser" bar.
+- Drive the tab in the ✅Claude MCP tab group — and make sure THAT tab is the active one on screen (an identically titled user tab was recorded by mistake once).
+- Mac: Do Not Disturb on. TikTok consent screen only reappears if the user removes the app in the phone app (Settings and privacy → Security & permissions → Apps and services; web settings has no such page) — `oauth.disconnect` now also calls TikTok's revoke endpoint.
+- Worker wait (schedule → inbox) is ~2 min; sped up 10× in the cut. Final beat: `./check-tiktok-status.sh` in a Terminal window over the calendar (font 20, bounds `{430,290,1490,830}`).
+
+Production draft was saved on 10 Sep with everything above but **Direct Post OFF** (video.upload only — the sandbox demo cannot show direct posting; add video.publish in a later revision). **Submitted for review 10 Sep 2026 11:37** with the note: "First submission for Man Friday, a web app for solo founders so they connect their tiktok accounts for content posting." Status shows "in review"; review comments land in History → Review comments on the app page.

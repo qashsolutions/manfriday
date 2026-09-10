@@ -89,3 +89,28 @@ export const resetFailedJobs = internalMutation({
     return rows.length;
   },
 });
+
+// Dev-only: hand the M1 dev user's rendered concepts to a real account so the
+// Calendar can schedule them (sandbox e2e + audit demo video).
+// Run: npx convex run dev:adoptRendered '{"email":"<clerk user email>"}'
+export const adoptRendered = internalMutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const users = await ctx.db.query("users").take(20);
+    const real = users.find((u) => u.clerkId && u.clerkId.startsWith("user_"));
+    if (!real) throw new Error("no clerk-backed user found");
+    const rendered = await ctx.db
+      .query("concepts")
+      .withIndex("by_userId_and_status")
+      .filter((q) => q.eq(q.field("status"), "rendered"))
+      .take(20);
+    let moved = 0;
+    for (const c of rendered) {
+      if (c.userId !== real._id) {
+        await ctx.db.patch("concepts", c._id, { userId: real._id });
+        moved++;
+      }
+    }
+    return { adoptedBy: real._id, moved, total: rendered.length };
+  },
+});

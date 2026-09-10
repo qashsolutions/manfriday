@@ -12,3 +12,4 @@ dist/
 .fonts/
 client_secret*.json
 tsconfig.tsbuildinfo
+docs/*.mp4

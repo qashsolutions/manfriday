@@ -71,7 +71,7 @@ Marketing copy leads with click attribution ("see which post sent people to your
 ## Pre-build checklist (the design gate)
 
 - [x] git init + first commit of docs (remote: github.com/qashsolutions/manfriday, branch main)
-- [ ] TikTok developer app created + Content Posting API audit application submitted
+- [x] TikTok developer app created + Content Posting API audit application **submitted 10 Sep 2026** (in review; video.upload only — Direct Post/video.publish deferred to a later revision; demo + recipe in docs/tiktok-app-config.md). Until approval, publishing = sandbox draft-to-inbox.
 - [ ] Google Cloud project + YouTube Data API enabled + quota-increase application submitted
 - [x] Template spec validated by hand-producing 3 real posts with it (validation/template-spec/ — PASS, spec bumped to v1.1, see FINDINGS.md)
 - [ ] Trend library curation started (300–500 hand-tagged templates, 3–5 niches — longest lead-time item)
