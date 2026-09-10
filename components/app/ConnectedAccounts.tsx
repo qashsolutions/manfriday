@@ -8,7 +8,7 @@ import styles from "./SettingsPanel.module.css";
 
 /** Auth policy v2: passkey OR 2FA required before any social account connects. */
 export function ConnectedAccounts() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const accounts = useQuery(api.oauth.myAccounts);
   const startTikTok = useMutation(api.oauth.startTikTok);
   const startGoogle = useMutation(api.oauth.startGoogle);
@@ -21,6 +21,10 @@ export function ConnectedAccounts() {
 
   const tiktok = accounts?.find((a) => a.platform === "tiktok" && a.status === "connected");
   const youtube = accounts?.find((a) => a.platform === "youtube" && a.status === "connected");
+
+  // Don't paint the "add a passkey" gate while Clerk/Convex are still loading —
+  // it flashes amber for a beat on every settings visit otherwise.
+  if (!isLoaded || accounts === undefined) return <div className={styles.panel} />;
 
   const onConnect = async () => {
     const { url } = await startTikTok();

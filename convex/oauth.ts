@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { action, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
 import { env } from "./_generated/server";
 import { internal } from "./_generated/api";
@@ -318,7 +318,57 @@ export const disconnect = mutation({
     const userId = await currentUserId(ctx);
     const account = await ctx.db.get("socialAccounts", args.accountId);
     if (!account || account.userId !== userId) throw new Error("not your account");
+    // Revoke at the provider too — "Disconnect" must mean the platform forgets
+    // the grant, not just that we dropped the row (contract 3: tokens are the
+    // crown jewels). Fire-and-forget; the row is cleared regardless.
+    if (account.accessToken) {
+      await ctx.scheduler.runAfter(0, internal.oauth.revokeAtProvider, {
+        platform: account.platform,
+        accessToken: account.accessToken,
+        refreshToken: account.refreshToken,
+      });
+    }
     await ctx.db.patch("socialAccounts", args.accountId, { status: "revoked", accessToken: "", refreshToken: "" });
+    return null;
+  },
+});
+
+/** Best-effort provider-side revocation. TikTok drops the app authorization
+ *  (the consent screen returns on the next connect); Google revokes the whole
+ *  grant when given the refresh token. Errors are logged, never surfaced. */
+export const revokeAtProvider = internalAction({
+  args: {
+    platform: v.union(v.literal("tiktok"), v.literal("youtube")),
+    accessToken: v.string(),
+    refreshToken: v.string(),
+  },
+  handler: async (_ctx: ActionCtx, args): Promise<null> => {
+    try {
+      if (args.platform === "tiktok") {
+        const clientKey = env.TIKTOK_CLIENT_KEY;
+        const clientSecret = env.TIKTOK_CLIENT_SECRET;
+        if (!clientKey || !clientSecret) return null;
+        const resp = await fetch("https://open.tiktokapis.com/v2/oauth/revoke/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_key: clientKey,
+            client_secret: clientSecret,
+            token: args.accessToken,
+          }).toString(),
+        });
+        if (!resp.ok) console.warn("tiktok revoke failed", resp.status, await resp.text());
+      } else {
+        const token = args.refreshToken || args.accessToken;
+        const resp = await fetch(
+          `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`,
+          { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" } },
+        );
+        if (!resp.ok) console.warn("google revoke failed", resp.status, await resp.text());
+      }
+    } catch (err) {
+      console.warn("provider revoke error", args.platform, err);
+    }
     return null;
   },
 });
