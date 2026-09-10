@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Spline+Sans+Mono:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "Instrument Sans", system-ui, sans-serif; background: #0C0B10; color: #F4F3F7; -webkit-font-smoothing: antialiased; }
+    a { color: #FF4D6D; text-decoration: none; } a:hover { color: #FF7590; }
+  </style>
+</helmet>
+<div style="width: 390px; height: 844px; background: #0C0B10; display: flex; flex-direction: column; position: relative; overflow: hidden;">
+
+  <!-- Top bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 10px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#FF4D6D"></path></svg>
+      <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 13px; letter-spacing: 0.04em;">PICKS</div>
+    </div>
+    <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; color: #8D89A0;">4 OF 10 · LOOPNOTE</div>
+  </div>
+
+  <!-- The concept card, just kept (swiped right) -->
+  <div style="display: flex; flex-direction: column; align-items: center; padding: 6px 20px 0; gap: 12px;">
+    <div style="width: 300px; height: 420px; border-radius: 20px; background: linear-gradient(155deg, #3A1B2A, #1A0E16); border: 1.5px solid #45E0B0; box-shadow: 0 0 50px rgba(69, 224, 176, 0.22); display: flex; flex-direction: column; justify-content: space-between; padding: 18px; transform: rotate(3deg) translateX(14px);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- per-concept language chip -->
+        <div style="display: flex; align-items: center; gap: 6px; background: rgba(12, 11, 16, 0.6); border: 1px solid #3A3846; border-radius: 999px; padding: 4px 10px; font-size: 12.5px;">हिन्दी<span style="font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; color: #A5A1B2;">HINGLISH</span></div>
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #45E0B0;">KEPT ✓</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 24px; line-height: 1.22;">6 months tak Loopnote ne $0 kamaya. phir ek cheez badli</div>
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #FF9BB0;">SLIDESHOW · 6 SLIDES · REF 2.9M VIEWS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom sheet: language as a multiplier, one tap -->
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #14131A; border-top: 1px solid #262430; border-radius: 22px 22px 0 0; padding: 14px 20px 26px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);">
+    <div style="width: 40px; height: 4px; border-radius: 999px; background: #3A3846; align-self: center;"></div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 19px;">Post this one in another market too?</div>
+      <div style="font-size: 13.5px; line-height: 1.45; color: #A5A1B2;">Same pick, rewritten and voiced by Friday. Each one counts as a video.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 14px; background: #1A1922; border: 1.5px solid #FF4D6D; box-shadow: 0 0 20px rgba(255, 77, 109, 0.22);">
+        <div style="font-size: 20px;">English</div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; color: #45E0B0;">+1 VIDEO ✓</div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 14px; background: #1A1922; border: 1px solid #262430;">
+        <div style="font-size: 20px;">தமிழ்</div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; color: #8D89A0;">TAMIL</div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 14px; background: #1A1922; border: 1px solid #262430;">
+        <div style="font-size: 20px;">తెలుగు</div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; color: #8D89A0;">TELUGU</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: #A5A1B2;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Other language</div>
+      <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #8D89A0;">FRIDAY SUGGESTS FROM YOUR AUDIENCE</div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <div style="flex-grow: 1; text-align: center; border: 1px solid #262430; color: #F4F3F7; font-weight: 500; font-size: 15px; padding: 14px; border-radius: 999px;">Just Hindi</div>
+      <div style="flex-grow: 1; text-align: center; background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 15px; padding: 14px; border-radius: 999px; box-shadow: 0 0 24px rgba(255, 77, 109, 0.35);">Add English →</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

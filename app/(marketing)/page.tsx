@@ -1,16 +1,20 @@
 import { Hero } from "@/components/marketing/Hero";
-import { SwipeStrip } from "@/components/marketing/SwipeStrip";
+import { PicksDemo } from "@/components/marketing/PicksDemo";
+import { Attribution } from "@/components/marketing/Attribution";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
-import { ProofBand } from "@/components/marketing/ProofBand";
+import { Markets } from "@/components/marketing/Markets";
 import { FoundingOffer } from "@/components/marketing/FoundingOffer";
 
+/* Landing v2 — docs/landing-v2.md. Order is the argument: show it, prove the
+   click, explain it, multiply it, price it. */
 export default function LandingPage() {
   return (
     <>
       <Hero />
-      <SwipeStrip />
+      <PicksDemo />
+      <Attribution />
       <HowItWorks />
-      <ProofBand />
+      <Markets />
       <FoundingOffer />
     </>
   );

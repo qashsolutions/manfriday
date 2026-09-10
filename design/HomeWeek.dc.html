@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Spline+Sans+Mono:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "Instrument Sans", system-ui, sans-serif; background: #0C0B10; color: #F4F3F7; -webkit-font-smoothing: antialiased; }
+    a { color: #FF4D6D; text-decoration: none; } a:hover { color: #FF7590; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #0C0B10; display: flex;">
+
+  <!-- Left rail (shared shell) -->
+  <div style="width: 220px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #1F1D28; padding: 24px 16px;">
+    <div style="display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; align-items: center; gap: 9px; padding: 0 10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#FF4D6D"></path></svg>
+        <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 14px; letter-spacing: 0.04em;">MAN FRIDAY</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; background: #1A1922; color: #F4F3F7; font-size: 14.5px; font-weight: 600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF4D6D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>Picks<div style="margin-left: auto; font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; background: #FF4D6D; color: #14060B; border-radius: 999px; padding: 2px 7px;">10</div></div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>Calendar</div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>Analytics</div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Settings</div>
+      </div>
+    </div>
+    <!-- Plan meter: the one plan-aware element in the shell -->
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 12px; background: #14131A; border: 1px solid #1F1D28; border-radius: 12px;">
+      <div style="display: flex; justify-content: space-between;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #8D89A0;">STUDIO · SEP</div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #A5A1B2;">41 / 100</div></div>
+      <div style="height: 6px; border-radius: 999px; background: #262430;"><div style="width: 41%; height: 6px; border-radius: 999px; background: #45E0B0;"></div></div>
+      <div style="display: flex; justify-content: space-between;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #8D89A0;">AVATAR</div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #A5A1B2;">6 / 15</div></div>
+      <div style="height: 6px; border-radius: 999px; background: #262430;"><div style="width: 40%; height: 6px; border-radius: 999px; background: #F5C044;"></div></div>
+      <div style="font-size: 12px; color: #8D89A0;">Renews 1 Oct · +10 videos $5</div>
+    </div>
+  </div>
+
+  <!-- Home for an active brand: Friday's week, then today's picks -->
+  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 22px; padding: 32px 40px; overflow: hidden;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #8D89A0;">LOOPNOTE · FRIDAY'S WEEK · 4–10 SEP</div>
+        <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 30px; line-height: 1.05;">6 posts out. 113 people came to see Loopnote.</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; background: #1A1922; border: 1px solid #262430; border-radius: 999px; padding: 8px 14px; font-size: 13.5px; color: #A5A1B2;"><div style="width: 22px; height: 22px; border-radius: 999px; background: linear-gradient(155deg, #3A1B2A, #6B2540);"></div>Loopnote<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8D89A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div>
+    </div>
+
+    <!-- Week tiles: clicks first, views last -->
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+      <div style="background: rgba(69, 224, 176, 0.08); border: 1px solid rgba(69, 224, 176, 0.35); border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #45E0B0;">CLICKS TO LOOPNOTE.APP</div>
+        <div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 34px; color: #45E0B0; line-height: 1;">113</div>
+        <div style="font-size: 12.5px; color: #A5A1B2;">↑ 38 vs last week</div>
+      </div>
+      <div style="background: #14131A; border: 1px solid #1F1D28; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #8D89A0;">POSTS SHIPPED</div>
+        <div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 34px; line-height: 1;">6</div>
+        <div style="font-size: 12.5px; color: #A5A1B2;">4 TikTok · 2 Shorts</div>
+      </div>
+      <div style="background: #14131A; border: 1px solid #1F1D28; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #8D89A0;">WATCHED TO THE END</div>
+        <div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 34px; line-height: 1;">54%</div>
+        <div style="font-size: 12.5px; color: #A5A1B2;">best: "$0 for 6 months" · 61%</div>
+      </div>
+      <div style="background: #14131A; border: 1px solid #1F1D28; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #8D89A0;">VIEWS</div>
+        <div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 34px; line-height: 1; color: #A5A1B2;">48.2K</div>
+        <div style="font-size: 12.5px; color: #8D89A0;">nice, but not the point</div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 18px; flex-grow: 1; min-height: 0;">
+      <!-- Today's picks: the main action -->
+      <div style="flex-grow: 1; background: #14131A; border: 1px solid #1F1D28; border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 19px;">10 new picks, drafted overnight</div>
+            <div style="font-size: 13.5px; color: #A5A1B2;">3 of them lean on the "$0 → one change" hook that sent 41 people your way.</div>
+          </div>
+          <div style="background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 999px; box-shadow: 0 0 24px rgba(255, 77, 109, 0.35);">Start swiping →</div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: flex-end;">
+          <div style="width: 150px; height: 266px; border-radius: 12px; background: linear-gradient(155deg, #3A1B2A, #1A0E16); border: 1.5px solid #FF4D6D; box-shadow: 0 0 30px rgba(255, 77, 109, 0.25); display: flex; flex-direction: column; justify-content: space-between; padding: 10px;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 9px; color: #45E0B0;">MORE LIKE THIS</div><div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 11px; line-height: 1.25;">Loopnote made $0 until I stopped typing</div></div>
+          <div style="width: 150px; height: 266px; border-radius: 12px; background: linear-gradient(155deg, #33202B, #171019); border: 1px solid #262430; display: flex; flex-direction: column; justify-content: space-between; padding: 10px;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 9px; color: #45E0B0;">MORE LIKE THIS</div><div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 11px; line-height: 1.25;">6 months of $0. one voice note fixed it</div></div>
+          <div style="width: 150px; height: 266px; border-radius: 12px; background: linear-gradient(165deg, #1F2B33, #11171C); border: 1px solid #262430; display: flex; align-items: flex-end; padding: 10px;"><div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 11px; line-height: 1.25;">I replaced my to-do app with my voice</div></div>
+          <div style="width: 150px; height: 266px; border-radius: 12px; background: linear-gradient(160deg, #232B26, #131714); border: 1px solid #262430; display: flex; align-items: flex-end; padding: 10px;"><div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 11px; line-height: 1.25;">POV: your ideas stop dying in the shower</div></div>
+          <div style="width: 150px; height: 266px; border-radius: 12px; background: linear-gradient(160deg, #2B2338, #16121E); border: 1px solid #262430; display: flex; align-items: flex-end; padding: 10px;"><div style="font-family: Archivo, sans-serif; font-weight: 800; font-size: 11px; line-height: 1.25;">3 tools that fixed my distribution</div></div>
+          <div style="width: 150px; height: 266px; border-radius: 12px; border: 1px dashed #3A3846; display: flex; align-items: center; justify-content: center; font-family: 'Spline Sans Mono', monospace; font-size: 11px; color: #8D89A0;">+5</div>
+        </div>
+      </div>
+
+      <!-- Queue + Friday's note -->
+      <div style="width: 380px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: #14131A; border: 1px solid #1F1D28; border-radius: 18px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8D89A0;">NEXT UP</div><div style="font-size: 12.5px; color: #FF4D6D;">Calendar →</div></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1F1D28;"><div style="display: flex; flex-direction: column; gap: 2px;"><div style="font-size: 13.5px; color: #F4F3F7;">Today · 17:30</div><div style="font-size: 12px; color: #8D89A0;">"one voice note fixed it"</div></div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #F5C044; border: 1px solid rgba(245, 192, 68, 0.4); border-radius: 999px; padding: 3px 8px;">TIKTOK · QUEUED</div></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1F1D28;"><div style="display: flex; flex-direction: column; gap: 2px;"><div style="font-size: 13.5px; color: #F4F3F7;">Tomorrow · 17:30</div><div style="font-size: 12px; color: #8D89A0;">"replaced my to-do app"</div></div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #F5C044; border: 1px solid rgba(245, 192, 68, 0.4); border-radius: 999px; padding: 3px 8px;">SHORTS · QUEUED</div></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;"><div style="display: flex; flex-direction: column; gap: 2px;"><div style="font-size: 13.5px; color: #F4F3F7;">Tue · 17:30</div><div style="font-size: 12px; color: #8D89A0;">"$0 for 6 months"</div></div><div style="font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #45E0B0; border: 1px solid rgba(69, 224, 176, 0.4); border-radius: 999px; padding: 3px 8px;">LIVE · 41 CLICKS</div></div>
+        </div>
+        <div style="background: #14131A; border: 1px solid #1F1D28; border-radius: 18px; padding: 18px 22px; display: flex; gap: 12px; align-items: flex-start;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF4D6D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path></svg>
+          <div style="font-size: 13.5px; line-height: 1.5; color: #D9D6E3;">Friday retired the "POV: 1,000 users" angle — 6 clicks in three tries. Hooks that admit a slow start are doing the work for you.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

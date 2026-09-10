@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Spline+Sans+Mono:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "Instrument Sans", system-ui, sans-serif; background: #0C0B10; color: #F4F3F7; -webkit-font-smoothing: antialiased; }
+    a { color: #FF4D6D; text-decoration: none; } a:hover { color: #FF7590; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #0C0B10; display: flex; flex-direction: column; align-items: center; padding: 56px 64px; gap: 28px; position: relative; overflow: hidden;">
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+    <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; color: #8D89A0;">STEP 2 OF 3 · FRIDAY'S BRIEF ON YOU</div>
+    <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 40px; line-height: 1.05;">Friday read loopnote.app in 34 seconds.</div>
+    <div style="font-size: 16px; color: #A5A1B2;">Fix anything that's off. Every video after this is grounded in it.</div>
+  </div>
+
+  <!-- The brief -->
+  <div style="width: 760px; background: #14131A; border: 1px solid #1F1D28; border-radius: 18px; padding: 8px 28px; display: flex; flex-direction: column; position: relative;">
+    <div style="display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid #1F1D28;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; color: #8D89A0; width: 110px; padding-top: 4px;">PRODUCT</div><div style="font-size: 16px; line-height: 1.5; color: #F4F3F7;">Loopnote turns voice notes into to-dos, tagged and scheduled without typing.</div></div>
+    <div style="display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid #1F1D28;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; color: #8D89A0; width: 110px; padding-top: 4px;">AUDIENCE</div><div style="font-size: 16px; line-height: 1.5; color: #F4F3F7;">Indie founders and freelancers in India with more ideas than hours.</div></div>
+    <div style="display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid #1F1D28;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; color: #8D89A0; width: 110px; padding-top: 4px;">TONE</div><div style="font-size: 16px; line-height: 1.5; color: #F4F3F7;">Plain, a little dry. Shows the product, never hypes it.</div></div>
+
+    <!-- Language row: chip + inline "how it sounds" -->
+    <div style="display: flex; gap: 20px; padding: 18px 0; align-items: flex-start;">
+      <div style="font-family: 'Spline Sans Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; color: #8D89A0; width: 110px; padding-top: 12px;">LANGUAGE</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; flex-grow: 1;">
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+          <!-- the chip, focused: it is the combobox trigger -->
+          <div style="display: flex; align-items: center; gap: 10px; background: #1A1922; border: 1.5px solid #FF4D6D; border-radius: 999px; padding: 9px 14px 9px 16px; box-shadow: 0 0 24px rgba(255, 77, 109, 0.25);">
+            <div style="font-size: 17px;">हिन्दी</div>
+            <div style="font-size: 14px; color: #A5A1B2;">Hindi</div>
+            <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; color: #45E0B0; border-left: 1px solid #3A3846; padding-left: 10px;">FRIDAY'S PICK</div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <!-- How it sounds: the Hinglish question, answered in one control -->
+          <div style="display: flex; background: #0C0B10; border: 1px solid #262430; border-radius: 999px; padding: 3px;">
+            <div style="padding: 8px 14px; border-radius: 999px; background: #262430; color: #F4F3F7; font-size: 13.5px; font-weight: 600; white-space: nowrap;">Hinglish</div>
+            <div style="padding: 8px 14px; border-radius: 999px; color: #A5A1B2; font-size: 13.5px; white-space: nowrap;">शुद्ध हिन्दी</div>
+            <div style="padding: 8px 14px; border-radius: 999px; color: #A5A1B2; font-size: 13.5px; white-space: nowrap;">Roman script</div>
+          </div>
+        </div>
+        <div style="font-size: 13.5px; line-height: 1.5; color: #8D89A0;">Your site reads Hindi, and Hinglish is how most Indian creators actually talk, so Friday writes and speaks it that way. Change either here, or per video later.</div>
+      </div>
+    </div>
+
+    <!-- Combobox popover, open under the chip: type-ahead in any script -->
+    <div style="position: absolute; left: 138px; top: 254px; width: 440px; background: #14131A; border: 1px solid #262430; border-radius: 14px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55); display: flex; flex-direction: column; overflow: hidden;">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #1F1D28;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8D89A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <div style="font-size: 15px; color: #F4F3F7;">ta<span style="display: inline-block; width: 1.5px; height: 16px; background: #FF4D6D; vertical-align: middle; margin-left: 1px;"></span></div>
+        <div style="margin-left: auto; font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #8D89A0; border: 1px solid #262430; border-radius: 6px; padding: 2px 6px;">ESC</div>
+      </div>
+      <div style="display: flex; flex-direction: column; padding: 6px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px; background: #1A1922;">
+          <div style="font-size: 17px; width: 90px;">தமிழ்</div><div style="font-size: 14px; color: #A5A1B2;">Tamil</div>
+          <div style="margin-left: auto; font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #8D89A0;">↵</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px;">
+          <div style="font-size: 17px; width: 90px;">తెలుగు</div><div style="font-size: 14px; color: #A5A1B2;">Telugu</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px;">
+          <div style="font-size: 17px; width: 90px;">Bahasa</div><div style="font-size: 14px; color: #A5A1B2;">Indonesian · "bahasa"</div>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid #1F1D28; font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: #8D89A0;">
+        <div style="white-space: nowrap;">↑↓ MOVE · ↵ PICK · ANY SCRIPT</div>
+        <div style="white-space: nowrap;">14 LANGUAGES · EVERY PLAN</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 16px; margin-top: 200px;">
+    <div style="background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 17px; padding: 15px 30px; border-radius: 999px; box-shadow: 0 0 40px rgba(255, 77, 109, 0.45);">Looks right — make my first 10 →</div>
+    <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12px; color: #8D89A0;">20 seconds here pays for itself</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

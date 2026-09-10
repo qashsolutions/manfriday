@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Spline+Sans+Mono:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "Instrument Sans", system-ui, sans-serif; background: #0C0B10; color: #F4F3F7; -webkit-font-smoothing: antialiased; }
+    a { color: #FF4D6D; text-decoration: none; } a:hover { color: #FF7590; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #0C0B10; display: flex;">
+
+  <!-- Left rail (shared shell) -->
+  <div style="width: 220px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #1F1D28; padding: 24px 16px;">
+    <div style="display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; align-items: center; gap: 9px; padding: 0 10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#FF4D6D"></path></svg>
+        <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 14px; letter-spacing: 0.04em;">MAN FRIDAY</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; background: #1A1922; color: #F4F3F7; font-size: 14.5px; font-weight: 600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF4D6D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>Picks</div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>Calendar</div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>Analytics</div>
+        <div style="display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 10px; color: #A5A1B2; font-size: 14.5px; font-weight: 500;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A1B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Settings</div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 12px; background: #14131A; border: 1px solid #1F1D28; border-radius: 12px;">
+      <div style="font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #8D89A0;">FREE · 3 VIDEOS</div>
+      <div style="height: 6px; border-radius: 999px; background: #262430;"><div style="width: 0%; height: 6px; border-radius: 999px; background: #45E0B0;"></div></div>
+      <div style="font-size: 12.5px; color: #A5A1B2;">0 of 3 used · no card</div>
+    </div>
+  </div>
+
+  <!-- First-run: the only thing to do is point Friday at a product -->
+  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px; padding: 48px 64px;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;">
+      <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; color: #FF4D6D;">DAY ONE</div>
+      <div style="font-family: Archivo, 'Arial Black', sans-serif; font-stretch: 125%; font-weight: 900; font-size: 44px; line-height: 1.05; max-width: 720px;">Point Friday at your product.</div>
+      <div style="font-size: 17px; line-height: 1.5; color: #A5A1B2; max-width: 520px;">One URL. Friday reads it, writes the brief, and has 10 concepts ready to swipe in a few minutes.</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; width: 680px; background: #14131A; border: 1px solid #262430; border-radius: 999px; padding: 8px 8px 8px 24px; box-shadow: 0 0 60px rgba(255, 77, 109, 0.12);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8D89A0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+      <div style="flex-grow: 1; font-size: 18px; color: #8D89A0;">https://yourproduct.com</div>
+      <div style="background: #FF4D6D; color: #14060B; font-weight: 600; font-size: 16px; padding: 14px 26px; border-radius: 999px; box-shadow: 0 0 40px rgba(255, 77, 109, 0.45); white-space: nowrap;">Read my site →</div>
+    </div>
+
+    <!-- What happens next: three steps, states honest -->
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; width: 900px;">
+      <div style="background: #14131A; border: 1px solid #262430; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #FF4D6D;">01 · NOW</div><div style="width: 22px; height: 22px; border-radius: 999px; border: 1.5px solid #FF4D6D;"></div></div>
+        <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">Brief</div>
+        <div style="font-size: 13.5px; line-height: 1.5; color: #A5A1B2;">Friday reads your site and writes what it thinks you sell, to whom, in which language. You fix anything off.</div>
+      </div>
+      <div style="background: #14131A; border: 1px solid #1F1D28; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; opacity: 0.75;">
+        <div style="display: flex; align-items: center; justify-content: space-between;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #8D89A0;">02 · ~3 MIN</div><div style="width: 22px; height: 22px; border-radius: 999px; border: 1.5px solid #3A3846;"></div></div>
+        <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">First 10 picks</div>
+        <div style="font-size: 13.5px; line-height: 1.5; color: #A5A1B2;">Slideshows, faceless and avatar concepts, each beside the trending video it's modeled on. Swipe.</div>
+      </div>
+      <div style="background: #14131A; border: 1px solid #1F1D28; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; opacity: 0.75;">
+        <div style="display: flex; align-items: center; justify-content: space-between;"><div style="font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: #8D89A0;">03 · WHEN READY</div><div style="width: 22px; height: 22px; border-radius: 999px; border: 1.5px solid #3A3846;"></div></div>
+        <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">Connect TikTok</div>
+        <div style="font-size: 13.5px; line-height: 1.5; color: #A5A1B2;">Needs a passkey or 2FA first, because posting keys are the crown jewels. Then Friday posts on schedule.</div>
+      </div>
+    </div>
+
+    <div style="font-family: 'Spline Sans Mono', monospace; font-size: 12px; color: #8D89A0;">3 videos on us · no card · 14 languages · upgrade only when you want more</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

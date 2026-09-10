@@ -1,0 +1,209 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 10px 24px 96px;
+  overflow: hidden;
+}
+
+.liveChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--edge-2);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 11.5px;
+  color: var(--dim);
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--mint);
+  box-shadow: 0 0 10px var(--mint);
+}
+
+.pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.colLabel {
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  margin: 0;
+}
+
+.colLabelAccent {
+  color: var(--accent-soft);
+}
+
+/* The two 9:16 cards are video thumbnails: they stay dark in both themes. */
+.card {
+  width: 250px;
+  aspect-ratio: 9 / 16;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  color: #f4f3f7;
+  flex: none;
+}
+
+.reference {
+  background: linear-gradient(170deg, #2a2733, #15141b);
+  border: 1px solid #262430;
+}
+
+.pick {
+  background: linear-gradient(155deg, #3a1b2a, #1a0e16);
+  border: 1.5px solid #ff4d6d;
+  box-shadow: 0 0 60px rgba(255, 77, 109, 0.28);
+}
+
+.cardTop,
+.cardBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTop {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.play {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid #3a3846;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hook {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 23px;
+  line-height: 1.22;
+  margin: 0;
+}
+
+.hookDim {
+  font-size: 19px;
+  color: #d9d6e3;
+}
+
+.cardMeta {
+  font-size: 10.5px;
+  color: #a5a1b2;
+  margin: 0;
+}
+
+.cardMetaAccent {
+  font-size: 10.5px;
+  color: #ff9bb0;
+  margin: 0;
+}
+
+.relation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 120px;
+  color: var(--accent);
+}
+
+.relationLabel {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--faint);
+  text-align: center;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 12.5px;
+  color: var(--faint);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--edge-2);
+}
+
+.count {
+  color: var(--ink);
+}
+
+.keep {
+  color: var(--mint);
+}
+
+@media (max-width: 720px) {
+  .pair {
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .relation {
+    width: 32px;
+    margin-bottom: 110px;
+  }
+  .relationLabel {
+    display: none;
+  }
+  .relation svg {
+    width: 28px;
+  }
+  .reference {
+    width: 104px;
+  }
+  .reference .hookDim {
+    font-size: 11px;
+  }
+  .reference .cardTop,
+  .reference .cardMeta {
+    display: none;
+  }
+  .pick {
+    width: 168px;
+  }
+  .pick .hook {
+    font-size: 16px;
+  }
+  .pick .cardTop {
+    display: none;
+  }
+  .card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+  .colLabel {
+    font-size: 9.5px;
+  }
+}

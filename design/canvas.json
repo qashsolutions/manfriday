@@ -1,4 +1,14 @@
 {
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "v1 screens"
+    },
+    {
+      "id": "page-2",
+      "name": "Landing v2 + home"
+    }
+  ],
   "artboards": [
     {
       "file": "Main.dc.html",
@@ -72,6 +82,60 @@
       "h": 844,
       "title": "Prototype · tap through",
       "is_interactive": true
+    },
+    {
+      "file": "LandingV2.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 4160,
+      "title": "Landing v2 · desktop",
+      "page": "page-2"
+    },
+    {
+      "file": "LandingV2Mobile.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 390,
+      "h": 2360,
+      "title": "Landing v2 · phone",
+      "page": "page-2"
+    },
+    {
+      "file": "LanguagePick.dc.html",
+      "x": 2070,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Brief · language chip, how-it-sounds, combobox",
+      "page": "page-2"
+    },
+    {
+      "file": "HomeFirstRun.dc.html",
+      "x": 2070,
+      "y": 1040,
+      "w": 1440,
+      "h": 900,
+      "title": "Home · day one (no brand yet)",
+      "page": "page-2"
+    },
+    {
+      "file": "HomeWeek.dc.html",
+      "x": 2070,
+      "y": 2080,
+      "w": 1440,
+      "h": 900,
+      "title": "Home · Friday's week (active, Studio plan)",
+      "page": "page-2"
+    },
+    {
+      "file": "PicksAlsoIn.dc.html",
+      "x": 1560,
+      "y": 2480,
+      "w": 390,
+      "h": 844,
+      "title": "Picks · kept → also in another market",
+      "page": "page-2"
     }
   ],
   "annotations": [
@@ -81,10 +145,18 @@
       "y": -220,
       "w": 460,
       "text": "BROADCAST direction — locked 3 Sep.\nGraphite #0C0B10 · panels #14131A · accent #FF4D6D · live #45E0B0 · queued amber #F5C044 · chart muted #B23A52 · Archivo Expanded display, Instrument Sans body, Spline Sans Mono labels.\nStatic mockups: sample product is 'Loopnote' (fictional). Product: Man Friday · manfriday.app. Pricing locked at 0.7× the market leader — beta plan $34/mo after 30-day trial; remaining bracketed values ([NNN] spots, proof-band stats) await launch data. Picks (the swipe screen — renamed from 'Blitz' 4 Sep to avoid the competitor's term) is mobile-first; desktop screens share the left-rail shell. The PROTOTYPE artboard is clickable — tap through Friday's full loop: URL → brief → swipe → schedule → posted. Light editor rule: swap the hook, the voice, or a slide — never a timeline."
+    },
+    {
+      "id": "landing-v2-brief",
+      "x": 0,
+      "y": -260,
+      "w": 520,
+      "page": "page-2",
+      "text": "LANDING V2 — drafted 10 Sep, for review before any code.\nWhat changed vs v1: (1) the URL input IS the hero call to action — a real brief in ~30s is the free tier's first step anyway; (2) a live Picks demo replaces the grey placeholder strip — reference video beside Friday's concept; (3) click attribution gets its own section (the north-star differentiator, absent from v1); (4) how-it-works tiles show the product instead of describing it; (5) the 14 languages appear in their own scripts; (6) the founding offer stands alone (book-a-call card removed 10 Sep).\nLanguage (revised 10 Sep after review): (a) setup — Friday infers the language, shows it as a chip; the chip is a command-menu combobox (type-ahead in any script, keyboard-first), no modal, no dropdown; a 'how it sounds' control answers the Hinglish question — Hinglish / शुद्ध हिन्दी / Roman script (Sarvam Mayura code-mixed + Bulbul TTS handle all three). (b) point of use — every pick carries its language; after a keep, a bottom sheet offers 'also in' the brand's other markets, one tap = one more video (counts against the allowance). The landing band now demos this: one pick, three markets.\nHome: two states of Picks-as-home — day one (no brand) and an active week (clicks first, views last; plan meter in the rail is the only plan-aware chrome). Marketing pages stay static; signed-in users land in the app, never on marketing.\nNumbers (113 clicks, 41, 48.2K) are illustrative sample data."
     }
   ],
   "launch": {
-    "view": "focused",
-    "file": "Signup.dc.html"
+    "view": "canvas",
+    "page": "page-2"
   }
 }

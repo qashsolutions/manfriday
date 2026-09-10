@@ -1,37 +1,6 @@
 import styles from "./HowItWorks.module.css";
 
-const STEPS = [
-  {
-    title: "Friday learns your product",
-    body: "Paste your URL. Friday reads the site and writes a brand brief — product, audience, tone, niche, and the language your market speaks. You approve it once; every video after is grounded in it.",
-    icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
-        <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
-      </svg>
-    ),
-  },
-  {
-    title: "You swipe. That's the job.",
-    body: "Every concept sits next to the real trending video it's modeled on — proof before you post. Left to skip, right to keep. Thirty seconds a day, tops.",
-    icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-      </svg>
-    ),
-  },
-  {
-    title: "Friday posts — and learns",
-    body: "Captions written, best time picked, live on TikTok and Shorts in minutes. Friday watches which posts send people to your product and quietly makes more of whatever worked.",
-    icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M22 2 11 13" />
-        <path d="M22 2 15 22l-4-9-9-4z" />
-      </svg>
-    ),
-  },
-] as const;
-
+/* Each step shows the product instead of describing it (docs/landing-v2.md §5). */
 export function HowItWorks() {
   return (
     <section className={styles.section}>
@@ -41,13 +10,56 @@ export function HowItWorks() {
           <h2 className={`display ${styles.title}`}>What Friday does while you ship</h2>
         </div>
         <div className={styles.grid}>
-          {STEPS.map((s) => (
-            <article key={s.title} className={`panel ${styles.card}`}>
-              {s.icon}
-              <h3 className={styles.cardTitle}>{s.title}</h3>
-              <p className={styles.cardBody}>{s.body}</p>
-            </article>
-          ))}
+          <article className={`panel ${styles.card}`}>
+            <div className={styles.visual} aria-hidden="true">
+              <p className={`mono ${styles.briefLabel}`}>FRIDAY&apos;S BRIEF ON LOOPNOTE</p>
+              <div className={styles.briefRow}><span className="mono">PRODUCT</span><span>Voice notes that turn into to-dos</span></div>
+              <div className={styles.briefRow}><span className="mono">AUDIENCE</span><span>Indie founders drowning in ideas</span></div>
+              <div className={styles.briefRow}><span className="mono">TONE</span><span>Plain, a little dry, no hype</span></div>
+              <div className={styles.briefRow}>
+                <span className="mono">LANGUAGE</span>
+                <span className={styles.langChip}>
+                  English <span className={`mono ${styles.langPick}`}>FRIDAY&apos;S PICK</span>
+                </span>
+              </div>
+            </div>
+            <h3 className={styles.cardTitle}>Friday learns your product</h3>
+            <p className={styles.cardBody}>
+              Paste your URL. Friday writes a brand brief you approve once; every video after is
+              grounded in it.
+            </p>
+          </article>
+
+          <article className={`panel ${styles.card}`}>
+            <div className={`${styles.visual} ${styles.visualSwipe}`} aria-hidden="true">
+              <div className={styles.miniBack} />
+              <div className={styles.miniFront}>
+                <span>$0 for 6 months…</span>
+              </div>
+              <div className={`mono ${styles.swipeHints}`}>
+                <span className={styles.keep}>→ KEEP</span>
+                <span>← SKIP</span>
+              </div>
+            </div>
+            <h3 className={styles.cardTitle}>You swipe. That&apos;s the job.</h3>
+            <p className={styles.cardBody}>
+              Every concept sits next to the trending video it&apos;s modeled on. Left to skip,
+              right to keep. Thirty seconds a day.
+            </p>
+          </article>
+
+          <article className={`panel ${styles.card}`}>
+            <div className={`${styles.visual} ${styles.visualQueue}`} aria-hidden="true">
+              <div className={styles.queueRow}><span>Tue · 17:30</span><span className={`mono ${styles.chipLive}`}>TIKTOK · LIVE</span></div>
+              <div className={styles.queueRow}><span>Wed · 17:30</span><span className={`mono ${styles.chipQueued}`}>SHORTS · QUEUED</span></div>
+              <div className={styles.queueRow}><span>Thu · 17:30</span><span className={`mono ${styles.chipQueued}`}>TIKTOK · QUEUED</span></div>
+            </div>
+            <h3 className={styles.cardTitle}>Friday posts, and learns</h3>
+            <p className={styles.cardBody}>
+              Captions written, best time picked, live on TikTok and Shorts. Friday watches which
+              posts send people to your product and makes more of those.
+            </p>
+          </article>
         </div>
       </div>
     </section>

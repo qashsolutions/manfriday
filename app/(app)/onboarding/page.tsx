@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -20,6 +20,17 @@ export default function OnboardingPage() {
   const request = useQuery(api.onboarding.myLatestRequest);
 
   const busy = request && ["pending", "claimed", "analyzing", "drafting"].includes(request.status);
+
+  // The landing hero's URL rides through signup in localStorage (see RememberUrl).
+  useEffect(() => {
+    try {
+      const pending = localStorage.getItem("mf-pending-url");
+      if (pending) {
+        setUrl((u) => u || pending);
+        localStorage.removeItem("mf-pending-url");
+      }
+    } catch {}
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

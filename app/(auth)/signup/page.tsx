@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Waitlist } from "@clerk/nextjs";
+import { RememberUrl } from "@/components/marketing/RememberUrl";
 import { TIERS, FREE, FOUNDING } from "@/lib/site";
 import styles from "../auth.module.css";
 
@@ -32,6 +34,9 @@ export default function SignupPage() {
   const [solo] = TIERS;
   return (
     <div className={styles.grid}>
+      <Suspense fallback={null}>
+        <RememberUrl />
+      </Suspense>
       <section className={styles.pitch}>
         <p className="eyebrow">Hire Friday</p>
         <h1 className={`display ${styles.title}`}>Friday starts today.</h1>
