@@ -3,7 +3,10 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Show, UserButton, useClerk, useUser } from "@clerk/nextjs";
-import { TIERS, FREE, POLICY, FOUNDING, LANGUAGES } from "@/lib/site";
+import { TIERS, FREE, POLICY, FOUNDING } from "@/lib/site";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { LanguageChip } from "./LanguageChip";
 import { ConnectedAccounts } from "./ConnectedAccounts";
 import styles from "./SettingsPanel.module.css";
 
@@ -18,15 +21,14 @@ export function SettingsPanel() {
   const { user } = useUser();
   const clerk = useClerk();
   const [mode, setMode] = useState<"dark" | "light">("dark");
-  const [language, setLanguage] = useState("en");
+  const brand = useQuery(api.brands.myBrand);
+  const setBrandLanguage = useMutation(api.brands.setLanguage);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     try {
       const m = localStorage.getItem("mf-mode");
       if (m === "light" || m === "dark") setMode(m);
-      const l = localStorage.getItem("mf-lang");
-      if (l && LANGUAGES.some((x) => x.code === l)) setLanguage(l);
     } catch {}
   }, []);
 
@@ -36,12 +38,6 @@ export function SettingsPanel() {
     else delete document.documentElement.dataset.mode;
     try {
       localStorage.setItem("mf-mode", m);
-    } catch {}
-  };
-  const pickLang = (l: string) => {
-    setLanguage(l);
-    try {
-      localStorage.setItem("mf-lang", l);
     } catch {}
   };
 
@@ -297,21 +293,20 @@ export function SettingsPanel() {
               <div>
                 <p className={styles.rowTitle}>Friday writes and speaks in</p>
                 <p className={styles.rowSub}>
-                  Per workspace — hooks, captions, hashtags, and the voiceover all follow it.
+                  Friday picked it from your site. Hooks, captions, hashtags and the voice follow it —
+                  and any pick can also go out in your other markets.
                 </p>
               </div>
-              <select
-                className={styles.select}
-                value={language}
-                onChange={(e) => pickLang(e.target.value)}
-                aria-label="Content language"
-              >
-                {LANGUAGES.map((l) => (
-                  <option key={l.code} value={l.code}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
+              {brand ? (
+                <LanguageChip
+                  language={brand.language}
+                  languageStyle={brand.languageStyle}
+                  compact
+                  onChange={(next) => setBrandLanguage({ brandId: brand.id, ...next })}
+                />
+              ) : (
+                <span className={`mono ${styles.wire}`}>SET IN YOUR BRIEF</span>
+              )}
             </div>
           </div>
         </section>

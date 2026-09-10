@@ -146,7 +146,15 @@ export const claimPipelineRequest = mutation({
       claimedBy: args.workerId,
       claimedAt: Date.now(),
     });
-    return { requestId: req._id, userId: req.userId, url: req.url };
+    return {
+      requestId: req._id,
+      userId: req.userId,
+      url: req.url,
+      kind: req.kind ?? "generate",
+      conceptId: req.conceptId ?? null,
+      language: req.language ?? null,
+      languageStyle: req.languageStyle ?? null,
+    };
   },
 });
 

@@ -1,5 +1,7 @@
 # Language UX — spec
 
+> **Status 10 Sep 2026:** §1 (chip + combobox + how-it-sounds on the brief and in Settings), §2 (per-pick language, "also in" sheet → `feed.requestVariant`), §3 (schema fields), and the worker's `generate_variant` (re-slot-fill in the target language/style, straight to final render) are BUILT. Not yet built: Sarvam Bulbul TTS adapter + forced alignment (§4), analytics by language (§5). The variant path needs one end-to-end run against the worker before beta.
+
 Design approved 10 Sep 2026 (artboards: `LanguagePick.dc.html`, `PicksAlsoIn.dc.html`, and the "One pick. Every market" band on `LandingV2.dc.html`). Extends D6 (CLAUDE.md). Principle: **language is detected, then multiplied — never configured.**
 
 ## 1. Setup: the brief

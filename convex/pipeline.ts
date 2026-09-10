@@ -140,6 +140,7 @@ export const createConcepts = mutation({
     brandId: v.id("brands"),
     briefVersion: v.number(),
     language: v.string(),
+    languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
     batchId: v.string(),
     concepts: v.array(
       v.object({
@@ -149,6 +150,7 @@ export const createConcepts = mutation({
         kind: v.union(v.literal("preview"), v.literal("final")),
         priority: v.number(),
         llmCostCents: v.optional(v.number()),
+        variantOf: v.optional(v.id("concepts")),
       }),
     ),
   },
@@ -163,10 +165,14 @@ export const createConcepts = mutation({
         briefVersion: args.briefVersion,
         specVersion: c.specVersion,
         language: args.language,
-        status: "draft",
+        languageStyle: args.languageStyle,
+        variantOf: c.variantOf,
+        // a variant of a kept concept goes straight to its final render
+        status: c.variantOf ? "render_queued" : "draft",
         slots: c.slots,
         batchId: args.batchId,
         costCents: c.llmCostCents ?? 0,
+        swipedAt: c.variantOf ? Date.now() : undefined,
       });
       const jobId = await ctx.db.insert("renderJobs", {
         conceptId,
@@ -232,5 +238,42 @@ export const batchStatus = query({
       previewThumbId: c.previewThumbId ?? null,
       costCents: c.costCents,
     }));
+  },
+});
+
+/** Everything the worker needs to re-slot-fill one kept concept in another
+ *  language (docs/language-ux.md §2): the brief, the template, the original slots. */
+export const variantContext = query({
+  args: { token: v.string(), conceptId: v.id("concepts") },
+  handler: async (ctx: QueryCtx, args) => {
+    requireWorker(args.token);
+    const concept = await ctx.db.get("concepts", args.conceptId);
+    if (!concept) return null;
+    const brand = await ctx.db.get("brands", concept.brandId);
+    const template = await ctx.db.get("trendTemplates", concept.templateId);
+    if (!brand || !template) return null;
+    return {
+      userId: concept.userId,
+      brandId: brand._id,
+      briefVersion: brand.briefVersion,
+      brief: {
+        name: brand.name,
+        one_liner: brand.oneLiner,
+        audience: brand.audience,
+        tone: brand.tone,
+        niche: brand.niche,
+        language: brand.language,
+      },
+      template: {
+        id: template._id,
+        slug: template.slug,
+        format: template.format,
+        hookPattern: template.hookPattern,
+        structure: template.structure,
+        specVersion: template.specVersion,
+      },
+      sourceSlots: concept.slots,
+      sourceLanguage: concept.language,
+    };
   },
 });

@@ -89,3 +89,54 @@ def generate_for_user(user_id: str, url: str, count: int = 10, request_id: str |
         },
     )
     return {"brandId": brand_id, "batchId": batch_id, "conceptCount": len(kept), "brief": brief.model_dump()}
+
+
+def generate_variant(
+    user_id: str,
+    concept_id: str,
+    language: str,
+    language_style: str | None = None,
+    request_id: str | None = None,
+) -> dict:
+    """docs/language-ux.md §2 — "also in": re-slot-fill one kept concept in
+    another market's language (never a word-for-word translation) and queue
+    its final render as a variant of the original."""
+    ctx = cvx.query("pipeline:variantContext", {"conceptId": concept_id})
+    if not ctx:
+        raise RuntimeError("variant source concept not found")
+    if request_id:
+        cvx.mutation("worker:updatePipelineRequest", {"requestId": request_id, "status": "drafting", "brandId": ctx["brandId"]})
+
+    brief = dict(ctx["brief"])
+    brief["language"] = language
+    if language_style:
+        brief["languageStyle"] = language_style
+    brief["source_post_in_" + ctx["sourceLanguage"]] = ctx["sourceSlots"]  # same angle, new market
+    template = ctx["template"]
+    fills, llm_cost = fill_batch(brief, language, [(template, 0)])
+    if not fills or fills[0] is None:
+        raise RuntimeError("slot-fill produced no valid variant")
+
+    batch_id = f"variant-{uuid.uuid4().hex[:8]}"
+    args = {
+        "userId": ctx["userId"],
+        "brandId": ctx["brandId"],
+        "briefVersion": ctx["briefVersion"],
+        "language": language,
+        "batchId": batch_id,
+        "concepts": [
+            {
+                "templateId": template["id"],
+                "specVersion": template["specVersion"],
+                "slots": fills[0],
+                "kind": "final",
+                "priority": 20,
+                "llmCostCents": max(1, llm_cost),
+                "variantOf": concept_id,
+            }
+        ],
+    }
+    if language_style:
+        args["languageStyle"] = language_style
+    cvx.mutation("pipeline:createConcepts", args)
+    return {"brandId": ctx["brandId"], "batchId": batch_id, "conceptCount": 1}

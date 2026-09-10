@@ -1,0 +1,184 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 11, 16, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 60;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 520px;
+  background: var(--panel);
+  border: 1px solid var(--edge-2);
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  padding: 14px 20px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--edge-2);
+  align-self: center;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  margin: 0;
+}
+
+.sub {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--dim);
+  margin: 0;
+}
+
+.hook {
+  font-size: 11px;
+  color: var(--faint);
+  margin: 4px 0 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  background: var(--panel-2);
+  border: 1.5px solid var(--edge-2);
+  color: var(--ink);
+  font-family: var(--font-body);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.tileOn {
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent-soft);
+}
+
+.tileNative {
+  font-size: 20px;
+}
+
+.tileSub {
+  font-size: 9.5px;
+  color: var(--faint);
+}
+
+.tileOn .tileSub {
+  color: var(--mint);
+}
+
+.other {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.otherBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 0;
+  color: var(--dim);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.hint {
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+.searchRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.input {
+  background: var(--graphite);
+  border: 1px solid var(--edge-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  outline: 0;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.result {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--edge-2);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.resultOn {
+  border-color: var(--accent);
+}
+
+.resultName {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actions > * {
+  flex: 1 1 0;
+  font-size: 15px;
+  padding: 14px;
+}

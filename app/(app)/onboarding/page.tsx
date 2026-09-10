@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import styles from "../app.module.css";
+import { LanguageChip } from "@/components/app/LanguageChip";
 
 const STATUS_COPY: Record<string, string> = {
   pending: "Friday is picking this up…",
@@ -18,6 +19,8 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const submit = useMutation(api.onboarding.submitUrl);
   const request = useQuery(api.onboarding.myLatestRequest);
+  const brand = useQuery(api.brands.myBrand);
+  const setBrandLanguage = useMutation(api.brands.setLanguage);
 
   const busy = request && ["pending", "claimed", "analyzing", "drafting"].includes(request.status);
 
@@ -87,8 +90,19 @@ export default function OnboardingPage() {
           <span className={styles.briefName}>{request.brand.name}</span>
           <span style={{ color: "var(--dim)", fontSize: 15 }}>{request.brand.oneLiner}</span>
           <span className={`mono ${styles.briefLabel}`}>
-            {request.brand.niche} · {request.brand.language} · {request.brand.tone.join(", ")}
+            {request.brand.niche} · {request.brand.tone.join(", ")}
           </span>
+          {brand && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start", marginTop: 6 }}>
+              <span className={`mono ${styles.briefLabel}`}>FRIDAY WRITES AND SPEAKS IN</span>
+              <LanguageChip
+                language={brand.language}
+                languageStyle={brand.languageStyle}
+                inferred
+                onChange={(next) => setBrandLanguage({ brandId: brand.id, ...next })}
+              />
+            </div>
+          )}
         </div>
       )}
 

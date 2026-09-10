@@ -51,6 +51,10 @@ export default defineSchema({
     tone: v.array(v.string()),
     niche: v.string(),
     language: v.string(), // D6: per-brand content language (en, es, pt-BR, id, hi, …)
+    // D6 v3 (docs/language-ux.md): how Indic languages sound, and the
+    // brand's other markets for the "also in" sheet (inferred, user-editable).
+    languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
+    markets: v.optional(v.array(v.string())),
     screenshotIds: v.array(v.id("_storage")), // scraped product shots for slides
     status: v.union(v.literal("analyzing"), v.literal("ready")),
     briefVersion: v.number(), // bumped on user edit; concepts pin it
@@ -89,6 +93,8 @@ export default defineSchema({
     briefVersion: v.number(),
     specVersion: v.number(),
     language: v.string(), // pinned at generation time (brand language then)
+    languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
+    variantOf: v.optional(v.id("concepts")), // "also in" variant of a kept concept
     status: v.union(
       v.literal("draft"),
       v.literal("preview_ready"),
@@ -111,6 +117,12 @@ export default defineSchema({
     // scrape -> brief -> match -> slot-fill -> concepts (reusing M1 code).
     userId: v.id("users"),
     url: v.string(),
+    // kind "variant": re-slot-fill one kept concept in another language
+    // (docs/language-ux.md §2); url is the brand url for logging only.
+    kind: v.optional(v.union(v.literal("generate"), v.literal("variant"))),
+    conceptId: v.optional(v.id("concepts")),
+    language: v.optional(v.string()),
+    languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
     status: v.union(
       v.literal("pending"),
       v.literal("claimed"),

@@ -20,7 +20,7 @@ import requests
 import cvx
 from config import POLL_SECONDS
 from render.dispatch import render_job
-from pipeline.generate import generate_for_user
+from pipeline.generate import generate_for_user, generate_variant
 
 WORKER_ID = f"{platform.node()}-{uuid.uuid4().hex[:6]}"
 
@@ -54,9 +54,14 @@ def process(job: dict) -> None:
 
 def process_pipeline_request(req: dict) -> None:
     rid = req["requestId"]
-    print(f"[{WORKER_ID}] pipeline request {rid}: {req['url']}")
+    print(f"[{WORKER_ID}] pipeline request {rid} kind={req.get('kind', 'generate')}: {req['url']}")
     try:
-        result = generate_for_user(req["userId"], req["url"], request_id=rid)
+        if req.get("kind") == "variant":
+            result = generate_variant(
+                req["userId"], req["conceptId"], req["language"], req.get("languageStyle"), request_id=rid
+            )
+        else:
+            result = generate_for_user(req["userId"], req["url"], request_id=rid)
         cvx.mutation(
             "worker:completePipelineRequest",
             {"requestId": rid, "brandId": result["brandId"], "batchId": result["batchId"]},

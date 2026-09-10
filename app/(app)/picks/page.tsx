@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import styles from "../app.module.css";
+import { AlsoInSheet } from "@/components/app/AlsoInSheet";
+import { languageMeta, styleLabel } from "@/lib/languages";
 
 function hookOf(slots: Record<string, string>): string {
   return slots.hook ?? slots.hook_text ?? slots.hook_overlay ?? Object.values(slots)[0] ?? "";
@@ -25,19 +27,30 @@ const FORMAT_LABEL: Record<string, string> = {
 export default function PicksPage() {
   const feed = useQuery(api.feed.myFeed);
   const rendered = useQuery(api.feed.myRendered);
+  const brand = useQuery(api.brands.myBrand);
   const swipe = useMutation(api.feed.swipe);
+  const requestVariant = useMutation(api.feed.requestVariant);
+  // Language UX §2: after a keep, offer the same pick in another market.
+  const [alsoIn, setAlsoIn] = useState<{ id: (typeof feed extends undefined ? never : NonNullable<typeof feed>)["concepts"][number]["id"]; language: string; languageStyle: "code-mixed" | "native" | "roman" | null; hook: string } | null>(null);
 
   const top = feed?.concepts[0];
+
+  const keep = (c: NonNullable<typeof top>) => {
+    void swipe({ conceptId: c.id, keep: true });
+    if (!c.variantOf) setAlsoIn({ id: c.id, language: c.language, languageStyle: c.languageStyle, hook: hookOf(c.slots) });
+  };
 
   useEffect(() => {
     if (!top) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") swipe({ conceptId: top.id, keep: true });
+      if (alsoIn) return; // the sheet owns the keyboard while open
+      if (e.key === "ArrowRight") keep(top);
       if (e.key === "ArrowLeft") swipe({ conceptId: top.id, keep: false });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [top, swipe]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [top, swipe, alsoIn]);
 
   if (feed === undefined) {
     return (
@@ -65,7 +78,10 @@ export default function PicksPage() {
             <div className={styles.cardMeta}>
               <span className={styles.cardHook}>{hookOf(top.slots)}</span>
               <span className={styles.cardSub}>
-                {FORMAT_LABEL[top.format]} · MADE FOR YOU · {top.language.toUpperCase()}
+                {FORMAT_LABEL[top.format]} · MADE FOR YOU ·{" "}
+                <span lang={top.language}>{languageMeta(top.language).native}</span>
+                {styleLabel(top.language, top.languageStyle) ? ` · ${styleLabel(top.language, top.languageStyle)?.toUpperCase()}` : ""}
+                {top.variantOf ? " · ALSO-IN VARIANT" : ""}
               </span>
             </div>
           </div>
@@ -73,7 +89,7 @@ export default function PicksPage() {
             <button type="button" className={styles.skipBtn} onClick={() => swipe({ conceptId: top.id, keep: false })}>
               ✕ Skip
             </button>
-            <button type="button" className={styles.keepBtn} onClick={() => swipe({ conceptId: top.id, keep: true })}>
+            <button type="button" className={styles.keepBtn} onClick={() => keep(top)}>
               Keep → Friday takes it from here
             </button>
           </div>
@@ -94,6 +110,20 @@ export default function PicksPage() {
             Put Friday to work →
           </Link>
         </>
+      )}
+
+      {alsoIn && (
+        <AlsoInSheet
+          primary={alsoIn.language}
+          primaryStyle={alsoIn.languageStyle}
+          markets={brand?.markets ?? null}
+          hook={alsoIn.hook}
+          onAdd={async (language) => {
+            const style = languageMeta(language).indic ? ("code-mixed" as const) : undefined;
+            await requestVariant({ conceptId: alsoIn.id, language, languageStyle: style });
+          }}
+          onClose={() => setAlsoIn(null)}
+        />
       )}
 
       {rendered && rendered.length > 0 && (

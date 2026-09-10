@@ -47,11 +47,21 @@ def _slot_spec_lines(structure: dict) -> str:
     return "\n".join(lines)
 
 
+STYLE_LINES = {
+    # docs/language-ux.md §1 — the "how it sounds" control
+    "code-mixed": "Write it the way creators in this market actually talk: {lang} freely mixed with English words and phrases in one sentence (Hinglish/Tanglish-style code-mixing), in the {lang} native script. Do not write pure formal {lang}.",
+    "native": "Write pure, natural {lang} in its native script — no English words except product names.",
+    "roman": "Write {lang} transliterated into Latin (Roman) letters the way people type it on phones, mixing in English where natural.",
+}
+
+
 def _prompt(brief: dict, language: str, batch: list[tuple[dict, int]]) -> str:
     lang = LANGUAGE_NAMES.get(language, "English")
+    style = brief.get("languageStyle")
+    style_line = STYLE_LINES[style].format(lang=lang) if style in STYLE_LINES and language != "en" else ""
     parts = [
-        f"Brand brief:\n{json.dumps(brief, indent=2)}\n",
-        f"Write ALL slot text in {lang}. Hashtags may stay in English where that is the platform norm.",
+        f"Brand brief:\n{json.dumps({k: v for k, v in brief.items() if k != 'languageStyle'}, indent=2)}\n",
+        f"Write ALL slot text in {lang}. Hashtags may stay in English where that is the platform norm. {style_line}".strip(),
         "Fill the creative slots for each concept below. Every concept must feel like a distinct post — different angle, different specifics — never a rephrase of another. Follow each slot's guidance and character limits exactly. Concrete beats generic; write like a real creator in this niche, not like an ad.",
         "",
     ]

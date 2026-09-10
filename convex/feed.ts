@@ -31,6 +31,8 @@ export const myFeed = query({
         id: c._id,
         slots: c.slots,
         language: c.language,
+        languageStyle: c.languageStyle ?? null,
+        variantOf: c.variantOf ?? null,
         format: template?.format ?? "slideshow",
         hookPattern: template?.hookPattern ?? "",
         refViews: template?.refStats.views ?? 0,
@@ -90,6 +92,40 @@ export const swipe = mutation({
     } else {
       await ctx.db.patch("concepts", args.conceptId, { status: "skipped", swipedAt: Date.now() });
     }
+    return null;
+  },
+});
+
+const LANGUAGE_CODES = ["en", "es", "pt-BR", "id", "hi", "bn", "ta", "te", "mr", "kn", "ml", "gu", "pa", "or"];
+
+/** Language UX §2: "also in" — one tap after a keep asks the worker to
+ *  re-slot-fill the same concept in another market's language. Each variant
+ *  is a video against the allowance (metered on the concept row like any other). */
+export const requestVariant = mutation({
+  args: {
+    conceptId: v.id("concepts"),
+    language: v.string(),
+    languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new Error("not signed in");
+    const concept = await ctx.db.get("concepts", args.conceptId);
+    if (!concept || concept.userId !== userId) throw new Error("not your concept");
+    if (!["render_queued", "kept", "rendered"].includes(concept.status)) throw new Error("keep the pick first");
+    if (!LANGUAGE_CODES.includes(args.language)) throw new Error("unsupported language");
+    if (args.language === concept.language) throw new Error("already in that language");
+    const brand = await ctx.db.get("brands", concept.brandId);
+    await ctx.db.insert("pipelineRequests", {
+      userId,
+      url: brand?.url ?? "",
+      kind: "variant",
+      conceptId: args.conceptId,
+      language: args.language,
+      languageStyle: args.languageStyle,
+      status: "pending",
+      brandId: concept.brandId,
+    });
     return null;
   },
 });
