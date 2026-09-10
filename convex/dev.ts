@@ -114,3 +114,20 @@ export const adoptRendered = internalMutation({
     return { adoptedBy: real._id, moved, total: rendered.length };
   },
 });
+
+// Dev-only: hand the M1 dev user's brand to the real account too, so the
+// Settings/onboarding language chip (docs/language-ux.md) has a brand to edit.
+// Run: npx convex run dev:adoptBrand
+export const adoptBrand = internalMutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const users = await ctx.db.query("users").take(20);
+    const real = users.find((u) => u.clerkId && u.clerkId.startsWith("user_"));
+    if (!real) throw new Error("no clerk-backed user found");
+    const brands = await ctx.db.query("brands").order("desc").take(5);
+    const brand = brands.find((b) => b.status === "ready") ?? brands[0];
+    if (!brand) throw new Error("no brand to adopt");
+    if (brand.userId !== real._id) await ctx.db.patch("brands", brand._id, { userId: real._id });
+    return { brandId: brand._id, name: brand.name, language: brand.language, adoptedBy: real._id };
+  },
+});

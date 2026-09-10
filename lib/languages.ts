@@ -44,13 +44,19 @@ export function languageMeta(code: string): LanguageMeta {
 export function searchLanguages(query: string): LanguageMeta[] {
   const q = query.trim().toLowerCase();
   if (!q) return [...LANGUAGE_META];
-  return LANGUAGE_META.filter(
-    (l) =>
-      l.native.toLowerCase().includes(q) ||
-      l.name.toLowerCase().includes(q) ||
-      l.code.toLowerCase().startsWith(q) ||
-      l.aliases.some((a) => a.includes(q)),
-  );
+  // Rank: code/name/native starts-with beats alias contains, so "ta" is Tamil first.
+  const score = (l: LanguageMeta): number => {
+    if (l.code.toLowerCase() === q) return 0;
+    if (l.native.toLowerCase().startsWith(q) || l.name.toLowerCase().startsWith(q) || l.code.toLowerCase().startsWith(q)) return 1;
+    if (l.aliases.some((a) => a.startsWith(q))) return 2;
+    if (l.native.toLowerCase().includes(q) || l.name.toLowerCase().includes(q)) return 3;
+    if (l.aliases.some((a) => a.includes(q))) return 4;
+    return 9;
+  };
+  return LANGUAGE_META.map((l) => [score(l), l] as const)
+    .filter(([sc]) => sc < 9)
+    .sort((a, b) => a[0] - b[0])
+    .map(([, l]) => l);
 }
 
 /** Labels for the "how it sounds" control, per language. */
