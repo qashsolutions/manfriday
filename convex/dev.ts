@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 
@@ -129,5 +130,39 @@ export const adoptBrand = internalMutation({
     if (!brand) throw new Error("no brand to adopt");
     if (brand.userId !== real._id) await ctx.db.patch("brands", brand._id, { userId: real._id });
     return { brandId: brand._id, name: brand.name, language: brand.language, adoptedBy: real._id };
+  },
+});
+
+// Dev-only: file an "also in" variant request for the real user's newest
+// rendered concept without going through the UI (e2e run of the worker path).
+// Run: npx convex run dev:requestVariantFor '{"language":"hi","languageStyle":"code-mixed"}'
+export const requestVariantFor = internalMutation({
+  args: {
+    language: v.string(),
+    languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    const users = await ctx.db.query("users").take(20);
+    const real = users.find((u) => u.clerkId && u.clerkId.startsWith("user_"));
+    if (!real) throw new Error("no clerk-backed user found");
+    const rendered = await ctx.db
+      .query("concepts")
+      .withIndex("by_userId_and_status", (q) => q.eq("userId", real._id).eq("status", "rendered"))
+      .order("desc")
+      .take(10);
+    const source = rendered.find((c) => !c.variantOf && c.language !== args.language);
+    if (!source) throw new Error("no rendered source concept");
+    const brand = await ctx.db.get("brands", source.brandId);
+    const requestId = await ctx.db.insert("pipelineRequests", {
+      userId: real._id,
+      url: brand?.url ?? "",
+      kind: "variant",
+      conceptId: source._id,
+      language: args.language,
+      languageStyle: args.languageStyle,
+      status: "pending",
+      brandId: source.brandId,
+    });
+    return { requestId, sourceConceptId: source._id, sourceLanguage: source.language, hook: JSON.stringify(source.slots).slice(0, 120) };
   },
 });
