@@ -1,6 +1,6 @@
 # Language UX — spec
 
-> **Status 10 Sep 2026:** §1 (chip + combobox + how-it-sounds on the brief and in Settings), §2 (per-pick language, "also in" sheet → `feed.requestVariant`), §3 (schema fields), and the worker's `generate_variant` (re-slot-fill in the target language/style, straight to final render) are BUILT. Not yet built: Sarvam Bulbul TTS adapter + forced alignment (§4), analytics by language (§5). The variant path needs one end-to-end run against the worker before beta.
+> **Status 11 Sep 2026:** §1 (chip + combobox + how-it-sounds on the brief and in Settings), §2 (per-pick language, "also in" sheet → `feed.requestVariant`), §3 (schema fields), the worker's `generate_variant` (re-slot-fill in the target language/style, straight to final render), and §4's Sarvam Bulbul adapter with silence-based caption alignment are BUILT (Hinglish sample verified 11 Sep). Not yet built: analytics by language (§5); brand-voice defaults per language still to be picked from the shortlist. The variant path needs one end-to-end run against the worker before beta.
 
 Design approved 10 Sep 2026 (artboards: `LanguagePick.dc.html`, `PicksAlsoIn.dc.html`, and the "One pick. Every market" band on `LandingV2.dc.html`). Extends D6 (CLAUDE.md). Principle: **language is detected, then multiplied — never configured.**
 
@@ -28,7 +28,7 @@ Design approved 10 Sep 2026 (artboards: `LanguagePick.dc.html`, `PicksAlsoIn.dc.
 
 - **Slot-fill** (Claude Opus, structured output): prompt carries `language` + `style`; for code-mixed, instruct Hinglish/Tanglish register explicitly with two examples; hashtags follow the language.
 - **TTS adapter**: FAL multilingual for non-Indic; **Sarvam Bulbul v3** for `hi bn ta te mr kn ml gu pa or` + `en-IN` (30+ voices; `enable_preprocessing=true` for code-mixed; max 2,500 chars). Sarvam Mayura (`mode=code-mixed`, `output_script`) is used only when a variant is derived from an existing script rather than re-slot-filled.
-- **Caption timing**: Bulbul returns no word timestamps. Indic path = Bulbul audio → forced alignment (Saaras streaming word timestamps, or a local aligner in `worker/`) → captions. The `TTSAdapter` contract (word timestamps) is satisfied by the adapter, not the vendor.
+- **Caption timing** (built 11 Sep, `worker/render/tts.py`): Bulbul returns no word timestamps, and Saaras STT returns ONE timestamp per clip (tested — useless for captions). The adapter aligns deterministically instead: the script's punctuation defines sentences and clauses; ffmpeg `silencedetect` finds the pauses the voice leaves at that punctuation; sentence ends snap to the nearest pause (±1.2 s), clauses split their sentence's span at an inner pause (±0.6 s) or proportionally; words pace proportionally inside a clause. No model, no vendor timestamps, zero cost. Router: `get_tts()` sends the Indic ten to Sarvam whenever `SARVAM_API_KEY` is set (`TTS_INDIAN_ENGLISH=1` adds en-IN); everything else keeps the FAL/say provider. Speaker per language via `SARVAM_SPEAKER_<code>` (default `shubh`).
 - **Cost**: a variant is ~1 slot-fill batch share + TTS + render; no extra brief. Track `costCents` per variant like any concept.
 
 ## 5. Analytics
@@ -41,6 +41,6 @@ Design approved 10 Sep 2026 (artboards: `LanguagePick.dc.html`, `PicksAlsoIn.dc.
 
 ## Open questions
 
-- Which Bulbul voices per language become the "brand voice" defaults (curate 2 per language, one per gender).
+- ~~Which Bulbul voices per language become the "brand voice" defaults~~ → decided 11 Sep: **priya** default, **kavya** female alt, **rahul** male alt (all languages; refine per language from user feedback).
 - Whether `roman` script output should also transliterate on-screen captions or only the TTS text.
 - Allowance display: show variants as `+1` in the plan meter at creation time or at render time (decide with billing in M4).
