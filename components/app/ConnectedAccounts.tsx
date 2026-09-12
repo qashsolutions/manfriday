@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
@@ -21,6 +22,11 @@ export function ConnectedAccounts() {
 
   const tiktok = accounts?.find((a) => a.platform === "tiktok" && a.status === "connected");
   const youtube = accounts?.find((a) => a.platform === "youtube" && a.status === "connected");
+  // A grant that stopped working (refresh refused, revoked at the provider, or
+  // disconnected here). Tokens are already wiped; the user has to reconnect.
+  const tiktokStale = !tiktok && accounts?.find((a) => a.platform === "tiktok" && a.status !== "connected");
+  const youtubeStale = !youtube && accounts?.find((a) => a.platform === "youtube" && a.status !== "connected");
+  const [confirmDisconnect, setConfirmDisconnect] = useState<"tiktok" | "youtube" | null>(null);
 
   // Don't paint the "add a passkey" gate while Clerk/Convex are still loading —
   // it flashes amber for a beat on every settings visit otherwise.
@@ -72,16 +78,31 @@ export function ConnectedAccounts() {
           <p className={styles.rowSub}>
             {tiktok
               ? `Connected as ${tiktok.handle}. Posts publish to this account.`
-              : "Friday can't post here yet."}
+              : tiktokStale
+                ? tiktokStale.status === "expired"
+                  ? "TikTok stopped accepting Friday's access, so posting is paused. Reconnect to keep posting."
+                  : "Disconnected. Friday no longer has access to this account."
+                : "Friday can't post here yet."}
           </p>
         </div>
         {tiktok ? (
-          <button className={styles.dangerBtn} type="button" onClick={() => disconnect({ accountId: tiktok.id })}>
-            Disconnect
-          </button>
+          confirmDisconnect === "tiktok" ? (
+            <span className={styles.confirmRow}>
+              <button className={styles.dangerBtn} type="button" onClick={() => { setConfirmDisconnect(null); void disconnect({ accountId: tiktok.id }); }}>
+                Yes, disconnect
+              </button>
+              <button className={styles.ghostBtn} type="button" onClick={() => setConfirmDisconnect(null)}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <button className={styles.dangerBtn} type="button" onClick={() => setConfirmDisconnect("tiktok")}>
+              Disconnect
+            </button>
+          )
         ) : mfaSatisfied ? (
           <button className={styles.ghostBtn} type="button" onClick={onConnect}>
-            Connect TikTok
+            {tiktokStale ? "Reconnect TikTok" : "Connect TikTok"}
           </button>
         ) : (
           <span className={`mono ${styles.fixed}`} style={{ color: "var(--amber)" }}>
@@ -96,16 +117,31 @@ export function ConnectedAccounts() {
           <p className={styles.rowSub}>
             {youtube
               ? `Connected as ${youtube.handle}. Hook and avatar videos cross-post here.`
-              : "Friday can't post here yet."}
+              : youtubeStale
+                ? youtubeStale.status === "expired"
+                  ? "Google stopped accepting Friday's access (expired or revoked in your Google account), so Shorts are paused. Reconnect to keep posting."
+                  : "Disconnected. Friday's access was revoked at Google and the tokens were deleted."
+                : "Friday can't post here yet."}
           </p>
         </div>
         {youtube ? (
-          <button className={styles.dangerBtn} type="button" onClick={() => disconnect({ accountId: youtube.id })}>
-            Disconnect
-          </button>
+          confirmDisconnect === "youtube" ? (
+            <span className={styles.confirmRow}>
+              <button className={styles.dangerBtn} type="button" onClick={() => { setConfirmDisconnect(null); void disconnect({ accountId: youtube.id }); }}>
+                Yes, disconnect
+              </button>
+              <button className={styles.ghostBtn} type="button" onClick={() => setConfirmDisconnect(null)}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <button className={styles.dangerBtn} type="button" onClick={() => setConfirmDisconnect("youtube")}>
+              Disconnect
+            </button>
+          )
         ) : mfaSatisfied ? (
           <button className={styles.ghostBtn} type="button" onClick={onConnectYouTube}>
-            Connect YouTube
+            {youtubeStale ? "Reconnect YouTube" : "Connect YouTube"}
           </button>
         ) : (
           <span className={`mono ${styles.fixed}`} style={{ color: "var(--amber)" }}>

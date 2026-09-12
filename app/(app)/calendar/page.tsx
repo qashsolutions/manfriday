@@ -14,6 +14,16 @@ const STATUS_COLOR: Record<string, string> = {
   failed: "var(--accent)",
 };
 
+/** Turn an adapter error code into one plain sentence the user can act on. */
+function friendlyError(platform: string, error: string | null): string | null {
+  if (!error) return null;
+  const name = platform === "youtube" ? "YouTube" : "TikTok";
+  if (error.startsWith("AUTH_EXPIRED")) return `${name} access expired before this post went out — reconnect in Settings, then schedule it again.`;
+  if (/quota/i.test(error)) return `${name} upload limit reached for today — Friday will not retry on its own; schedule it again tomorrow.`;
+  if (/too large|413|duration/i.test(error)) return `${name} rejected the video file — try a shorter concept.`;
+  return `${name} didn't accept this post — Friday will not retry on its own; schedule it again or contact support.`;
+}
+
 const STATUS_LABEL: Record<string, string> = {
   queued: "QUEUED",
   publishing: "PUBLISHING…",
@@ -41,6 +51,10 @@ export default function CalendarPage() {
   const [error, setError] = useState<string | null>(null);
 
   const tiktokConnected = accounts?.some((a) => a.platform === "tiktok" && a.status === "connected");
+  const youtubeConnected = accounts?.some((a) => a.platform === "youtube" && a.status === "connected");
+  const anyConnected = !!(tiktokConnected || youtubeConnected);
+  // A platform whose access stopped working — the user needs to know posting is paused there.
+  const expired = (accounts ?? []).filter((a) => a.status === "expired").map((a) => (a.platform === "youtube" ? "YouTube" : "TikTok"));
   const scheduledConceptIds = new Set<string>();
   const unscheduled = (rendered ?? []).filter((r) => !scheduledConceptIds.has(r.id));
 
@@ -58,16 +72,22 @@ export default function CalendarPage() {
       <p className="eyebrow">Friday&apos;s queue</p>
       <h1 className={`display ${styles.title}`}>Calendar</h1>
 
-      {!tiktokConnected && (
+      {!anyConnected && (
         <p className={styles.sub}>
           Friday can&apos;t post anywhere yet —{" "}
-          <Link href="/settings">connect your TikTok account in Settings</Link> first.
+          <Link href="/settings">connect TikTok or YouTube in Settings</Link> first.
+        </p>
+      )}
+      {expired.length > 0 && (
+        <p className={styles.error}>
+          {expired.join(" and ")} access expired, so posting there is paused.{" "}
+          <Link href="/settings">Reconnect in Settings</Link> to keep posting.
         </p>
       )}
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {unscheduled.length > 0 && tiktokConnected && (
+      {unscheduled.length > 0 && anyConnected && (
         <>
           <span className={styles.sectionTitle}>READY TO SCHEDULE</span>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -129,6 +149,14 @@ export default function CalendarPage() {
                 <p className="mono" style={{ margin: "3px 0 0", fontSize: 11, color: "var(--faint)" }}>
                   {new Date(post.publishAt).toLocaleString()}
                 </p>
+                {post.publications
+                  .filter((p) => p.status === "failed")
+                  .map((p) => (
+                    <p key={`${p.id}-why`} style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--accent)", whiteSpace: "normal" }}>
+                      {friendlyError(p.platform, p.error)}{" "}
+                      {p.error?.startsWith("AUTH_EXPIRED") && <Link href="/settings">Reconnect →</Link>}
+                    </p>
+                  ))}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 {post.publications.map((p) => (
