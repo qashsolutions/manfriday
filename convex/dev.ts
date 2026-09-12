@@ -166,3 +166,31 @@ export const requestVariantFor = internalMutation({
     return { requestId, sourceConceptId: source._id, sourceLanguage: source.language, hook: JSON.stringify(source.slots).slice(0, 120) };
   },
 });
+
+// Dev-only: keep a specific preview_ready concept (what a right-swipe does),
+// so a hook/avatar video can be rendered ahead of a demo recording.
+// Run: npx convex run dev:keepConcept '{"conceptId":"..."}'
+export const keepConcept = internalMutation({
+  args: { conceptId: v.id("concepts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const c = await ctx.db.get("concepts", args.conceptId);
+    if (!c) throw new Error("no concept");
+    if (c.status !== "preview_ready") return { status: c.status };
+    await ctx.db.patch("concepts", args.conceptId, { status: "render_queued", swipedAt: Date.now() });
+    await ctx.db.insert("renderJobs", { conceptId: args.conceptId, kind: "final", status: "pending", priority: 20, attempts: 0 });
+    return { status: "render_queued" };
+  },
+});
+
+// Dev-only: re-queue the newest failed publication for immediate publish
+// (e.g. to exercise a token refresh). Run: npx convex run dev:retryPublication
+export const retryPublication = internalMutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const rows = await ctx.db.query("publications").order("desc").take(10);
+    const failed = rows.find((p) => p.status === "failed");
+    if (!failed) throw new Error("no failed publication");
+    await ctx.db.patch("publications", failed._id, { status: "queued", publishAt: Date.now() - 1000, attempts: 0, lastError: undefined });
+    return { publicationId: failed._id, platform: failed.platform };
+  },
+});

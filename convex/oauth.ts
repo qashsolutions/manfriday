@@ -268,11 +268,13 @@ export const updateTokens = internalMutation({
     accountId: v.id("socialAccounts"),
     accessToken: v.string(),
     expiresAt: v.number(),
+    refreshToken: v.optional(v.string()), // TikTok rotates it on refresh
   },
   handler: async (ctx: MutationCtx, args) => {
     await ctx.db.patch("socialAccounts", args.accountId, {
       accessToken: args.accessToken,
       expiresAt: args.expiresAt,
+      ...(args.refreshToken ? { refreshToken: args.refreshToken } : {}),
     });
     return null;
   },

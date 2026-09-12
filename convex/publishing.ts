@@ -281,11 +281,49 @@ export const publishOne = internalAction({
         return null;
       }
 
+      // TikTok access tokens live 24h; refresh tokens rotate on every refresh.
+      let tiktokToken = account.accessToken;
+      if (account.expiresAt < Date.now() + 60_000) {
+        if (!account.refreshToken) {
+          await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
+          return await fail("fatal", "AUTH_EXPIRED: no refresh token"), null;
+        }
+        const rBody = new URLSearchParams({
+          client_key: env.TIKTOK_CLIENT_KEY ?? "",
+          client_secret: env.TIKTOK_CLIENT_SECRET ?? "",
+          grant_type: "refresh_token",
+          refresh_token: account.refreshToken,
+        });
+        const rResp = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: rBody.toString(),
+        });
+        const r = (await rResp.json()) as {
+          access_token?: string;
+          expires_in?: number;
+          refresh_token?: string;
+          error?: string;
+          error_description?: string;
+        };
+        if (!rResp.ok || !r.access_token) {
+          await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
+          return await fail("fatal", `AUTH_EXPIRED: tiktok refresh failed (${r.error_description ?? r.error ?? rResp.status})`), null;
+        }
+        tiktokToken = r.access_token;
+        await ctx.runMutation(internal.oauth.updateTokens, {
+          accountId: account._id,
+          accessToken: tiktokToken,
+          expiresAt: Date.now() + (r.expires_in ?? 86400) * 1000,
+          refreshToken: r.refresh_token,
+        });
+      }
+
       // inbox (draft) upload init
       const initResp = await fetch("https://open.tiktokapis.com/v2/post/publish/inbox/video/init/", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${account.accessToken}`,
+          Authorization: `Bearer ${tiktokToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
