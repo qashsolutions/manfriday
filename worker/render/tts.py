@@ -89,16 +89,28 @@ class SayTTS:
 
 
 class FalTTS:
-    """Production provider via fal.ai (ElevenLabs multilingual class models)."""
+    """Production provider via fal.ai (ElevenLabs multilingual v2). Word
+    timestamps come from the model; the brand voice is FAL_TTS_VOICE."""
 
     def __init__(self) -> None:
         self.model = os.environ.get("FAL_TTS_MODEL", "fal-ai/elevenlabs/tts/multilingual-v2")
+        self.voice = os.environ.get("FAL_TTS_VOICE", "Rachel")
 
-    def synthesize(self, script: str, language: str, outdir: Path) -> TTSResult:
+    def synthesize(self, script: str, language: str, outdir: Path, voice: str | None = None) -> TTSResult:
         import fal_client  # lazy: dev machines without the extra still run SayTTS
         import requests
 
-        result = fal_client.subscribe(self.model, arguments={"text": script})
+        args = {
+            "text": script,
+            "voice": voice or self.voice,
+            "stability": float(os.environ.get("FAL_TTS_STABILITY", "0.45")),
+            "similarity_boost": 0.8,
+            "style": float(os.environ.get("FAL_TTS_STYLE", "0.35")),  # a little expressive — creator, not narrator
+            "speed": float(os.environ.get("FAL_TTS_SPEED", "1.05")),
+            "timestamps": True,
+            "language_code": (language.split("-")[0] or "en"),
+        }
+        result = fal_client.subscribe(self.model, arguments=args)
         audio_url = (result.get("audio") or {}).get("url") or result.get("audio_url")
         if not audio_url:
             raise RuntimeError(f"fal tts: no audio url in result keys={list(result)}")
@@ -107,20 +119,45 @@ class FalTTS:
         wav = outdir / "vo.wav"
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-ar", "44100", str(wav)], check=True)
         dur = _duration(wav)
-        # Word timestamps: parse if the model returns them, else proportional.
-        stamps = result.get("timestamps") or result.get("words")
-        if isinstance(stamps, list) and stamps and "start" in stamps[0]:
+        words = _fal_word_times(result.get("timestamps"))
+        if words:
             chunks: list[tuple[float, float, str]] = []
-            buf: list[dict] = []
-            for w in stamps:
-                buf.append(w)
-                if len(buf) == 5:
-                    chunks.append((buf[0]["start"], buf[-1]["end"], " ".join(x.get("word", x.get("text", "")) for x in buf)))
-                    buf = []
-            if buf:
-                chunks.append((buf[0]["start"], buf[-1]["end"], " ".join(x.get("word", x.get("text", "")) for x in buf)))
+            for piece in _split_words([w for w, _, _ in words]):
+                n = len(piece)
+                seg = words[:n]
+                words = words[n:]
+                chunks.append((seg[0][1], seg[-1][2], " ".join(piece)))
             return TTSResult(wav=wav, duration=dur, chunks=chunks)
-        return TTSResult(wav=wav, duration=dur, chunks=proportional_chunks(script, dur))
+        return TTSResult(wav=wav, duration=dur, chunks=align_by_silence(script, wav, dur))
+
+
+def _fal_word_times(ts) -> list[tuple[str, float, float]]:
+    """Normalise the model's timestamps to (word, start, end). Accepts a list of
+    {word|text, start, end} or ElevenLabs' character alignment
+    {characters, character_start_times_seconds, character_end_times_seconds}."""
+    if not ts:
+        return []
+    if isinstance(ts, list) and ts and isinstance(ts[0], dict) and "start" in ts[0]:
+        return [(str(w.get("word", w.get("text", ""))).strip(), float(w["start"]), float(w["end"])) for w in ts if str(w.get("word", w.get("text", ""))).strip()]
+    if isinstance(ts, list) and ts and isinstance(ts[0], dict) and "characters" in ts[0]:
+        ts = ts[0]
+    if isinstance(ts, dict) and "characters" in ts:
+        chars, starts, ends = ts["characters"], ts["character_start_times_seconds"], ts["character_end_times_seconds"]
+        out, cur, cs, ce = [], "", None, None
+        for ch, a, b in zip(chars, starts, ends):
+            if ch.isspace():
+                if cur:
+                    out.append((cur, cs, ce))
+                cur, cs, ce = "", None, None
+            else:
+                if cs is None:
+                    cs = float(a)
+                cur += ch
+                ce = float(b)
+        if cur:
+            out.append((cur, cs, ce))
+        return out
+    return []
 
 
 # ---- Sarvam (Indic) ---------------------------------------------------------

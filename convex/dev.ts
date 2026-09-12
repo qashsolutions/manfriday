@@ -194,3 +194,16 @@ export const retryPublication = internalMutation({
     return { publicationId: failed._id, platform: failed.platform };
   },
 });
+
+// Dev-only: queue a fresh final render for an already-rendered concept (e.g.
+// after a TTS provider change). Run: npx convex run dev:rerenderConcept '{"conceptId":"..."}'
+export const rerenderConcept = internalMutation({
+  args: { conceptId: v.id("concepts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const c = await ctx.db.get("concepts", args.conceptId);
+    if (!c) throw new Error("no concept");
+    await ctx.db.patch("concepts", args.conceptId, { status: "render_queued" });
+    await ctx.db.insert("renderJobs", { conceptId: args.conceptId, kind: "final", status: "pending", priority: 20, attempts: 0 });
+    return { status: "render_queued" };
+  },
+});
