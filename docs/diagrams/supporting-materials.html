@@ -20,7 +20,7 @@ footer{position:fixed;bottom:0;font-size:8.5pt;color:#4d4960}
 </style></head><body>
 <div class="mono">MAN FRIDAY · YOUTUBE API SERVICES · SUPPORTING MATERIALS</div>
 <h1>Data handling, security, and quota statement</h1>
-<p class="sub">Man Friday (manfriday.app) · Google Cloud project 845649489196 (man-friday-508102) · Operated by Qash Solutions · 11 September 2026 · Contact: admin@manfriday.app</p>
+<p class="sub">Man Friday (manfriday.app) · Google Cloud project 845649489196 (man-friday-508102) · Operated by Qash Solutions · 12 September 2026 · Contact: admin@manfriday.app</p>
 
 <h2>1. What Man Friday is</h2>
 <p>Man Friday is a web application for solo software builders. It reads the user's own product website, drafts short vertical videos about that product, and shows them in a swipe feed. The user approves the videos they like and schedules them. Approved videos can be published to the user's own YouTube channel as Shorts. The app is public (anyone can sign up free, no card), commercial (subscriptions), and web-only.</p>
@@ -58,6 +58,8 @@ footer{position:fixed;bottom:0;font-size:8.5pt;color:#4d4960}
 <tr><td>Transport</td><td>HTTPS everywhere; OAuth redirect URI is the fixed https://manfriday.app callback registered in the Google Cloud project.</td></tr>
 <tr><td>Least privilege</td><td>Two scopes only; endpoints listed in section 2 only; per-account scheduler so one user cannot exhaust the shared quota.</td></tr>
 <tr><td>Logging and monitoring</td><td>Server logs never include tokens or YouTube data; PostHog product analytics receives no YouTube data.</td></tr>
+<tr><td>Automated compliance guard</td><td>A test suite (validation/compliance) runs on every code push, on every pull request, and weekly against the live site. It fails the build if the code requests any scope or calls any endpoint outside those declared here, if a public function could return a token, if the schedule gate is weakened, or if the privacy policy or terms lose their YouTube disclosures. Changing the declared use case requires prior written notice to YouTube.</td></tr>
+<tr><td>User notices</td><td>If Google stops accepting the app's access (expired or revoked), Settings and the publish queue tell the user that posting is paused and offer Reconnect; failed uploads show a plain-language reason. The app never retries an upload on its own.</td></tr>
 <tr><td>Incident contact</td><td>admin@manfriday.app; response within 2 business days.</td></tr></table>
 
 <h2>6. Quota request and calculation</h2>
