@@ -280,10 +280,18 @@ export const updateTokens = internalMutation({
   },
 });
 
+/** Compliance rule (YouTube API Services Developer Policies, data retention):
+ *  once a grant stops working — refresh refused, revoked at Google, no refresh
+ *  token — we must not keep the credentials. Mark expired AND wipe both tokens.
+ *  The user reconnects explicitly through the consent screen. */
 export const markAuthExpired = internalMutation({
   args: { accountId: v.id("socialAccounts") },
   handler: async (ctx: MutationCtx, args) => {
-    await ctx.db.patch("socialAccounts", args.accountId, { status: "expired" });
+    await ctx.db.patch("socialAccounts", args.accountId, {
+      status: "expired",
+      accessToken: "",
+      refreshToken: "",
+    });
     return null;
   },
 });

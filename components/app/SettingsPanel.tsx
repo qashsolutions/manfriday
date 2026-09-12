@@ -23,7 +23,24 @@ export function SettingsPanel() {
   const [mode, setMode] = useState<"dark" | "light">("dark");
   const brand = useQuery(api.brands.myBrand);
   const setBrandLanguage = useMutation(api.brands.setLanguage);
+  const purgeMine = useMutation(api.account.purgeMine);
   const [paused, setPaused] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "working" | "error">("idle");
+
+  // Privacy policy › Deletion. Convex data (tokens, briefs, concepts, posts) is
+  // purged FIRST so it can never outlive the Clerk identity; then the Clerk user
+  // is deleted, which ends the session and drops the user on the landing page.
+  const deleteEverything = async () => {
+    setDeleteStep("working");
+    try {
+      await purgeMine({ confirm: "DELETE" });
+      await user?.delete();
+      window.location.assign("/");
+    } catch (err) {
+      console.error("delete account failed", err);
+      setDeleteStep("error");
+    }
+  };
 
   useEffect(() => {
     try {
@@ -324,9 +341,30 @@ export function SettingsPanel() {
                 </p>
               </div>
               <Show when="signed-in">
-                <button className={styles.dangerBtn} type="button" onClick={() => clerk.openUserProfile()}>
-                  Delete…
-                </button>
+                {deleteStep === "idle" && (
+                  <button className={styles.dangerBtn} type="button" onClick={() => setDeleteStep("confirm")}>
+                    Delete…
+                  </button>
+                )}
+                {deleteStep === "confirm" && (
+                  <span className={styles.confirmRow}>
+                    <button className={styles.dangerBtn} type="button" onClick={deleteEverything}>
+                      Yes, delete everything
+                    </button>
+                    <button className={styles.ghostBtn} type="button" onClick={() => setDeleteStep("idle")}>
+                      Keep my account
+                    </button>
+                  </span>
+                )}
+                {deleteStep === "working" && <span className={`mono ${styles.fixed}`}>DELETING…</span>}
+                {deleteStep === "error" && (
+                  <span className={styles.confirmRow}>
+                    <span className={`mono ${styles.fixed}`}>SOMETHING FAILED — TRY AGAIN</span>
+                    <button className={styles.dangerBtn} type="button" onClick={deleteEverything}>
+                      Retry
+                    </button>
+                  </span>
+                )}
               </Show>
               <Show when="signed-out">
                 <span className={`mono ${styles.fixed}`}>SIGN IN FIRST</span>

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "compliance": "node validation/compliance/youtube-compliance.mjs",
+    "compliance:static": "node validation/compliance/youtube-compliance.mjs --static"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.1",

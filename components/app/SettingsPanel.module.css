@@ -269,3 +269,12 @@
 .accentBtn:hover {
   color: var(--accent-ink, #14060b);
 }
+
+.confirmRow {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
