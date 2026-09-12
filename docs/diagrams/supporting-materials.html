@@ -1,0 +1,92 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Instrument+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+@page{size:A4;margin:18mm 16mm}
+body{font-family:"Instrument Sans",system-ui,sans-serif;color:#14131a;font-size:11.5pt;line-height:1.55;margin:0}
+h1{font-family:Archivo,sans-serif;font-stretch:112%;font-weight:800;font-size:26pt;margin:0 0 4pt}
+h2{font-family:Archivo,sans-serif;font-stretch:112%;font-weight:800;font-size:16pt;margin:22pt 0 8pt;page-break-after:avoid}
+h3{font-size:12.5pt;font-weight:600;margin:14pt 0 4pt}
+.mono{font-family:"Spline Sans Mono",ui-monospace,monospace;font-size:8.5pt;letter-spacing:.08em;color:#e63e5c}
+.sub{color:#4d4960;margin:0 0 14pt}
+table{border-collapse:collapse;width:100%;margin:6pt 0 10pt;font-size:10.5pt;page-break-inside:avoid}
+th,td{border:1px solid #d9d6e2;padding:6pt 8pt;text-align:left;vertical-align:top}
+th{background:#f1eff6;font-weight:600}
+.ok{color:#0e9f74;font-weight:600}.plan{color:#a97b10;font-weight:600}
+.box{background:#f1eff6;border-radius:8pt;padding:10pt 12pt;margin:8pt 0}
+p{margin:0 0 8pt}
+ul{margin:0 0 8pt 16pt;padding:0}
+.pb{page-break-before:always}
+footer{position:fixed;bottom:0;font-size:8.5pt;color:#4d4960}
+</style></head><body>
+<div class="mono">MAN FRIDAY · YOUTUBE API SERVICES · SUPPORTING MATERIALS</div>
+<h1>Data handling, security, and quota statement</h1>
+<p class="sub">Man Friday (manfriday.app) · Google Cloud project 845649489196 (man-friday-508102) · Operated by Qash Solutions · 11 September 2026 · Contact: admin@manfriday.app</p>
+
+<h2>1. What Man Friday is</h2>
+<p>Man Friday is a web application for solo software builders. It reads the user's own product website, drafts short vertical videos about that product, and shows them in a swipe feed. The user approves the videos they like and schedules them. Approved videos can be published to the user's own YouTube channel as Shorts. The app is public (anyone can sign up free, no card), commercial (subscriptions), and web-only.</p>
+<p>Google is used <strong>only</strong> to connect a YouTube channel for publishing. App identity is handled by Clerk (passkeys, email, Google or GitHub sign-in through Clerk). A YouTube connection is never a login.</p>
+
+<h2>2. YouTube API usage</h2>
+<table><tr><th>Endpoint</th><th>Scope</th><th>Units</th><th>When it is called</th><th>Status</th></tr>
+<tr><td>channels.list (mine=true)</td><td>youtube.readonly</td><td>1</td><td>Once, when the user connects a channel, to store the channel ID and display name.</td><td class="ok">Live</td></tr>
+<tr><td>videos.insert (resumable)</td><td>youtube.upload</td><td>1,600</td><td>Once per approved video, at the time the user scheduled. One user approval = one upload.</td><td class="ok">Live</td></tr>
+<tr><td>videos.list (id=…)</td><td>youtube.readonly</td><td>1</td><td>Once per day per video that Man Friday itself published, to read its view count.</td><td class="plan">Next release</td></tr></table>
+<p>No other endpoints are used. In particular the app never calls search.list, never reads comments, subscribers, playlists, or analytics, and never reads any channel other than the one the user connected.</p>
+
+<h2>3. Data stored from YouTube API Services</h2>
+<table><tr><th>Data</th><th>Where</th><th>Why</th><th>Retention</th></tr>
+<tr><td>OAuth access token, refresh token</td><td>Convex database (socialAccounts table); read only inside server actions, never sent to the browser or the render worker</td><td>To upload on the user's behalf and to read stats of our own uploads</td><td>Until disconnect or account deletion. Cleared immediately on disconnect; the token is also revoked at Google.</td></tr>
+<tr><td>Channel ID, channel name</td><td>Convex</td><td>Show the user which channel is connected</td><td>Until disconnect or account deletion</td></tr>
+<tr><td>Per published video: YouTube video ID, title, publish time, view count</td><td>Convex (publications table)</td><td>Show publish status and, next release, performance in the user's queue</td><td>Until account deletion; view counts refreshed at most once per day and only while the account stays connected</td></tr></table>
+<div class="box"><strong>Not stored:</strong> any data about videos Man Friday did not publish, other channels, viewers, comments, or subscriber lists. <strong>Not shared:</strong> YouTube data never reaches third parties, is never used for advertising, is never sold, and is never aggregated across users.</div>
+<p>Authorized data older than 30 days is either refreshed (view counts) or deleted (tokens on disconnect). Stored video metadata refers only to content the user created and published through the app.</p>
+
+<h2>4. User control and revocation</h2>
+<ul>
+<li><strong>Consent:</strong> Google's consent screen shows both scopes; the user can cancel. The app does not request incremental or additional scopes later.</li>
+<li><strong>Disconnect:</strong> Settings › Connected accounts › Disconnect. The app calls Google's revoke endpoint, sets the stored tokens to empty immediately, and deletes remaining metadata within 7 days.</li>
+<li><strong>Delete account:</strong> Settings › Your data › Delete account removes the account, brand briefs, generated videos, and all connected-account records.</li>
+<li><strong>Google-side revocation:</strong> the user can revoke Man Friday at any time at myaccount.google.com › Security › Third-party access; after that the stored token stops working, the app can no longer upload or read anything, and the user must reconnect explicitly.</li>
+<li><strong>Published videos</strong> stay on the user's channel in all cases; the app never deletes YouTube content.</li></ul>
+
+<h2 class="pb">5. Security overview</h2>
+<table><tr><th>Area</th><th>Control</th></tr>
+<tr><td>Authentication</td><td>Clerk; passkeys and TOTP available; sessions expire after 60 minutes of inactivity.</td></tr>
+<tr><td>Connect gate</td><td>A passkey or 2FA must be enabled on the Man Friday account before any social account (YouTube, TikTok) can be connected.</td></tr>
+<tr><td>Token handling</td><td>Tokens live only in the Convex database (encrypted at rest by the platform) and are used only inside server-side actions. They are never returned to the browser, never logged, and never given to the render worker.</td></tr>
+<tr><td>Secrets</td><td>OAuth client secret and API keys are stored as Convex / Vercel environment variables; they are not in source control.</td></tr>
+<tr><td>Transport</td><td>HTTPS everywhere; OAuth redirect URI is the fixed https://manfriday.app callback registered in the Google Cloud project.</td></tr>
+<tr><td>Least privilege</td><td>Two scopes only; endpoints listed in section 2 only; per-account scheduler so one user cannot exhaust the shared quota.</td></tr>
+<tr><td>Logging and monitoring</td><td>Server logs never include tokens or YouTube data; PostHog product analytics receives no YouTube data.</td></tr>
+<tr><td>Incident contact</td><td>admin@manfriday.app; response within 2 business days.</td></tr></table>
+
+<h2>6. Quota request and calculation</h2>
+<table><tr><th>Assumption</th><th>Value</th></tr>
+<tr><td>Cost per upload (videos.insert)</td><td>1,600 units</td></tr>
+<tr><td>Plan allowances</td><td>Solo 20 videos/month · Studio 100 videos/month</td></tr>
+<tr><td>Founding cohort</td><td>up to 200 paying customers</td></tr>
+<tr><td>Realistic usage</td><td>~3 Shorts per customer per week → ~85 uploads/day at 200 customers</td></tr>
+<tr><td>Peak factor</td><td>×2 (posting clusters at popular times)</td></tr>
+<tr><td><strong>Requested videos.insert quota</strong></td><td><strong>300,000 units/day (~185 uploads/day)</strong></td></tr>
+<tr><td>Requested general quota (channels.list, videos.list)</td><td>10,000 units/day</td></tr>
+<tr><td>Default quota</td><td>10,000 units/day = 6 uploads/day across all customers, which blocks a paid product</td></tr></table>
+<p>We will request a further increase with actual usage data once consumption approaches 70% of the granted quota.</p>
+
+<h2>7. Compliance self-check (YouTube API Services Terms and Developer Policies)</h2>
+<table><tr><th>Requirement</th><th>Where it is met</th></tr>
+<tr><td>Privacy policy discloses use of YouTube API Services</td><td>https://manfriday.app/privacy › "YouTube" section</td></tr>
+<tr><td>Privacy policy links the Google Privacy Policy</td><td>Same section, link to policies.google.com/privacy</td></tr>
+<tr><td>Privacy policy explains data accessed, stored, and how users revoke</td><td>Same section: "What we access", "What we store", "Revoking access" (in-app and via Google security settings)</td></tr>
+<tr><td>Terms of service bind users to the YouTube Terms of Service</td><td>https://manfriday.app/terms › "Platform terms"</td></tr>
+<tr><td>Minimum scopes</td><td>youtube.upload and youtube.readonly only</td></tr>
+<tr><td>No data aggregation, sale, or advertising use</td><td>Section 3 above; privacy policy</td></tr>
+<tr><td>Authorized data refreshed or deleted within 30 days</td><td>Section 3 above</td></tr>
+<tr><td>Users can revoke and data is deleted on revocation</td><td>Section 4 above</td></tr>
+<tr><td>Branding</td><td>The product name does not contain "YouTube"; YouTube is referenced by name to describe the integration; the app does not imply endorsement by YouTube or Google</td></tr>
+<tr><td>Uploads reflect user intent</td><td>Every upload follows an explicit user approval and a user-chosen schedule; no bulk or automated uploads</td></tr></table>
+
+<h2>8. Attachments provided with this submission</h2>
+<ul><li>Demo video (unlisted): https://youtu.be/aRPVtmi-5EU</li>
+<li>Architecture diagram · User flow diagrams</li>
+<li>Evidence PDF: consent screen, connected accounts, publish queue, homepage, privacy policy sections, terms of service</li></ul>
+</body></html>
