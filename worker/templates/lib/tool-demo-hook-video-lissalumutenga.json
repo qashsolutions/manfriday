@@ -1,0 +1,95 @@
+{
+  "specVersion": 1,
+  "slug": "tool-demo-hook-video-lissalumutenga",
+  "format": "hook_video",
+  "hookPattern": "tool-demo",
+  "niches": [
+    "ai-tools",
+    "solo-saas"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "Got a business idea?? Do this FIRST",
+    "concept": "The creator reviews and demonstrates the features of an AI business planning app."
+  },
+  "slots": [
+    {
+      "id": "hook_text",
+      "type": "text",
+      "maxChars": 80,
+      "guidance": "on-screen opener — show, don't tell — the product doing the thing, narrated in plain steps. Reference hook shape: \"Got a business idea?? Do this FIRST\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 20,
+      "guidance": "voiceover in the creator's own words: the story or the steps, one concrete number, product mentioned once near the end; present tense, no ad-speak"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "closing card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "hook_video",
+    "durationCapSeconds": 30,
+    "music": {
+      "mood": "lofi-build",
+      "source": "licensed_library"
+    },
+    "voice": {
+      "slotRef": "vo_script",
+      "tts": "brand_default"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "shots": [
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "hook_text",
+          "styleToken": "hook-xl",
+          "position": "center"
+        }
+      },
+      {
+        "flex": true,
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        }
+      },
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ]
+  }
+}

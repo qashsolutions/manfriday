@@ -1,0 +1,80 @@
+{
+  "specVersion": 1,
+  "slug": "tool-demo-avatar-max-kelleyy",
+  "format": "avatar",
+  "hookPattern": "tool-demo",
+  "niches": [
+    "dev-tools",
+    "ai-tools"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "GODFATHER OF VIBECODING'S CLAUDE.MD",
+    "concept": "A creator explains technical pain points in an AI coding tool and provides a specific solution found on GitHub."
+  },
+  "slots": [
+    {
+      "id": "hook_overlay",
+      "type": "text",
+      "maxChars": 70,
+      "guidance": "overlay for the first 3 seconds — show, don't tell — the product doing the thing, narrated in plain steps. Reference hook shape: \"GODFATHER OF VIBECODING'S CLAUDE.MD\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 24,
+      "guidance": "spoken to camera, first person, conversational; make the point, give one example with a number, land the product once"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "end card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "avatar",
+    "durationCapSeconds": 35,
+    "character": {
+      "pick": "brand_default"
+    },
+    "speech": {
+      "slotRef": "vo_script",
+      "tts": "brand_default",
+      "lipsync": "lazy_on_right_swipe"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "overlay": {
+      "slotRef": "hook_overlay",
+      "styleToken": "label-sm",
+      "position": "upper-third",
+      "showSeconds": 3.5
+    },
+    "endCard": {
+      "holdSeconds": 2.5,
+      "bg": {
+        "kind": "gradient",
+        "styleToken": "brand-dark-2"
+      },
+      "text": {
+        "slotRef": "cta",
+        "styleToken": "cta-md",
+        "position": "center"
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "specVersion": 1,
+  "slug": "confession-turn-hook-video-mtdks333",
+  "format": "hook_video",
+  "hookPattern": "confession-turn",
+  "niches": [
+    "build-in-public"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "Daniel was rejected",
+    "concept": "The video tells a story about a developer named Daniel who was rejected by Google, built his own successful ad-tech company, and later turned the tables on the interviewers who previously rejected him."
+  },
+  "slots": [
+    {
+      "id": "hook_text",
+      "type": "text",
+      "maxChars": 80,
+      "guidance": "on-screen opener — an honest admission of a slow start or a mistake, then the one change that turned it — specific numbers, no hype. Reference hook shape: \"Daniel was rejected\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 20,
+      "guidance": "voiceover in the creator's own words: the story or the steps, one concrete number, product mentioned once near the end; present tense, no ad-speak"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "closing card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "hook_video",
+    "durationCapSeconds": 30,
+    "music": {
+      "mood": "lofi-build",
+      "source": "licensed_library"
+    },
+    "voice": {
+      "slotRef": "vo_script",
+      "tts": "brand_default"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "shots": [
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "hook_text",
+          "styleToken": "hook-xl",
+          "position": "center"
+        }
+      },
+      {
+        "flex": true,
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        }
+      },
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ]
+  }
+}

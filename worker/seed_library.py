@@ -1,4 +1,6 @@
-"""Seed the trend-template library from worker/templates/*.json + library.json."""
+"""Seed the trend-template library: worker/templates/*.json (hand-made) +
+worker/templates/lib/*.json (built from curated references by pipeline/build_templates.py),
+both keyed into library.json."""
 import json
 import time
 from pathlib import Path
@@ -10,7 +12,8 @@ TDIR = Path(__file__).resolve().parent / "templates"
 
 def main() -> None:
     meta = json.loads((TDIR / "library.json").read_text())
-    for f in sorted(TDIR.glob("*.json")):
+    files = sorted(TDIR.glob("*.json")) + sorted((TDIR / "lib").glob("*.json"))
+    for f in files:
         if f.name == "library.json":
             continue
         structure = json.loads(f.read_text())

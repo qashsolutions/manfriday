@@ -41,6 +41,1078 @@
     "platform": "youtube",
     "views": 1814110,
     "engagementScore": 93,
-    "_note": "6.5x outlier per vidIQ, ~1.8M views day one, 4.4% engagement. Source is third-party TV-clip content \u2014 we adapt the curiosity-gap-reveal HOOK PATTERN only (link, never rehost). First user-curated reference, 7 Sep 2026."
+    "_note": "6.5x outlier per vidIQ, ~1.8M views day one, 4.4% engagement. Source is third-party TV-clip content — we adapt the curiosity-gap-reveal HOOK PATTERN only (link, never rehost). First user-curated reference, 7 Sep 2026."
+  },
+  "tool-demo-hook-video-chris-raroque": {
+    "refUrl": "https://www.tiktok.com/@chris.raroque/video/7668389913334648095",
+    "platform": "tiktok",
+    "views": 911600,
+    "engagementScore": 78,
+    "refHandle": "chris.raroque",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-hook-video-sarahmsdesignsthings": {
+    "refUrl": "https://www.instagram.com/reel/Da3R_BLpHOf/",
+    "platform": "tiktok",
+    "views": 401500,
+    "engagementScore": 71,
+    "refHandle": "sarahmsdesignsthings",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-mobileprogrammerz": {
+    "refUrl": "https://www.tiktok.com/@mobileprogrammerz/video/7659801769148566802",
+    "platform": "tiktok",
+    "views": 314800,
+    "engagementScore": 63,
+    "refHandle": "mobileprogrammerz",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-kyle-builds": {
+    "refUrl": "https://www.tiktok.com/@kyle_builds/video/7652070616979279112",
+    "platform": "tiktok",
+    "views": 220600,
+    "engagementScore": 66,
+    "refHandle": "kyle_builds",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-hook-video-marketing-aiii": {
+    "refUrl": "https://www.instagram.com/reel/Dal6D3dPNP2/",
+    "platform": "tiktok",
+    "views": 187000,
+    "engagementScore": 58,
+    "refHandle": "marketing.aiii",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-hook-video-maxjohnscn": {
+    "refUrl": "https://www.instagram.com/reel/DcL8eLKNrH8/",
+    "platform": "tiktok",
+    "views": 167600,
+    "engagementScore": 60,
+    "refHandle": "maxjohnscn",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-lvletterz-99": {
+    "refUrl": "https://www.tiktok.com/@lvletterz.99/video/7672021949228387606",
+    "platform": "tiktok",
+    "views": 897100,
+    "engagementScore": 79,
+    "refHandle": "lvletterz.99",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-girsta": {
+    "refUrl": "https://www.instagram.com/reel/Da-xGdFNl1m/",
+    "platform": "tiktok",
+    "views": 824300,
+    "engagementScore": 78,
+    "refHandle": "girsta",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-hook-video-sophia-designsthings": {
+    "refUrl": "https://www.tiktok.com/@sophia.designsthings/video/7661119222595996958",
+    "platform": "tiktok",
+    "views": 612800,
+    "engagementScore": 75,
+    "refHandle": "sophia.designsthings",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-haejuicyy": {
+    "refUrl": "https://www.tiktok.com/@haejuicyy/video/7672448602748357918",
+    "platform": "tiktok",
+    "views": 483500,
+    "engagementScore": 73,
+    "refHandle": "haejuicyy",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-avatar-david-khakham": {
+    "refUrl": "https://www.tiktok.com/@david.khakham/video/7656918437586832653",
+    "platform": "tiktok",
+    "views": 368900,
+    "engagementScore": 71,
+    "refHandle": "david.khakham",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-react-developer": {
+    "refUrl": "https://www.tiktok.com/@react__developer/video/7673923427740159245",
+    "platform": "tiktok",
+    "views": 221500,
+    "engagementScore": 64,
+    "refHandle": "react__developer",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-avatar-smartworkai": {
+    "refUrl": "https://www.tiktok.com/@smartworkai/video/7660574217108344077",
+    "platform": "tiktok",
+    "views": 135400,
+    "engagementScore": 58,
+    "refHandle": "smartworkai",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-jake-coppen": {
+    "refUrl": "https://www.instagram.com/reel/DaOLuzyx0s_/",
+    "platform": "tiktok",
+    "views": 100000,
+    "engagementScore": 57,
+    "refHandle": "jake.coppen",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-tulio-sasaya": {
+    "refUrl": "https://www.tiktok.com/@tulio_sasaya/video/7654666933664582926",
+    "platform": "tiktok",
+    "views": 93800000,
+    "engagementScore": 98,
+    "refHandle": "tulio_sasaya",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-saladpictures": {
+    "refUrl": "https://www.tiktok.com/@saladpictures_/video/7672903273111768350",
+    "platform": "tiktok",
+    "views": 11200000,
+    "engagementScore": 98,
+    "refHandle": "saladpictures_",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-alberta-nyc": {
+    "refUrl": "https://www.tiktok.com/@alberta.nyc/video/7668383333537041677",
+    "platform": "tiktok",
+    "views": 7300000,
+    "engagementScore": 92,
+    "refHandle": "alberta.nyc",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-avatar-dashachepizhko": {
+    "refUrl": "https://www.tiktok.com/@dashachepizhko/video/7660172445214887175",
+    "platform": "tiktok",
+    "views": 2100000,
+    "engagementScore": 74,
+    "refHandle": "dashachepizhko",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-avatar-coleandlauryn": {
+    "refUrl": "https://www.tiktok.com/@coleandlauryn/video/7662557131534519565",
+    "platform": "tiktok",
+    "views": 1800000,
+    "engagementScore": 75,
+    "refHandle": "coleandlauryn",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-avatar-murphmaxxing": {
+    "refUrl": "https://www.instagram.com/reel/Db9Br3XBTPj/",
+    "platform": "tiktok",
+    "views": 960200,
+    "engagementScore": 79,
+    "refHandle": "murphmaxxing",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-hook-video-deployvault": {
+    "refUrl": "https://www.instagram.com/reel/Dbcc3NwO3WB/",
+    "platform": "tiktok",
+    "views": 561600,
+    "engagementScore": 72,
+    "refHandle": "deployvault",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-katie-side-hustle0": {
+    "refUrl": "https://www.tiktok.com/@katie.side.hustle0/video/7655934220627348749",
+    "platform": "tiktok",
+    "views": 460800,
+    "engagementScore": 70,
+    "refHandle": "katie.side.hustle0",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-zioncruzz": {
+    "refUrl": "https://www.tiktok.com/@zioncruzz/video/7656928110058753311",
+    "platform": "tiktok",
+    "views": 320000,
+    "engagementScore": 68,
+    "refHandle": "zioncruzz",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-only-onam": {
+    "refUrl": "https://www.tiktok.com/@only.onam/video/7664642821491543318",
+    "platform": "tiktok",
+    "views": 306500,
+    "engagementScore": 67,
+    "refHandle": "only.onam",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-evan-buildss": {
+    "refUrl": "https://www.instagram.com/reel/DbSSg9BBFVp/",
+    "platform": "tiktok",
+    "views": 290400,
+    "engagementScore": 61,
+    "refHandle": "evan_buildss_",
+    "refCapturedAt": "2026-09-11"
+  },
+  "before-after-hook-video-dan-ilies": {
+    "refUrl": "https://www.tiktok.com/@dan.ilies/video/7655690737731783958",
+    "platform": "tiktok",
+    "views": 276500,
+    "engagementScore": 67,
+    "refHandle": "dan.ilies",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-avatar-realkushdesai": {
+    "refUrl": "https://www.instagram.com/reel/Db5YvkYBzn6/",
+    "platform": "tiktok",
+    "views": 272500,
+    "engagementScore": 65,
+    "refHandle": "realkushdesai",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-avatar-max-kelleyy": {
+    "refUrl": "https://www.instagram.com/reel/DXKu9xViZsM/",
+    "platform": "tiktok",
+    "views": 250500,
+    "engagementScore": 56,
+    "refHandle": "max_kelleyy",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-bengusberg": {
+    "refUrl": "https://www.tiktok.com/@bengusberg/video/7667787445869628685",
+    "platform": "tiktok",
+    "views": 248700,
+    "engagementScore": 64,
+    "refHandle": "bengusberg",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-createwroman": {
+    "refUrl": "https://www.instagram.com/reel/DZ-8vNnS_eD/",
+    "platform": "tiktok",
+    "views": 229200,
+    "engagementScore": 63,
+    "refHandle": "createwroman",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-avatar-lunchbags": {
+    "refUrl": "https://www.instagram.com/reel/DZIYV3BqHqk/",
+    "platform": "tiktok",
+    "views": 225900,
+    "engagementScore": 67,
+    "refHandle": "lunchbags",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-gwen-wron": {
+    "refUrl": "https://www.instagram.com/reel/DcBfEqnO9yC/",
+    "platform": "tiktok",
+    "views": 178200,
+    "engagementScore": 65,
+    "refHandle": "gwen.wron",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-nmnflow": {
+    "refUrl": "https://www.instagram.com/reel/DbsE8sHoBOj/",
+    "platform": "tiktok",
+    "views": 147700,
+    "engagementScore": 58,
+    "refHandle": "nmnflow",
+    "refCapturedAt": "2026-09-11"
+  },
+  "before-after-hook-video-tiny-kiri": {
+    "refUrl": "https://www.tiktok.com/@tiny_kiri/video/7653914169799937313",
+    "platform": "tiktok",
+    "views": 120900,
+    "engagementScore": 57,
+    "refHandle": "tiny_kiri",
+    "refCapturedAt": "2026-09-11"
+  },
+  "before-after-hook-video-mattsjournal": {
+    "refUrl": "https://www.tiktok.com/@mattsjournal_/video/7652059423598382338",
+    "platform": "tiktok",
+    "views": 119700,
+    "engagementScore": 61,
+    "refHandle": "mattsjournal_",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-tokenmaxit": {
+    "refUrl": "https://www.instagram.com/reel/DacMhJuqj5d/",
+    "platform": "tiktok",
+    "views": 119200,
+    "engagementScore": 58,
+    "refHandle": "tokenmaxit",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-hook-video-codewithbeto": {
+    "refUrl": "https://www.tiktok.com/@codewithbeto/video/7655470136446487838",
+    "platform": "tiktok",
+    "views": 118000,
+    "engagementScore": 61,
+    "refHandle": "codewithbeto",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-secondbest-2": {
+    "refUrl": "https://www.tiktok.com/@secondbest_2/video/7667312858174131469",
+    "platform": "tiktok",
+    "views": 109600,
+    "engagementScore": 60,
+    "refHandle": "secondbest_2",
+    "refCapturedAt": "2026-09-11"
+  },
+  "before-after-avatar-omarontape": {
+    "refUrl": "https://www.tiktok.com/@omarontape/video/7662112059760397598",
+    "platform": "tiktok",
+    "views": 58200000,
+    "engagementScore": 98,
+    "refHandle": "omarontape",
+    "refCapturedAt": "2026-09-11"
+  },
+  "before-after-hook-video-softwarewithnick": {
+    "refUrl": "https://www.tiktok.com/@softwarewithnick/video/7662175978621242638",
+    "platform": "tiktok",
+    "views": 47000000,
+    "engagementScore": 98,
+    "refHandle": "softwarewithnick",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-hustle-faceless": {
+    "refUrl": "https://www.tiktok.com/@hustle.faceless/video/7678901427921620244",
+    "platform": "tiktok",
+    "views": 2100000,
+    "engagementScore": 81,
+    "refHandle": "hustle.faceless",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-hook-video-shigcodes": {
+    "refUrl": "https://www.tiktok.com/@shigcodes/video/7681598097725689095",
+    "platform": "tiktok",
+    "views": 1900000,
+    "engagementScore": 82,
+    "refHandle": "shigcodes",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-hook-video-roost-app": {
+    "refUrl": "https://www.instagram.com/reel/DZhzLyzuB-E/",
+    "platform": "tiktok",
+    "views": 1500000,
+    "engagementScore": 83,
+    "refHandle": "roost.app",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-only-onam": {
+    "refUrl": "https://www.tiktok.com/@only.onam/video/7671320127748508950",
+    "platform": "tiktok",
+    "views": 1400000,
+    "engagementScore": 82,
+    "refHandle": "only.onam",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-hook-video-hackwithsim": {
+    "refUrl": "https://www.tiktok.com/@hackwithsim/video/7655906342070226206",
+    "platform": "tiktok",
+    "views": 1200000,
+    "engagementScore": 81,
+    "refHandle": "hackwithsim",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-josh-gutt": {
+    "refUrl": "https://www.tiktok.com/@josh_gutt/video/7652015607541419294",
+    "platform": "tiktok",
+    "views": 1100000,
+    "engagementScore": 80,
+    "refHandle": "josh_gutt",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-webblaze-india": {
+    "refUrl": "https://www.instagram.com/reel/DbYRPFoPiAU/",
+    "platform": "tiktok",
+    "views": 750200,
+    "engagementScore": 70,
+    "refHandle": "webblaze.india",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-hook-video-levillllli": {
+    "refUrl": "https://www.instagram.com/reel/Db6ET8hMmxp/",
+    "platform": "tiktok",
+    "views": 537000,
+    "engagementScore": 74,
+    "refHandle": "levillllli",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-andrhlt": {
+    "refUrl": "https://www.tiktok.com/@andrhlt/video/7654655870172744991",
+    "platform": "tiktok",
+    "views": 522000,
+    "engagementScore": 73,
+    "refHandle": "andrhlt",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-avatar-multipassionatemadison": {
+    "refUrl": "https://www.tiktok.com/@multipassionatemadison/video/7654659533188484382",
+    "platform": "tiktok",
+    "views": 480400,
+    "engagementScore": 73,
+    "refHandle": "multipassionatemadison",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-adhdrantsbyseth": {
+    "refUrl": "https://www.tiktok.com/@adhdrantsbyseth/video/7662599828605586718",
+    "platform": "tiktok",
+    "views": 427300,
+    "engagementScore": 72,
+    "refHandle": "adhdrantsbyseth",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-buildingwithmatt": {
+    "refUrl": "https://www.instagram.com/reel/DbJDEFzg4AZ/",
+    "platform": "tiktok",
+    "views": 418100,
+    "engagementScore": 72,
+    "refHandle": "buildingwithmatt",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-midirbot": {
+    "refUrl": "https://www.tiktok.com/@midirbot/video/7652907679723048206",
+    "platform": "tiktok",
+    "views": 375800,
+    "engagementScore": 71,
+    "refHandle": "midirbot",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-khanlabs": {
+    "refUrl": "https://www.instagram.com/reel/DaHW5v4xONH/",
+    "platform": "tiktok",
+    "views": 290200,
+    "engagementScore": 68,
+    "refHandle": "khanlabs_",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-thejimmyreilly": {
+    "refUrl": "https://www.tiktok.com/@thejimmyreilly/video/7670726443097165087",
+    "platform": "tiktok",
+    "views": 248700,
+    "engagementScore": 67,
+    "refHandle": "thejimmyreilly",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-hook-video-jacob-got-motion": {
+    "refUrl": "https://www.instagram.com/reel/DbjDYioRy6Q/",
+    "platform": "tiktok",
+    "views": 231700,
+    "engagementScore": 66,
+    "refHandle": "jacob_got_motion",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-jakymakey": {
+    "refUrl": "https://www.instagram.com/reel/DcQiqGRzpTp/",
+    "platform": "tiktok",
+    "views": 205000,
+    "engagementScore": 62,
+    "refHandle": "jakymakey",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-avatar-theguy": {
+    "refUrl": "https://www.instagram.com/reel/DZ5Mv-xOZ7e/",
+    "platform": "tiktok",
+    "views": 180600,
+    "engagementScore": 57,
+    "refHandle": "theguy",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-hook-video-thecristianmercado": {
+    "refUrl": "https://www.instagram.com/reel/DZ8Wnf5S0-r/",
+    "platform": "tiktok",
+    "views": 177400,
+    "engagementScore": 64,
+    "refHandle": "thecristianmercado",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-brian-polsia": {
+    "refUrl": "https://www.instagram.com/reel/DaYdW3yg8Di/",
+    "platform": "tiktok",
+    "views": 156300,
+    "engagementScore": 54,
+    "refHandle": "brian_polsia",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-jatznaran": {
+    "refUrl": "https://www.tiktok.com/@jatznaran/video/7655071029190069526",
+    "platform": "tiktok",
+    "views": 146400,
+    "engagementScore": 61,
+    "refHandle": "jatznaran",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-buildingwithmatt-2": {
+    "refUrl": "https://www.instagram.com/reel/DZjnbvJg3UF/",
+    "platform": "tiktok",
+    "views": 144800,
+    "engagementScore": 57,
+    "refHandle": "buildingwithmatt",
+    "refCapturedAt": "2026-09-11"
+  },
+  "day-n-buildlog-hook-video-will-geez": {
+    "refUrl": "https://www.instagram.com/reel/DbIklB3vKNC/",
+    "platform": "tiktok",
+    "views": 133400,
+    "engagementScore": 60,
+    "refHandle": "will.geez",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-agentic-james": {
+    "refUrl": "https://www.tiktok.com/@agentic.james/video/7655385874791714061",
+    "platform": "tiktok",
+    "views": 128699,
+    "engagementScore": 62,
+    "refHandle": "agentic.james",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-adamdelduca": {
+    "refUrl": "https://www.tiktok.com/@adamdelduca/video/7676789324712545556",
+    "platform": "tiktok",
+    "views": 123200,
+    "engagementScore": 61,
+    "refHandle": "adamdelduca",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-thomaslentine": {
+    "refUrl": "https://www.tiktok.com/@thomaslentine/video/7662191367816334605",
+    "platform": "tiktok",
+    "views": 111700,
+    "engagementScore": 60,
+    "refHandle": "thomaslentine",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-rkdships": {
+    "refUrl": "https://www.instagram.com/reel/Da3KcPktuz3/",
+    "platform": "tiktok",
+    "views": 109100,
+    "engagementScore": 58,
+    "refHandle": "rkdships",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-derekwaller0": {
+    "refUrl": "https://www.instagram.com/reel/DZvgOBXyd3x/",
+    "platform": "tiktok",
+    "views": 106400,
+    "engagementScore": 56,
+    "refHandle": "derekwaller0",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-hook-video-bencera": {
+    "refUrl": "https://www.instagram.com/reel/DcUAjrDqEOw/",
+    "platform": "tiktok",
+    "views": 103200,
+    "engagementScore": 54,
+    "refHandle": "bencera",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-design4me": {
+    "refUrl": "https://www.tiktok.com/@design4me_/video/7652345210499910933",
+    "platform": "tiktok",
+    "views": 38300000,
+    "engagementScore": 98,
+    "refHandle": "design4me_",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-lissalumutenga": {
+    "refUrl": "https://www.tiktok.com/@lissalumutenga/video/7657217241527684382",
+    "platform": "tiktok",
+    "views": 2800000,
+    "engagementScore": 88,
+    "refHandle": "lissalumutenga",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-charlauren": {
+    "refUrl": "https://www.tiktok.com/@charlauren/video/7655071746730577174",
+    "platform": "tiktok",
+    "views": 2500000,
+    "engagementScore": 79,
+    "refHandle": "charlauren",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-taylorcutfilms": {
+    "refUrl": "https://www.tiktok.com/@taylorcutfilms/video/7669084783649066254",
+    "platform": "tiktok",
+    "views": 2300000,
+    "engagementScore": 87,
+    "refHandle": "taylorcutfilms",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-hook-video-mtdks333": {
+    "refUrl": "https://www.tiktok.com/@mtdks333/video/7666004400380398879",
+    "platform": "tiktok",
+    "views": 2000000,
+    "engagementScore": 86,
+    "refHandle": "mtdks333",
+    "refCapturedAt": "2026-09-11"
+  },
+  "wish-i-knew-avatar-sudania": {
+    "refUrl": "https://www.tiktok.com/@sudania_/video/7652859974086970637",
+    "platform": "tiktok",
+    "views": 1600000,
+    "engagementScore": 83,
+    "refHandle": "sudania_",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-avatar-jaredrhod": {
+    "refUrl": "https://www.tiktok.com/@jaredrhod/video/7655121681228369165",
+    "platform": "tiktok",
+    "views": 1400000,
+    "engagementScore": 82,
+    "refHandle": "jaredrhod",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-lydiabielfeldt": {
+    "refUrl": "https://www.tiktok.com/@lydiabielfeldt/video/7652832773064953119",
+    "platform": "tiktok",
+    "views": 1100000,
+    "engagementScore": 80,
+    "refHandle": "lydiabielfeldt",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-slideshow-insidemoneyofficial": {
+    "refUrl": "https://www.instagram.com/reel/DcWITS0v1ZH/",
+    "platform": "tiktok",
+    "views": 916600,
+    "engagementScore": 74,
+    "refHandle": "insidemoneyofficial",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-hustle-audrey33": {
+    "refUrl": "https://www.tiktok.com/@hustle.audrey33/video/7676200011851369759",
+    "platform": "tiktok",
+    "views": 856100,
+    "engagementScore": 78,
+    "refHandle": "hustle.audrey33",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-jaredrhod": {
+    "refUrl": "https://www.tiktok.com/@jaredrhod/video/7652419341723405581",
+    "platform": "tiktok",
+    "views": 838200,
+    "engagementScore": 75,
+    "refHandle": "jaredrhod",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-kevinfremon": {
+    "refUrl": "https://www.tiktok.com/@kevinfremon/video/7655048241062464782",
+    "platform": "tiktok",
+    "views": 777900,
+    "engagementScore": 76,
+    "refHandle": "kevinfremon",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-hook-video-ai-prompt-and-technology": {
+    "refUrl": "https://www.tiktok.com/@ai_prompt_and_technology/video/7658963956207488258",
+    "platform": "tiktok",
+    "views": 623400,
+    "engagementScore": 75,
+    "refHandle": "ai_prompt_and_technology",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-avatar-earlioessen": {
+    "refUrl": "https://www.tiktok.com/@earlioessen/video/7662892026530139422",
+    "platform": "tiktok",
+    "views": 604900,
+    "engagementScore": 75,
+    "refHandle": "earlioessen",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-s1lentsimulation": {
+    "refUrl": "https://www.tiktok.com/@s1lentsimulation/video/7665820195998534926",
+    "platform": "tiktok",
+    "views": 573400,
+    "engagementScore": 75,
+    "refHandle": "s1lentsimulation",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-avatar-daniellescooltiktok": {
+    "refUrl": "https://www.tiktok.com/@daniellescooltiktok/video/7657740466871487757",
+    "platform": "tiktok",
+    "views": 408200,
+    "engagementScore": 70,
+    "refHandle": "daniellescooltiktok",
+    "refCapturedAt": "2026-09-11"
+  },
+  "day-n-buildlog-hook-video-ferropop": {
+    "refUrl": "https://www.instagram.com/reel/DbQpnmwKU2k/",
+    "platform": "tiktok",
+    "views": 392300,
+    "engagementScore": 71,
+    "refHandle": "ferropop",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-galiniecodes": {
+    "refUrl": "https://www.tiktok.com/@galiniecodes/video/7666109357079285000",
+    "platform": "tiktok",
+    "views": 387300,
+    "engagementScore": 70,
+    "refHandle": "galiniecodes",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-thom-code": {
+    "refUrl": "https://www.tiktok.com/@thom.code/video/7664641499094715670",
+    "platform": "tiktok",
+    "views": 333100,
+    "engagementScore": 65,
+    "refHandle": "thom.code",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-lifebeyondcorporate": {
+    "refUrl": "https://www.tiktok.com/@lifebeyondcorporate/video/7658352757732068639",
+    "platform": "tiktok",
+    "views": 321200,
+    "engagementScore": 70,
+    "refHandle": "lifebeyondcorporate",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-jaredrhod": {
+    "refUrl": "https://www.tiktok.com/@jaredrhod/video/7656962716921351438",
+    "platform": "tiktok",
+    "views": 300400,
+    "engagementScore": 61,
+    "refHandle": "jaredrhod",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-avatar-teddytechnology": {
+    "refUrl": "https://www.tiktok.com/@teddytechnology/video/7657301613874318606",
+    "platform": "tiktok",
+    "views": 285200,
+    "engagementScore": 69,
+    "refHandle": "teddytechnology",
+    "refCapturedAt": "2026-09-11"
+  },
+  "day-n-buildlog-avatar-jiannacapri": {
+    "refUrl": "https://www.instagram.com/reel/DcD9UqxMEeX/",
+    "platform": "tiktok",
+    "views": 276800,
+    "engagementScore": 65,
+    "refHandle": "jiannacapri",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-hook-video-wearebrand-io": {
+    "refUrl": "https://www.tiktok.com/@wearebrand.io/video/7654958689035636000",
+    "platform": "tiktok",
+    "views": 244700,
+    "engagementScore": 65,
+    "refHandle": "wearebrand.io",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-hook-video-aniksingal": {
+    "refUrl": "https://www.tiktok.com/@aniksingal/video/7652719452567407902",
+    "platform": "tiktok",
+    "views": 236000,
+    "engagementScore": 60,
+    "refHandle": "aniksingal",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-nocodealex": {
+    "refUrl": "https://www.instagram.com/reel/Da0vM9ZPVmz/",
+    "platform": "tiktok",
+    "views": 235800,
+    "engagementScore": 65,
+    "refHandle": "nocodealex",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-leogrundstrom": {
+    "refUrl": "https://www.instagram.com/reel/DaNw7j4sHA7/",
+    "platform": "tiktok",
+    "views": 230800,
+    "engagementScore": 67,
+    "refHandle": "leogrundstrom",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-codevibes-1": {
+    "refUrl": "https://www.tiktok.com/@codevibes_1/video/7657971373607783702",
+    "platform": "tiktok",
+    "views": 205000,
+    "engagementScore": 65,
+    "refHandle": "codevibes_1",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-pierce-ai": {
+    "refUrl": "https://www.tiktok.com/@pierce.ai/video/7667514599306038542",
+    "platform": "tiktok",
+    "views": 179300,
+    "engagementScore": 64,
+    "refHandle": "pierce.ai",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-avatar-mobina-zamani": {
+    "refUrl": "https://www.instagram.com/reel/DZhvYJDobSI/",
+    "platform": "tiktok",
+    "views": 152000,
+    "engagementScore": 63,
+    "refHandle": "mobina.__zamani",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-adamdelduca-2": {
+    "refUrl": "https://www.tiktok.com/@adamdelduca/video/7660831427063319824",
+    "platform": "tiktok",
+    "views": 136600,
+    "engagementScore": 62,
+    "refHandle": "adamdelduca",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-azxcsdf456": {
+    "refUrl": "https://www.tiktok.com/@azxcsdf456/video/7654234894142295310",
+    "platform": "tiktok",
+    "views": 132900,
+    "engagementScore": 52,
+    "refHandle": "azxcsdf456",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-haroonkhaans": {
+    "refUrl": "https://www.instagram.com/reel/DZ-X3OCoz9l/",
+    "platform": "tiktok",
+    "views": 123800,
+    "engagementScore": 59,
+    "refHandle": "haroonkhaans",
+    "refCapturedAt": "2026-09-11"
+  },
+  "day-n-buildlog-avatar-justinbuilds-mov": {
+    "refUrl": "https://www.instagram.com/reel/Da5zCMhsCw4/",
+    "platform": "tiktok",
+    "views": 109600,
+    "engagementScore": 51,
+    "refHandle": "justinbuilds.mov",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-claude": {
+    "refUrl": "https://www.tiktok.com/@claude/video/7675424611449769246",
+    "platform": "tiktok",
+    "views": 6400000,
+    "engagementScore": 96,
+    "refHandle": "claude",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-maverickgpt": {
+    "refUrl": "https://www.tiktok.com/@maverickgpt/video/7661052111106346270",
+    "platform": "tiktok",
+    "views": 3400000,
+    "engagementScore": 84,
+    "refHandle": "maverickgpt",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-hook-video-pickemstore": {
+    "refUrl": "https://www.tiktok.com/@pickemstore/video/7668984270139952416",
+    "platform": "tiktok",
+    "views": 1900000,
+    "engagementScore": 70,
+    "refHandle": "pickemstore",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-mhidedev": {
+    "refUrl": "https://www.tiktok.com/@mhidedev/video/7655363974355078418",
+    "platform": "tiktok",
+    "views": 1100000,
+    "engagementScore": 80,
+    "refHandle": "mhidedev",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-hook-video-bennettx-ai": {
+    "refUrl": "https://www.instagram.com/reel/DbcPo0dMQ3d/",
+    "platform": "tiktok",
+    "views": 1000000,
+    "engagementScore": 72,
+    "refHandle": "bennettx.ai",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-hook-video-taki-gpt": {
+    "refUrl": "https://www.tiktok.com/@taki.gpt/video/7676294305526369553",
+    "platform": "tiktok",
+    "views": 925700,
+    "engagementScore": 79,
+    "refHandle": "taki.gpt",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-andresthedesigner": {
+    "refUrl": "https://www.instagram.com/reel/DZ8R5KiptJq/",
+    "platform": "tiktok",
+    "views": 904700,
+    "engagementScore": 78,
+    "refHandle": "andresthedesigner",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-peterpandeveloper": {
+    "refUrl": "https://www.tiktok.com/@peterpandeveloper/video/7651976274189094166",
+    "platform": "tiktok",
+    "views": 729800,
+    "engagementScore": 69,
+    "refHandle": "peterpandeveloper",
+    "refCapturedAt": "2026-09-11"
+  },
+  "pov-hook-video-fun-vibes724": {
+    "refUrl": "https://www.tiktok.com/@fun.vibes724/video/7667280960546770189",
+    "platform": "tiktok",
+    "views": 511200,
+    "engagementScore": 70,
+    "refHandle": "fun.vibes724",
+    "refCapturedAt": "2026-09-11"
+  },
+  "day-n-buildlog-avatar-buildwkel": {
+    "refUrl": "https://www.tiktok.com/@buildwkel/video/7662426648939203862",
+    "platform": "tiktok",
+    "views": 411400,
+    "engagementScore": 72,
+    "refHandle": "buildwkel",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-avatar-janetacarr": {
+    "refUrl": "https://www.tiktok.com/@janetacarr/video/7655869287806094613",
+    "platform": "tiktok",
+    "views": 379700,
+    "engagementScore": 64,
+    "refHandle": "janetacarr",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-hook-video-maxjohnscn-2": {
+    "refUrl": "https://www.tiktok.com/@maxjohnscn/video/7656555521226362134",
+    "platform": "tiktok",
+    "views": 333800,
+    "engagementScore": 70,
+    "refHandle": "maxjohnscn",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-heystevetan": {
+    "refUrl": "https://www.instagram.com/reel/DbbA7wwTIZ8/",
+    "platform": "tiktok",
+    "views": 301600,
+    "engagementScore": 65,
+    "refHandle": "heystevetan",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-bettercreatingofficial": {
+    "refUrl": "https://www.tiktok.com/@bettercreatingofficial/video/7651297691732905248",
+    "platform": "tiktok",
+    "views": 279000,
+    "engagementScore": 68,
+    "refHandle": "bettercreatingofficial",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-hook-video-nick-sender": {
+    "refUrl": "https://www.tiktok.com/@nick.sender/video/7655367613534522656",
+    "platform": "tiktok",
+    "views": 274000,
+    "engagementScore": 68,
+    "refHandle": "nick.sender",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-kyle-s-painter": {
+    "refUrl": "https://www.tiktok.com/@kyle.s.painter/video/7669252041339948302",
+    "platform": "tiktok",
+    "views": 254400,
+    "engagementScore": 68,
+    "refHandle": "kyle.s.painter",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-hook-video-nateherkai": {
+    "refUrl": "https://www.tiktok.com/@nateherkai/video/7666141042772692238",
+    "platform": "tiktok",
+    "views": 247800,
+    "engagementScore": 67,
+    "refHandle": "nateherkai",
+    "refCapturedAt": "2026-09-11"
+  },
+  "wish-i-knew-avatar-steveofallstreets": {
+    "refUrl": "https://www.instagram.com/reel/DZ-sbdIxE5h/",
+    "platform": "tiktok",
+    "views": 237200,
+    "engagementScore": 62,
+    "refHandle": "steveofallstreets",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-slideshow-techexplainerguy": {
+    "refUrl": "https://www.tiktok.com/@techexplainerguy/video/7651535851398139167",
+    "platform": "tiktok",
+    "views": 204900,
+    "engagementScore": 59,
+    "refHandle": "techexplainerguy",
+    "refCapturedAt": "2026-09-11"
+  },
+  "curiosity-gap-reveal-avatar-thepbtrading": {
+    "refUrl": "https://www.instagram.com/reel/DcHUaDyMhZr/",
+    "platform": "tiktok",
+    "views": 192200,
+    "engagementScore": 61,
+    "refHandle": "thepbtrading",
+    "refCapturedAt": "2026-09-11"
+  },
+  "unpopular-opinion-hook-video-jackroberts": {
+    "refUrl": "https://www.tiktok.com/@jackroberts____/video/7661397437789048096",
+    "platform": "tiktok",
+    "views": 188700,
+    "engagementScore": 62,
+    "refHandle": "jackroberts____",
+    "refCapturedAt": "2026-09-11"
+  },
+  "listicle-hook-video-ai-honeycove": {
+    "refUrl": "https://www.tiktok.com/@ai.honeycove/video/7653734017241599246",
+    "platform": "tiktok",
+    "views": 168400,
+    "engagementScore": 54,
+    "refHandle": "ai.honeycove",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-keepbufoalive": {
+    "refUrl": "https://www.tiktok.com/@keepbufoalive/video/7673199598957088030",
+    "platform": "tiktok",
+    "views": 162400,
+    "engagementScore": 64,
+    "refHandle": "keepbufoalive",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-craig-explains-ai": {
+    "refUrl": "https://www.instagram.com/reel/DbgZdN6oXxw/",
+    "platform": "tiktok",
+    "views": 162300,
+    "engagementScore": 58,
+    "refHandle": "craig_explains_ai",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-hook-video-jakedavidsai": {
+    "refUrl": "https://www.tiktok.com/@jakedavidsai/video/7670282741585382686",
+    "platform": "tiktok",
+    "views": 144300,
+    "engagementScore": 62,
+    "refHandle": "jakedavidsai",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-avatar-byjaykellar": {
+    "refUrl": "https://www.instagram.com/reel/Db3CDSmxQG3/",
+    "platform": "tiktok",
+    "views": 140400,
+    "engagementScore": 62,
+    "refHandle": "byjaykellar",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-lazymillionaire": {
+    "refUrl": "https://www.instagram.com/reel/DbENbS2vZM-/",
+    "platform": "tiktok",
+    "views": 137400,
+    "engagementScore": 59,
+    "refHandle": "lazymillionaire",
+    "refCapturedAt": "2026-09-11"
+  },
+  "confession-turn-avatar-brockkmoodyy": {
+    "refUrl": "https://www.instagram.com/reel/DbVHHPWyXQX/",
+    "platform": "tiktok",
+    "views": 132700,
+    "engagementScore": 61,
+    "refHandle": "brockkmoodyy",
+    "refCapturedAt": "2026-09-11"
+  },
+  "bold-claim-receipts-avatar-audreycaprianni": {
+    "refUrl": "https://www.tiktok.com/@audreycaprianni/video/7651592151763062024",
+    "platform": "tiktok",
+    "views": 113000,
+    "engagementScore": 54,
+    "refHandle": "audreycaprianni",
+    "refCapturedAt": "2026-09-11"
+  },
+  "day-n-buildlog-hook-video-yumahey": {
+    "refUrl": "https://www.instagram.com/reel/DaDZUeLi_N1/",
+    "platform": "tiktok",
+    "views": 109900,
+    "engagementScore": 58,
+    "refHandle": "yumahey_",
+    "refCapturedAt": "2026-09-11"
+  },
+  "tool-demo-hook-video-divergenceapp": {
+    "refUrl": "https://www.instagram.com/reel/Db_rafLJ7Xi/",
+    "platform": "tiktok",
+    "views": 106300,
+    "engagementScore": 54,
+    "refHandle": "divergenceapp",
+    "refCapturedAt": "2026-09-11"
   }
 }

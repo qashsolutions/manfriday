@@ -1,0 +1,95 @@
+{
+  "specVersion": 1,
+  "slug": "bold-claim-receipts-hook-video-bencera",
+  "format": "hook_video",
+  "hookPattern": "bold-claim-receipts",
+  "niches": [
+    "solo-saas",
+    "build-in-public"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "I went from 0 to 10,000 paying customers",
+    "concept": "A tech founder narrates his step-by-step journey of building and growing a successful AI startup from scratch."
+  },
+  "slots": [
+    {
+      "id": "hook_text",
+      "type": "text",
+      "maxChars": 80,
+      "guidance": "on-screen opener — a bold, numeric claim up front (revenue, users, days) that the body backs with receipts. Reference hook shape: \"I went from 0 to 10,000 paying customers\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 20,
+      "guidance": "voiceover in the creator's own words: the story or the steps, one concrete number, product mentioned once near the end; present tense, no ad-speak"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "closing card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "hook_video",
+    "durationCapSeconds": 30,
+    "music": {
+      "mood": "lofi-build",
+      "source": "licensed_library"
+    },
+    "voice": {
+      "slotRef": "vo_script",
+      "tts": "brand_default"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "shots": [
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "hook_text",
+          "styleToken": "hook-xl",
+          "position": "center"
+        }
+      },
+      {
+        "flex": true,
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        }
+      },
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ]
+  }
+}

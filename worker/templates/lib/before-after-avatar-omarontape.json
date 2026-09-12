@@ -1,0 +1,80 @@
+{
+  "specVersion": 1,
+  "slug": "before-after-avatar-omarontape",
+  "format": "avatar",
+  "hookPattern": "before-after",
+  "niches": [
+    "dev-tools",
+    "ai-tools"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "So Grok 4.5 on Cursor and apparently it's",
+    "concept": "A developer compares the performance and cost of two AI models, Grok 4.5 and Opus 4.8, by using them to fix a bug in his own app."
+  },
+  "slots": [
+    {
+      "id": "hook_overlay",
+      "type": "text",
+      "maxChars": 70,
+      "guidance": "overlay for the first 3 seconds — a before/after contrast — the old way vs the way it works now. Reference hook shape: \"So Grok 4.5 on Cursor and apparently it's\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 24,
+      "guidance": "spoken to camera, first person, conversational; make the point, give one example with a number, land the product once"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "end card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "avatar",
+    "durationCapSeconds": 35,
+    "character": {
+      "pick": "brand_default"
+    },
+    "speech": {
+      "slotRef": "vo_script",
+      "tts": "brand_default",
+      "lipsync": "lazy_on_right_swipe"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "overlay": {
+      "slotRef": "hook_overlay",
+      "styleToken": "label-sm",
+      "position": "upper-third",
+      "showSeconds": 3.5
+    },
+    "endCard": {
+      "holdSeconds": 2.5,
+      "bg": {
+        "kind": "gradient",
+        "styleToken": "brand-dark-2"
+      },
+      "text": {
+        "slotRef": "cta",
+        "styleToken": "cta-md",
+        "position": "center"
+      }
+    }
+  }
+}

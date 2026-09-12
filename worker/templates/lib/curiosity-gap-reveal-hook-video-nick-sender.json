@@ -1,0 +1,95 @@
+{
+  "specVersion": 1,
+  "slug": "curiosity-gap-reveal-hook-video-nick-sender",
+  "format": "hook_video",
+  "hookPattern": "curiosity-gap-reveal",
+  "niches": [
+    "ai-tools",
+    "build-in-public"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "claude: build a profitable 100k/mon business no investment. no stress. make no mistakes.",
+    "concept": "A creator asks an AI to build him a profitable business with no effort, only to realize the AI provides a generic or unhelpful response."
+  },
+  "slots": [
+    {
+      "id": "hook_text",
+      "type": "text",
+      "maxChars": 80,
+      "guidance": "on-screen opener — a curiosity gap opened in the first line and paid off near the end. Reference hook shape: \"claude: build a profitable 100k/mon business no investment. no stress. make no m\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 20,
+      "guidance": "voiceover in the creator's own words: the story or the steps, one concrete number, product mentioned once near the end; present tense, no ad-speak"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "closing card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "hook_video",
+    "durationCapSeconds": 30,
+    "music": {
+      "mood": "lofi-build",
+      "source": "licensed_library"
+    },
+    "voice": {
+      "slotRef": "vo_script",
+      "tts": "brand_default"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "shots": [
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "hook_text",
+          "styleToken": "hook-xl",
+          "position": "center"
+        }
+      },
+      {
+        "flex": true,
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        }
+      },
+      {
+        "holdSeconds": 2.5,
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ]
+  }
+}

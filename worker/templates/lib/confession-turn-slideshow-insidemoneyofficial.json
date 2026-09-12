@@ -1,0 +1,136 @@
+{
+  "specVersion": 1,
+  "slug": "confession-turn-slideshow-insidemoneyofficial",
+  "format": "slideshow",
+  "hookPattern": "confession-turn",
+  "niches": [
+    "build-in-public"
+  ],
+  "platforms": [
+    "tiktok"
+  ],
+  "reference": {
+    "hook": "A Hollywood legend started a salad dressing company as a joke between friends. Then he did something no food founder does.",
+    "concept": "The video tells the origin story of Newman's Own, explaining how it started as a joke and evolved into a massive charitable endeavor."
+  },
+  "slots": [
+    {
+      "id": "hook",
+      "type": "text",
+      "maxChars": 90,
+      "guidance": "slide 1 — an honest admission of a slow start or a mistake, then the one change that turned it — specific numbers, no hype. Reference hook shape: \"A Hollywood legend started a salad dressing company as a joke between friends. T\""
+    },
+    {
+      "id": "slide_2",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the setup: the situation before, one concrete detail"
+    },
+    {
+      "id": "slide_3",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the turn or the first item: what changed / the first point"
+    },
+    {
+      "id": "slide_4",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the proof: a number, a moment, a screenshot-worthy fact"
+    },
+    {
+      "id": "slide_5",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the lesson in one line — quotable"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 60,
+      "guidance": "closing slide naming the product, soft ask"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "restate the hook, add exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "slideshow",
+    "slides": [
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "hook",
+          "styleToken": "hook-xl",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        },
+        "text": {
+          "slotRef": "slide_2",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "slide_3",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "hero"
+        },
+        "text": {
+          "slotRef": "slide_4",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "slide_5",
+          "styleToken": "hook-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ],
+    "music": {
+      "mood": "lofi-calm",
+      "source": "licensed_library"
+    }
+  }
+}

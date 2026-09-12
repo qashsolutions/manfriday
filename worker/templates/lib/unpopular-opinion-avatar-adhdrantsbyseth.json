@@ -1,0 +1,79 @@
+{
+  "specVersion": 1,
+  "slug": "unpopular-opinion-avatar-adhdrantsbyseth",
+  "format": "avatar",
+  "hookPattern": "unpopular-opinion",
+  "niches": [
+    "productivity-tools"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "The #1 ADHD motivator is kinda toxic",
+    "concept": "The creator discusses how 'spite' is a surprisingly effective motivator for people with ADHD and transitions to promoting a productivity app."
+  },
+  "slots": [
+    {
+      "id": "hook_overlay",
+      "type": "text",
+      "maxChars": 70,
+      "guidance": "overlay for the first 3 seconds — a hot take that contradicts common advice in the niche, then the reasoning. Reference hook shape: \"The #1 ADHD motivator is kinda toxic\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 24,
+      "guidance": "spoken to camera, first person, conversational; make the point, give one example with a number, land the product once"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "end card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "avatar",
+    "durationCapSeconds": 35,
+    "character": {
+      "pick": "brand_default"
+    },
+    "speech": {
+      "slotRef": "vo_script",
+      "tts": "brand_default",
+      "lipsync": "lazy_on_right_swipe"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "overlay": {
+      "slotRef": "hook_overlay",
+      "styleToken": "label-sm",
+      "position": "upper-third",
+      "showSeconds": 3.5
+    },
+    "endCard": {
+      "holdSeconds": 2.5,
+      "bg": {
+        "kind": "gradient",
+        "styleToken": "brand-dark-2"
+      },
+      "text": {
+        "slotRef": "cta",
+        "styleToken": "cta-md",
+        "position": "center"
+      }
+    }
+  }
+}
