@@ -67,13 +67,13 @@ Marketing copy leads with click attribution ("see which post sent people to your
 
 - [ ] Clerk production instance: custom OAuth credentials required for Google AND GitHub (dev uses Clerk shared creds; ~5 min per provider) + production pk/sk into Vercel + **Clerk Pro plan (~$25/mo) — passkeys and MFA/TOTP are Pro features** (free on dev instance; the connect-step MFA gate depends on them)
 - [ ] Final Terms/Privacy counsel review (drafts live)
-- [ ] Google Search Console + Bing Webmaster: verify domain, submit sitemap
+- [x] Google Search Console: verified 11 Sep (both accounts), sitemap submitted · [ ] Bing Webmaster
 
 ## Pre-build checklist (the design gate)
 
 - [x] git init + first commit of docs (remote: github.com/qashsolutions/manfriday, branch main)
 - [x] TikTok developer app created + Content Posting API audit application **submitted 10 Sep 2026** (in review; video.upload only — Direct Post/video.publish deferred to a later revision; demo + recipe in docs/tiktok-app-config.md). Until approval, publishing = sandbox draft-to-inbox.
-- [ ] Google Cloud project + YouTube Data API enabled + quota-increase application submitted
+- [x] Google Cloud project + YouTube Data API enabled; **OAuth verification submitted 11 Sep 2026** (scopes youtube.upload + youtube.readonly, sensitive not restricted → no CASA; app published to production; demo https://youtu.be/aRPVtmi-5EU unlisted; Google says first Trust & Safety email in 3–5 days, review up to 4–6 weeks; until approval the consent screen shows the unverified warning and the 100-user cap applies). Search Console verified, sitemap submitted. **Still open: YouTube Data API quota-extension form** (default 10,000 units/day ≈ 6 uploads/day at 1,600 units each).
 - [x] Template spec validated by hand-producing 3 real posts with it (validation/template-spec/ — PASS, spec bumped to v1.1, see FINDINGS.md)
 - [x] Trend library curation started (11 Sep: 141 templates seeded — 7 hand-made + 134 built from 252 vidIQ-sourced references hand-tagged in `worker/templates/curation/candidates.jsonl`; 6 niches: ai-tools, dev-tools, build-in-public, solo-saas, consumer-apps, productivity-tools. Tooling: `worker/pipeline/ingest_vidiq.py` → `build_templates.py` → `seed_library.py`. Target 300–500 still open — ~105 vidIQ credits left this month)
 - [ ] Accounts provisioned: Convex, Clerk, Railway, FAL, Anthropic API, Resend, Axiom, PostHog, Stripe
