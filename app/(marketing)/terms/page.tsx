@@ -8,7 +8,7 @@ export default function TermsPage() {
   return (
     <div className={`wrap ${styles.legal}`}>
       <h1 className={`display ${styles.title}`}>Terms of Service</h1>
-      <p className={`mono ${styles.status}`}>DRAFT — final terms reviewed by counsel before beta launch.</p>
+      <p className={`mono ${styles.status}`}>LAST UPDATED 11 SEPTEMBER 2026 · counsel review before beta launch</p>
 
       <h2 className={styles.h2}>The plain-language version</h2>
       <p>
@@ -47,7 +47,29 @@ export default function TermsPage() {
         violates platform policies; no reselling access; no scraping other users&apos; data.
         We can suspend accounts that put the platform integrations at risk.
       </p>
-      <p>[FULL TERMS — reviewed before launch: license grant, platform-API pass-through terms, liability caps, dispute resolution, governing law, changes to these terms.]</p>
+      <p>
+        <strong>Platform terms.</strong> Publishing goes through each platform&apos;s official
+        API. When you connect a YouTube channel you agree to be bound by the{" "}
+        <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">YouTube Terms of Service</a>{" "}
+        and the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>;
+        when you connect TikTok you agree to TikTok&apos;s terms. Man Friday is not affiliated
+        with or endorsed by YouTube, Google, or TikTok.
+      </p>
+      <p>
+        <strong>License.</strong> You grant Man Friday a limited license to process your
+        product&apos;s public website and the content you approve, solely to draft, render,
+        schedule, and publish videos on your behalf. Man Friday claims no ownership of your
+        content or your channels.
+      </p>
+      <p>
+        <strong>Changes.</strong> We may update these terms; material changes are announced by
+        email at least 14 days before they take effect. Liability limits, dispute resolution,
+        and governing law are finalised in the counsel-reviewed version before beta launch.
+      </p>
+      <p>
+        <strong>Operator.</strong> Man Friday is operated by Qash Solutions. Contact:
+        admin@manfriday.app.
+      </p>
     </div>
   );
 }
