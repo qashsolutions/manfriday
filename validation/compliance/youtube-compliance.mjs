@@ -85,7 +85,16 @@ for (const [f, s] of sources) {
   if (/youtube\/v3\/search/.test(s)) fail(`${f}: search.list is not part of the declared use case`);
   if (/youtube\/v3\/(commentThreads|comments|subscriptions|playlists|playlistItems|activities)/.test(s)) fail(`${f}: endpoint outside the declared use case`);
 }
-ok("no undeclared Google endpoints; search.list absent");
+// videos.list may only look up OUR video IDs (id=…, part=statistics) — never chart/myRating/mine listings.
+for (const [f, s] of sources) {
+  for (const m of s.matchAll(/youtube\/v3\/videos\?([^"'`\s]+)/g)) {
+    const qs = m[1];
+    if (qs.includes("uploadType")) continue;
+    if (!/(^|&)id=/.test(qs) || /chart=|myRating=|mine=/.test(qs)) fail(`${f}: videos.list must be id-scoped to our own uploads (${qs})`);
+    if (!/part=statistics/.test(qs)) fail(`${f}: videos.list must request part=statistics only`);
+  }
+}
+ok("no undeclared Google endpoints; search.list absent; videos.list id-scoped");
 
 // 3. Tokens never leave the server: no public query/mutation returns token fields.
 for (const [f, s] of sources) {

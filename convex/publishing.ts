@@ -4,6 +4,7 @@ import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { currentUserId } from "./users";
+import { ensureGoogleAccessToken } from "./google";
 
 // Contract 3 spine: posts → publications; a minute-cron scans by_due and runs
 // the platform adapter. v1 adapter = TikTok draft-to-inbox (FILE_UPLOAD), the
@@ -84,12 +85,23 @@ export const myQueue = query({
           ((concept?.slots as Record<string, string>) ?? {}).hook ??
           ((concept?.slots as Record<string, string>) ?? {}).hook_text ??
           "",
-        publications: pubs.map((p) => ({
-          id: p._id,
-          platform: p.platform,
-          status: p.status,
-          error: p.lastError ?? null,
-        })),
+        publications: await Promise.all(
+          pubs.map(async (p) => {
+            // Latest daily snapshot (YouTube only for now) — shown on the queue chip.
+            const latest = await ctx.db
+              .query("metrics")
+              .withIndex("by_publicationId_and_capturedAt", (q) => q.eq("publicationId", p._id))
+              .order("desc")
+              .first();
+            return {
+              id: p._id,
+              platform: p.platform,
+              status: p.status,
+              error: p.lastError ?? null,
+              views: latest?.views ?? null,
+            };
+          }),
+        ),
       });
     }
     return out;
@@ -198,36 +210,13 @@ export const publishOne = internalAction({
       const video = await videoResp.arrayBuffer();
 
       if (account.platform === "youtube") {
-        // Google access tokens expire hourly — refresh when near-dead.
-        let accessToken = account.accessToken;
-        if (account.expiresAt < Date.now() + 60_000) {
-          if (!account.refreshToken) {
-            await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
-            return await fail("fatal", "AUTH_EXPIRED: no refresh token"), null;
-          }
-          const rBody = new URLSearchParams({
-            client_id: env.GOOGLE_CLIENT_ID ?? "",
-            client_secret: env.GOOGLE_CLIENT_SECRET ?? "",
-            refresh_token: account.refreshToken,
-            grant_type: "refresh_token",
-          });
-          const rResp = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: rBody.toString(),
-          });
-          const r = (await rResp.json()) as { access_token?: string; expires_in?: number; error?: string };
-          if (!rResp.ok || !r.access_token) {
-            await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
-            return await fail("fatal", `AUTH_EXPIRED: refresh failed (${r.error ?? rResp.status})`), null;
-          }
-          accessToken = r.access_token;
-          await ctx.runMutation(internal.oauth.updateTokens, {
-            accountId: account._id,
-            accessToken,
-            expiresAt: Date.now() + (r.expires_in ?? 3600) * 1000,
-          });
+        // Google access tokens expire hourly — refresh when near-dead (shared helper
+        // wipes the stored tokens if Google refuses, per the retention rule).
+        const fresh = await ensureGoogleAccessToken(ctx, account);
+        if (fresh.token === null) {
+          return await fail("fatal", `AUTH_EXPIRED: ${fresh.reason}`), null;
         }
+        const accessToken = fresh.token;
 
         // Resumable upload. ≤3min vertical video lands as a Short automatically.
         // Unverified-OAuth apps get uploads locked to private — expected pre-launch.

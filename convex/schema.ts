@@ -180,7 +180,9 @@ export default defineSchema({
       v.literal("expired"),
       v.literal("revoked"),
     ),
-  }).index("by_userId", ["userId"]),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_platform_and_status", ["platform", "status"]),
 
   posts: defineTable({
     // one scheduling decision
@@ -209,7 +211,8 @@ export default defineSchema({
     idempotencyKey: v.string(), // = publication _id; adapters retry safely
   })
     .index("by_status_and_publishAt", ["status", "publishAt"]) // scheduler scan
-    .index("by_postId", ["postId"]),
+    .index("by_postId", ["postId"])
+    .index("by_accountId", ["accountId"]), // stats refresh + purge on disconnect
 
   metrics: defineTable({
     // time-series snapshots per publication

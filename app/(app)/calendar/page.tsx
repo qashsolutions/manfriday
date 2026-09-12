@@ -175,6 +175,7 @@ export default function CalendarPage() {
                     }}
                   >
                     {p.platform.toUpperCase()} · {STATUS_LABEL[p.status] ?? p.status}
+                    {p.views !== null && p.status === "live" ? ` · ${p.views.toLocaleString()} VIEWS` : ""}
                   </span>
                 ))}
               </div>

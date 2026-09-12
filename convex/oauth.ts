@@ -292,6 +292,8 @@ export const markAuthExpired = internalMutation({
       accessToken: "",
       refreshToken: "",
     });
+    // Stored view counts can no longer be refreshed → delete them (30-day rule).
+    await ctx.scheduler.runAfter(0, internal.stats.purgeMetricsForAccount, { accountId: args.accountId });
     return null;
   },
 });
@@ -339,6 +341,7 @@ export const disconnect = mutation({
       });
     }
     await ctx.db.patch("socialAccounts", args.accountId, { status: "revoked", accessToken: "", refreshToken: "" });
+    await ctx.scheduler.runAfter(0, internal.stats.purgeMetricsForAccount, { accountId: args.accountId });
     return null;
   },
 });

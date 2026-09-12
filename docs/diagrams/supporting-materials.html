@@ -30,14 +30,14 @@ footer{position:fixed;bottom:0;font-size:8.5pt;color:#4d4960}
 <table><tr><th>Endpoint</th><th>Scope</th><th>Units</th><th>When it is called</th><th>Status</th></tr>
 <tr><td>channels.list (mine=true)</td><td>youtube.readonly</td><td>1</td><td>Once, when the user connects a channel, to store the channel ID and display name.</td><td class="ok">Live</td></tr>
 <tr><td>videos.insert (resumable)</td><td>youtube.upload</td><td>1,600</td><td>Once per approved video, at the time the user scheduled. One user approval = one upload.</td><td class="ok">Live</td></tr>
-<tr><td>videos.list (id=…)</td><td>youtube.readonly</td><td>1</td><td>Once per day per video that Man Friday itself published, to read its view count.</td><td class="plan">Next release</td></tr></table>
+<tr><td>videos.list (id=…)</td><td>youtube.readonly</td><td>1</td><td>Once per day per video that Man Friday itself published, to read its view count.</td><td class="ok">Live</td></tr></table>
 <p>No other endpoints are used. In particular the app never calls search.list, never reads comments, subscribers, playlists, or analytics, and never reads any channel other than the one the user connected.</p>
 
 <h2>3. Data stored from YouTube API Services</h2>
 <table><tr><th>Data</th><th>Where</th><th>Why</th><th>Retention</th></tr>
 <tr><td>OAuth access token, refresh token</td><td>Convex database (socialAccounts table); read only inside server actions, never sent to the browser or the render worker</td><td>To upload on the user's behalf and to read stats of our own uploads</td><td>Until disconnect or account deletion. Cleared immediately on disconnect; the token is also revoked at Google.</td></tr>
 <tr><td>Channel ID, channel name</td><td>Convex</td><td>Show the user which channel is connected</td><td>Until disconnect or account deletion</td></tr>
-<tr><td>Per published video: YouTube video ID, title, publish time, view count</td><td>Convex (publications table)</td><td>Show publish status and, next release, performance in the user's queue</td><td>Until account deletion; view counts refreshed at most once per day and only while the account stays connected</td></tr></table>
+<tr><td>Per published video: YouTube video ID, title, publish time, view count</td><td>Convex (publications table)</td><td>Show publish status and performance in the user's queue and Analytics page</td><td>Until account deletion; view counts refreshed at most once per day and only while the account stays connected</td></tr></table>
 <div class="box"><strong>Not stored:</strong> any data about videos Man Friday did not publish, other channels, viewers, comments, or subscriber lists. <strong>Not shared:</strong> YouTube data never reaches third parties, is never used for advertising, is never sold, and is never aggregated across users.</div>
 <p>Authorized data older than 30 days is either refreshed (view counts) or deleted (tokens on disconnect). Stored video metadata refers only to content the user created and published through the app.</p>
 
