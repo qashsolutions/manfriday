@@ -8,6 +8,9 @@ Usage: python main.py [--once] [--drain]
   --once   process at most one job, then exit
   --drain  process until the queue is empty, then exit
 """
+import PIL.features as _pf
+if not _pf.check("raqm"):
+    print("WARNING: Pillow has no libraqm — Indic text will render unshaped (see CLAUDE.md D6 rendering note)")
 import platform
 import sys
 import tempfile

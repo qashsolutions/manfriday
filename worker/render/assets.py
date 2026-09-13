@@ -20,6 +20,44 @@ FONT_URLS = {
     "body": "https://github.com/google/fonts/raw/main/ofl/instrumentsans/InstrumentSans%5Bwdth%2Cwght%5D.ttf",
     "mono": "https://github.com/google/fonts/raw/main/ofl/splinesansmono/SplineSansMono%5Bwght%5D.ttf",
 }
+# D6 launch languages: the brand fonts are Latin-only, so every Indic script gets a
+# Noto Sans face (variable wght/wdth, Latin glyphs included, so Hinglish-style
+# code-mixed lines render in one font). Downloaded lazily, first use only.
+# Shaping (conjuncts, matra reordering) needs Pillow built with libraqm — see
+# worker/README fonts note; without it Indic text renders glyph-by-glyph.
+SCRIPT_FONT_URLS = {
+    "devanagari": "https://github.com/google/fonts/raw/main/ofl/notosansdevanagari/NotoSansDevanagari%5Bwdth%2Cwght%5D.ttf",
+    "bengali": "https://github.com/google/fonts/raw/main/ofl/notosansbengali/NotoSansBengali%5Bwdth%2Cwght%5D.ttf",
+    "gurmukhi": "https://github.com/google/fonts/raw/main/ofl/notosansgurmukhi/NotoSansGurmukhi%5Bwdth%2Cwght%5D.ttf",
+    "gujarati": "https://github.com/google/fonts/raw/main/ofl/notosansgujarati/NotoSansGujarati%5Bwdth%2Cwght%5D.ttf",
+    "oriya": "https://github.com/google/fonts/raw/main/ofl/notosansoriya/NotoSansOriya%5Bwdth%2Cwght%5D.ttf",
+    "tamil": "https://github.com/google/fonts/raw/main/ofl/notosanstamil/NotoSansTamil%5Bwdth%2Cwght%5D.ttf",
+    "telugu": "https://github.com/google/fonts/raw/main/ofl/notosanstelugu/NotoSansTelugu%5Bwdth%2Cwght%5D.ttf",
+    "kannada": "https://github.com/google/fonts/raw/main/ofl/notosanskannada/NotoSansKannada%5Bwdth%2Cwght%5D.ttf",
+    "malayalam": "https://github.com/google/fonts/raw/main/ofl/notosansmalayalam/NotoSansMalayalam%5Bwdth%2Cwght%5D.ttf",
+}
+# Unicode block → script font. Checked per text block; first Indic block found wins.
+SCRIPT_RANGES = [
+    ("devanagari", 0x0900, 0x097F),
+    ("bengali", 0x0980, 0x09FF),
+    ("gurmukhi", 0x0A00, 0x0A7F),
+    ("gujarati", 0x0A80, 0x0AFF),
+    ("oriya", 0x0B00, 0x0B7F),
+    ("tamil", 0x0B80, 0x0BFF),
+    ("telugu", 0x0C00, 0x0C7F),
+    ("kannada", 0x0C80, 0x0CFF),
+    ("malayalam", 0x0D00, 0x0D7F),
+]
+
+
+def script_of(text: str) -> str | None:
+    """Return the Indic script name the text needs a fallback font for, or None."""
+    for ch in text:
+        o = ord(ch)
+        for name, lo, hi in SCRIPT_RANGES:
+            if lo <= o <= hi:
+                return name
+    return None
 FONT_DIR = Path(__file__).resolve().parent.parent / ".fonts"
 
 DEFAULT_PALETTE = {
@@ -67,8 +105,24 @@ def ensure_fonts() -> None:
 _font_cache: dict = {}
 
 
+def ensure_script_font(script: str) -> Path:
+    import requests
+
+    FONT_DIR.mkdir(exist_ok=True)
+    dest = FONT_DIR / f"{script}.ttf"
+    if not dest.exists():
+        r = requests.get(SCRIPT_FONT_URLS[script], timeout=60)
+        r.raise_for_status()
+        dest.write_bytes(r.content)
+    return dest
+
+
 def font(kind: str, size: int, wght: int | None = None, wdth: int | None = None):
     ensure_fonts()
+    if kind in SCRIPT_FONT_URLS:
+        ensure_script_font(kind)
+        # Noto Sans script faces stop at wght 900 / wdth 100; clamp the brand's 115.
+        wdth = min(wdth, 100) if wdth else None
     key = (kind, size, wght, wdth)
     if key not in _font_cache:
         f = ImageFont.truetype(str(FONT_DIR / f"{kind}.ttf"), size)
@@ -116,9 +170,11 @@ def wrap(draw, text: str, fnt, max_w: int) -> list[str]:
 
 def draw_text_block(img, text: str, token: str, position: str, pal: dict, max_w: int = 900):
     st = resolve_token(token, pal)
-    fnt = font(st["kind"], st["size"], st.get("wght"), st.get("wdth"))
+    script = script_of(text)
+    # Indic text: same size/weight, Noto Sans face for that script (Latin included).
+    fnt = font(script or st["kind"], st["size"], st.get("wght"), st.get("wdth"))
     d = ImageDraw.Draw(img)
-    display = " ".join(text.upper().split()) if st.get("tracking") else text
+    display = " ".join(text.upper().split()) if (st.get("tracking") and not script) else text
     lines = wrap(d, display, fnt, max_w)
     line_h = int(st["size"] * st["line"])
     block_h = line_h * len(lines)

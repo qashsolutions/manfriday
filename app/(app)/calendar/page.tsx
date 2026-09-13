@@ -55,8 +55,8 @@ export default function CalendarPage() {
   const anyConnected = !!(tiktokConnected || youtubeConnected);
   // A platform whose access stopped working — the user needs to know posting is paused there.
   const expired = (accounts ?? []).filter((a) => a.status === "expired").map((a) => (a.platform === "youtube" ? "YouTube" : "TikTok"));
-  const scheduledConceptIds = new Set<string>();
-  const unscheduled = (rendered ?? []).filter((r) => !scheduledConceptIds.has(r.id));
+  // feed.myRendered already excludes concepts that have a post (they live in the queue below).
+  const unscheduled = rendered ?? [];
 
   const onSchedule = async (conceptId: (typeof unscheduled)[number]["id"]) => {
     setError(null);

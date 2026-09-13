@@ -55,8 +55,15 @@ export const myRendered = query({
       .withIndex("by_userId_and_status", (q) => q.eq("userId", userId).eq("status", "rendered"))
       .order("desc")
       .take(20);
+    // A rendered concept that already has a post is in the queue, not "ready to schedule".
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .take(200);
+    const scheduled = new Set(posts.map((p) => p.conceptId));
     const out = [];
     for (const c of rows) {
+      if (scheduled.has(c._id)) continue;
       const template = await ctx.db.get("trendTemplates", c.templateId);
       out.push({
         id: c._id,
