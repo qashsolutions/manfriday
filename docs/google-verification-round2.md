@@ -1,5 +1,7 @@
 # Google OAuth verification — round 2 (email received 13 Sep 2026)
 
+**Status: all items closed and reply sent 13 Sep 2026 15:12** (Console: demo link updated to https://youtu.be/_aZEliCyCOE; privacy URL unchanged; reply sent in Google's thread from ramanac@gmail.com, admin@manfriday.app in CC). Waiting on Trust & Safety.
+
 Project 845649489196 · man-friday-508102 · scopes youtube.upload + youtube.readonly
 
 ## A. Demo video (Google: "does not sufficiently demonstrate why the scopes are necessary")
@@ -12,7 +14,7 @@ Project 845649489196 · man-friday-508102 · scopes youtube.upload + youtube.rea
 - [x] A6  Show the OAuth consent screen with the browser address bar visible (client_id in the URL) and the app name "Man Friday" on the consent screen, both scopes listed.
 - [x] A7  Show revocation: Disconnect in Settings → Google account › Third-party access no longer lists Man Friday.
 - [x] A8  Uploaded unlisted 13 Sep: https://youtu.be/_aZEliCyCOE (docs/youtube-demo-v2.mp4, 2:25, 1920×1112). Video is unlisted on YouTube, in English (on-screen text), ≥720p, and the link is updated in Cloud Console.
-- [ ] A9  "Live app" note: confirm in the reply that the app is In Production, the two scopes are used only by test/founder accounts (well under the 100-user cap), and the demo was recorded on the production app with a test account. Publishing status stays "In production".
+- [x] A9  "Live app" note: confirm in the reply that the app is In Production, the two scopes are used only by test/founder accounts (well under the 100-user cap), and the demo was recorded on the production app with a test account. Publishing status stays "In production".
 
 ## B. Privacy policy (Google: three missing disclosures)
 
@@ -24,8 +26,8 @@ Project 845649489196 · man-friday-508102 · scopes youtube.upload + youtube.rea
 
 ## C. Resubmit and reply
 
-- [ ] C1  Cloud Console › Verification Center: update the demo video link, confirm the privacy policy URL, save and submit.
-- [ ] C2  Reply to Google's email confirming: new video link, privacy policy URL, and the three disclosures with their section names; mention the live-app note (A9).
+- [x] C1  Cloud Console › Verification Center: update the demo video link, confirm the privacy policy URL, save and submit.
+- [x] C2  Reply to Google's email confirming: new video link, privacy policy URL, and the three disclosures with their section names; mention the live-app note (A9).
 
 ## D. Standing requirements (already met — re-check before replying)
 
