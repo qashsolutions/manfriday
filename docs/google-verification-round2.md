@@ -11,7 +11,7 @@ Project 845649489196 · man-friday-508102 · scopes youtube.upload + youtube.rea
 - [x] A5  Explain on screen why no narrower scope works: youtube.upload is the only scope that allows videos.insert; youtube.readonly is the narrowest scope that allows videos.list statistics on the user's own videos (no "own videos only" scope exists). Shown as captions/narration.
 - [x] A6  Show the OAuth consent screen with the browser address bar visible (client_id in the URL) and the app name "Man Friday" on the consent screen, both scopes listed.
 - [x] A7  Show revocation: Disconnect in Settings → Google account › Third-party access no longer lists Man Friday.
-- [ ] A8  (video rendered: docs/youtube-demo-v2.mp4, 2:25, 1920×1112, 13 Sep) Video is unlisted on YouTube, in English (on-screen text), ≥720p, and the link is updated in Cloud Console.
+- [x] A8  Uploaded unlisted 13 Sep: https://youtu.be/_aZEliCyCOE (docs/youtube-demo-v2.mp4, 2:25, 1920×1112). Video is unlisted on YouTube, in English (on-screen text), ≥720p, and the link is updated in Cloud Console.
 - [ ] A9  "Live app" note: confirm in the reply that the app is In Production, the two scopes are used only by test/founder accounts (well under the 100-user cap), and the demo was recorded on the production app with a test account. Publishing status stays "In production".
 
 ## B. Privacy policy (Google: three missing disclosures)
@@ -39,7 +39,7 @@ Hello,
 
 We have addressed both items and resubmitted in the Cloud Console.
 
-1. Demo video (new): <UNLISTED YOUTUBE LINK>
+1. Demo video (new): https://youtu.be/_aZEliCyCOE
    It shows, in the production app with a founder test account: the consent screen with the browser address bar visible and both scopes listed; youtube.readonly in use (the connected channel name via channels.list, and the Analytics page reading view/like/comment counts of the Shorts the app itself published via videos.list, matched against YouTube Studio); youtube.upload in use (an approved video scheduled and uploaded as a Short via videos.insert, then visible in the user's YouTube Studio); and revocation (Disconnect in the app revokes the grant at Google — the Google Account "Linked apps" page no longer lists Man Friday). The end card explains why no narrower scope exists for either feature.
    Note on the live-app guidance: the app is In production; the two scopes are currently used only by founder/test accounts, far below the unverified-user cap, and the demo was recorded on the production app with one of those accounts.
 
