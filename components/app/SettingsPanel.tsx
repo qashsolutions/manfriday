@@ -250,7 +250,7 @@ export function SettingsPanel() {
               </table>
               <p className={styles.planFine}>
                 {FOUNDING.label}: first {FOUNDING.cap} customers · pay today · no cancellation ·
-                [NN] spots left
+                {FOUNDING.cap} spots left
               </p>
             </div>
             <div className={styles.row}>
@@ -284,7 +284,7 @@ export function SettingsPanel() {
                 <p className={styles.rowTitle}>{FOUNDING.label}</p>
                 <p className={styles.rowSub}>
                   3 years for ${solo.threeYear} ({TIERS[1].name} ${TIERS[1].threeYear}) — pay today,
-                  no cancellation. [NN] of {FOUNDING.cap} spots left.
+                  no cancellation. {FOUNDING.cap} of {FOUNDING.cap} spots left.
                 </p>
               </div>
               <Link href="/pricing" className={styles.ghostBtn}>
