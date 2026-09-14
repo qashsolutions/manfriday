@@ -1,6 +1,6 @@
 # Google OAuth verification — round 2 (email received 13 Sep 2026)
 
-**Status: all items closed and reply sent 13 Sep 2026 15:12** (Console: demo link updated to https://youtu.be/_aZEliCyCOE; privacy URL unchanged; reply sent in Google's thread from ramanac@gmail.com, admin@manfriday.app in CC). Waiting on Trust & Safety.
+**Status: all items closed and reply sent 13 Sep 2026 15:12** (Console: demo link updated to https://youtu.be/_aZEliCyCOE; privacy URL unchanged; reply sent in Google's thread from ramanac@gmail.com, admin@manfriday.app in CC). **APPROVED 14 Sep 2026** for youtube.readonly + youtube.upload (email from the Third Party Data Safety Team). Still separate and pending: the YouTube API Services quota/compliance audit submitted 12 Sep.
 
 Project 845649489196 · man-friday-508102 · scopes youtube.upload + youtube.readonly
 
