@@ -1,4 +1,6 @@
-# Render worker on Railway — runbook (13 Sep 2026)
+# Render worker on Railway — runbook (deployed 14 Sep 2026)
+
+**Status:** live. Trial workspace (2 vCPU / 1 GB per replica, "23 days or $5" at deploy time) — upgrade to Hobby before the trial ends or the worker stops. Two gotchas hit during the first deploy: paste variable VALUES only (a `KEY=` prefix pasted from grep output makes Convex reject the token), and ffmpeg must be pinned to 2 threads (it sizes itself to the host's cores and the 1 GB cap SIGKILLs the encode — fixed in render/formats.py).
 
 The worker (`worker/`) long-polls Convex `renderJobs` + `pipelineRequests`, renders with Pillow + ffmpeg,
 calls Claude (brief + slot-fill), FAL (English TTS, lipsync) and Sarvam (Indic TTS), and uploads results to
