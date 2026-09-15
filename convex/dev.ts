@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { createTrackedLink, withUtm } from "./links";
 import { internalMutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 
@@ -224,7 +225,6 @@ export const scheduleFuture = internalMutation({
       .take(1);
     const concept = rendered[0];
     if (!concept) throw new Error("no rendered concept");
-    const { createTrackedLink, withUtm } = await import("./links");
     const brand = await ctx.db.get("brands", concept.brandId);
     const postId = await ctx.db.insert("posts", {
       userId: real._id,
