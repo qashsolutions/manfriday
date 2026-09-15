@@ -1,4 +1,4 @@
-# Man Friday — scope status (living tracker, updated 14 Sep 2026)
+# Man Friday — scope status (living tracker, updated 14 Sep 2026, evening)
 
 Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third party
 
@@ -41,7 +41,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 |---|---|---|
 | YouTube view/like/comment counts + Analytics page | ✅ | daily, compliant |
 | TikTok metrics | 🔒 | needs a scope not in the current TikTok audit |
-| **Tracked links** (north-star metric) | ⬜ | schema + analytics query ready; slug creation, /l/<slug> redirect, click logging not built — **in progress now** |
+| **Tracked links** (north-star metric) | ✅ | 14 Sep: slug per post at schedule time, appended to both captions (UTM-tagged target), `/l/<slug>` redirect logs clicks with platform from Referer, crawlers skipped; Analytics shows clicks per post |
 | "Friday, more like this" | ⬜ | |
 | Stripe billing (Free → paid, Founding 200 counter, pause, top-ups) | ⬜ | Settings shows M4 placeholders; no Stripe code |
 | Beta invites | ⬜ | |
