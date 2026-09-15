@@ -24,7 +24,16 @@ def assemble(frames: list[tuple[Path, float]], audio_wav: Path | None, total: fl
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst)]
     if audio_wav is not None:
         cmd += ["-i", str(audio_wav), "-map", "0:v", "-map", "1:a", "-c:a", "aac", "-b:a", "128k"]
-    cmd += ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30", "-t", f"{total:.3f}", str(out_mp4)]
+    # Memory-bounded encode: x264's default preset needs several hundred MB at
+    # 1080x1920 and gets SIGKILLed on small containers (Railway trial). veryfast +
+    # 2 threads + short lookahead + 1 ref keeps it well under 200 MB with no
+    # visible difference for slides/captions; crf 20 holds quality.
+    cmd += [
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-threads", "2",
+        "-x264-params", "rc-lookahead=10:ref=1:bframes=2",
+        "-pix_fmt", "yuv420p", "-r", "30", "-movflags", "+faststart",
+        "-t", f"{total:.3f}", str(out_mp4),
+    ]
     subprocess.run(cmd, check=True)
     lst.unlink()
 
