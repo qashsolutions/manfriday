@@ -76,6 +76,7 @@ class BrandAssets:
     name: str
     screenshots: list[Path] = field(default_factory=list)  # [hero, product, ...]
     palette: dict = field(default_factory=lambda: dict(DEFAULT_PALETTE))
+    presenter: Path | None = None  # the user's own photo (D2 amended 14 Sep 2026)
 
     def screenshot(self, pick: str) -> Path | None:
         order = {"hero": 0, "product": 1}
@@ -293,4 +294,27 @@ def avatar_placeholder(brand: BrandAssets):
     d.ellipse([cx - 110, cy - 190, cx + 110, cy + 30], fill=hx(pal["panelEdge"]))
     d.ellipse([cx - 210, cy + 60, cx + 210, cy + 320], fill=hx(pal["panelEdge"]))
     d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=hx(pal["accent"]), width=4)
+    return img
+
+
+def presenter_frame(brand: BrandAssets):
+    """9:16 frame from the presenter photo: cover-crop, face kept in the upper
+    half, dark gradient at the bottom so captions read. Used for the preview
+    thumbnail and as the still fed to the talking-head model (its output keeps
+    the input aspect, so we hand it exactly 1080x1920)."""
+    if not brand.presenter:
+        return avatar_placeholder(brand)
+    src = Image.open(brand.presenter).convert("RGB")
+    sw, sh = src.size
+    scale = max(W / sw, H / sh)
+    src = src.resize((int(sw * scale) + 1, int(sh * scale) + 1))
+    x0 = (src.width - W) // 2
+    y0 = min(max(0, (src.height - H) // 3), src.height - H)  # bias upward: faces sit high
+    img = src.crop((x0, y0, x0 + W, y0 + H))
+    grad = Image.new("L", (1, H))
+    for y in range(H):
+        t = max(0.0, (y - H * 0.55) / (H * 0.45))
+        grad.putpixel((0, y), int(200 * t))
+    shade = Image.new("RGB", (W, H), hx(brand.palette["graphite"]))
+    img.paste(shade, (0, 0), grad.resize((W, H)))
     return img

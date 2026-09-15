@@ -56,7 +56,8 @@ def generate_for_user(user_id: str, url: str, count: int = 10, request_id: str |
     progress("drafting", brand_id=brand_id)
 
     templates = cvx.query("pipeline:listActiveTemplates")
-    batch = plan_batch(templates, brief.niche, count)
+    has_presenter = bool(cvx.query("pipeline:brandHasPresenter", {"brandId": brand_id}))
+    batch = plan_batch(templates, brief.niche, count, allow_avatar=has_presenter)
     if not batch:
         raise RuntimeError("no usable templates in the library")
 

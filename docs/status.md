@@ -16,7 +16,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 | Scrape → brand brief (Claude call site 1) | ✅ | |
 | Trend matching + slot-fill (call site 2) | ✅ | 141 templates seeded; discovery to 300–500 open |
 | Slideshow + hook-video render | ✅ | Pillow + ffmpeg, Latin + all 10 Indic scripts |
-| **AI avatar format** | ⬜ | **placeholder only** — no stock characters, no lipsync, no "brand gets a face" (D2 v1 feature) |
+| **AI avatar format** | 🟡 | 14 Sep: user-photo presenter (upload + consent in Settings), hook-only talking head via FAL Kling v2, product b-roll tail, AI-generated flag on YouTube. Built and unit-tested; **first real render pending a presenter photo** |
 | 14-language pipeline (FAL + Sarvam) | ✅ | Roman-script style untested |
 | Worker deploy | ✅ | Railway, 14 Sep; trial plan → Hobby upgrade pending |
 
@@ -25,7 +25,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 |---|---|---|
 | Swipe feed, keep → final render, "also in" variants | ✅ | |
 | Language chip + how-it-sounds | ✅ | |
-| Avatar default-character picker | ⬜ | depends on avatar format |
+| Presenter photo (Settings) | ✅ | replaces the stock-character picker |
 
 ## M3 — publishing
 | Item | Status | Notes |

@@ -25,6 +25,8 @@ export const myBrand = query({
       languageStyle: brand.languageStyle ?? null,
       markets: brand.markets ?? null,
       status: brand.status,
+      presenterUrl: brand.presenterImageId ? await ctx.storage.getUrl(brand.presenterImageId) : null,
+      hasPresenter: !!brand.presenterImageId,
     };
   },
 });
@@ -49,6 +51,49 @@ export const setLanguage = mutation({
       languageStyle: args.languageStyle,
       briefVersion: changed ? brand.briefVersion + 1 : brand.briefVersion,
     });
+    return null;
+  },
+});
+
+/** Presenter photo upload, step 1: a short-lived storage upload URL. */
+export const presenterUploadUrl = mutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new Error("not signed in");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+/** Step 2: attach the uploaded photo to the brand. `consent` must be true —
+ *  the UI shows the attestation text; we record when it was given. The old
+ *  photo file is deleted so only one presenter ever exists per brand. */
+export const setPresenter = mutation({
+  args: { brandId: v.id("brands"), storageId: v.id("_storage"), consent: v.literal(true) },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new Error("not signed in");
+    const brand = await ctx.db.get("brands", args.brandId);
+    if (!brand || brand.userId !== userId) throw new Error("not your brand");
+    if (brand.presenterImageId && brand.presenterImageId !== args.storageId) {
+      await ctx.storage.delete(brand.presenterImageId);
+    }
+    await ctx.db.patch("brands", args.brandId, { presenterImageId: args.storageId, presenterConsentAt: Date.now() });
+    return null;
+  },
+});
+
+/** Remove the presenter: deletes the file; future avatar concepts stop being
+ *  generated until a new photo is added. Rendered videos are unaffected. */
+export const removePresenter = mutation({
+  args: { brandId: v.id("brands") },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new Error("not signed in");
+    const brand = await ctx.db.get("brands", args.brandId);
+    if (!brand || brand.userId !== userId) throw new Error("not your brand");
+    if (brand.presenterImageId) await ctx.storage.delete(brand.presenterImageId);
+    await ctx.db.patch("brands", args.brandId, { presenterImageId: undefined, presenterConsentAt: undefined });
     return null;
   },
 });

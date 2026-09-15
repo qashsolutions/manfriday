@@ -54,7 +54,14 @@ export const claimJob = mutation({
       },
       template: template ? { slug: template.slug, format: template.format, structure: template.structure } : null,
       brand: brand
-        ? { name: brand.name, url: brand.url, niche: brand.niche, language: brand.language, screenshotIds: brand.screenshotIds }
+        ? {
+            name: brand.name,
+            url: brand.url,
+            niche: brand.niche,
+            language: brand.language,
+            screenshotIds: brand.screenshotIds,
+            presenterImageId: brand.presenterImageId ?? null,
+          }
         : null,
     };
   },

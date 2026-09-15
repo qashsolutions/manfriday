@@ -35,9 +35,16 @@ def render_job(job: dict, outdir: Path) -> dict:
     brand_info = job.get("brand") or {}
     preview = job["kind"] == "preview"
 
+    presenter = None
+    if brand_info.get("presenterImageId"):
+        url = cvx.query("pipeline:storageUrl", {"storageId": brand_info["presenterImageId"]})
+        if url:
+            presenter = outdir / "presenter.jpg"
+            presenter.write_bytes(requests.get(url, timeout=60).content)
     brand = BrandAssets(
         name=brand_info.get("name", "Your product"),
         screenshots=_download_screenshots(brand_info.get("screenshotIds", []), outdir),
+        presenter=presenter,
     )
     values = concept.get("slots") or {}
     language = concept.get("language", "en")
@@ -51,5 +58,6 @@ def render_job(job: dict, outdir: Path) -> dict:
     else:
         raise RuntimeError(f"unknown format {fmt!r} (dev-stub template?)")
 
-    cost = 0 if preview else FINAL_COST_CENTS.get(fmt, 0)
+    # Avatar finals report their real cost (talking-head seconds × price); others use the table.
+    cost = 0 if preview else int(result.get("costCents", FINAL_COST_CENTS.get(fmt, 0)))
     return {"video": result.get("video"), "thumb": result.get("thumb"), "costCents": cost}

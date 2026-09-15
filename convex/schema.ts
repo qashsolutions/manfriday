@@ -56,6 +56,11 @@ export default defineSchema({
     languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
     markets: v.optional(v.array(v.string())),
     screenshotIds: v.array(v.id("_storage")), // scraped product shots for slides
+    // D2 (amended 14 Sep 2026): the presenter is the user's own uploaded photo —
+    // animated for the hook of avatar videos. Consent timestamp = the user
+    // attested it is them (or someone who gave written permission).
+    presenterImageId: v.optional(v.id("_storage")),
+    presenterConsentAt: v.optional(v.number()),
     status: v.union(v.literal("analyzing"), v.literal("ready")),
     briefVersion: v.number(), // bumped on user edit; concepts pin it
   }).index("by_userId", ["userId"]),

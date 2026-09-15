@@ -151,10 +151,13 @@ export const markPublishing = internalMutation({
     const concept = post ? await ctx.db.get("concepts", post.conceptId) : null;
     const videoUrl = concept?.videoId ? await ctx.storage.getUrl(concept.videoId) : null;
     const slots = (concept?.slots as Record<string, string>) ?? {};
+    const template = concept ? await ctx.db.get("trendTemplates", concept.templateId) : null;
     return {
       accountId: pub.accountId,
       platform: pub.platform,
       attempts: pub.attempts + 1,
+      // Avatar videos animate a real person's photo → platform A/S disclosure is mandatory.
+      syntheticMedia: template?.format === "avatar",
       caption: post ? ((post.captionByPlatform as Record<string, string>)[pub.platform] ?? "") : "",
       title: slots.hook ?? slots.hook_text ?? "",
       videoUrl,
@@ -252,7 +255,7 @@ export const publishOne = internalAction({
             },
             body: JSON.stringify({
               snippet: { title, description: job.caption, categoryId: "22" },
-              status: { privacyStatus: "private", selfDeclaredMadeForKids: false },
+              status: { privacyStatus: "private", selfDeclaredMadeForKids: false, containsSyntheticMedia: job.syntheticMedia },
             }),
           },
         );
@@ -327,7 +330,8 @@ export const publishOne = internalAction({
         });
       }
 
-      // inbox (draft) upload init
+      // inbox (draft) upload init — no post_info here; when Direct Post lands, send
+      // post_info.is_aigc = job.syntheticMedia (TikTok AI-generated label).
       const initResp = await fetch("https://open.tiktokapis.com/v2/post/publish/inbox/video/init/", {
         method: "POST",
         headers: {

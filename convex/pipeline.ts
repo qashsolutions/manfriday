@@ -277,3 +277,14 @@ export const variantContext = query({
     };
   },
 });
+
+/** Worker: does this brand have a presenter photo? Avatar templates are only
+ *  planned when it does (D2 amended 14 Sep 2026). */
+export const brandHasPresenter = query({
+  args: { token: v.string(), brandId: v.id("brands") },
+  handler: async (ctx: QueryCtx, args) => {
+    requireWorker(args.token);
+    const brand = await ctx.db.get("brands", args.brandId);
+    return !!brand?.presenterImageId;
+  },
+});
