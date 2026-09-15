@@ -1,0 +1,56 @@
+# Man Friday — scope status (living tracker, updated 14 Sep 2026)
+
+Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third party
+
+## M0 — marketing site + blog
+| Item | Status | Notes |
+|---|---|---|
+| Landing v2, pricing, signup shell | ✅ | live at manfriday.app |
+| Blog (MDX, sitemap, RSS, robots) | 🟡 | plumbing done; only 2 posts — daily-postable cadence not started |
+| Legal pages | 🟡 | privacy/terms live and Google-approved; counsel review before beta |
+| Search Console / Bing | 🟡 | Google verified + sitemap; Bing not done |
+
+## M1 — headless pipeline (URL → brief → 10 concepts, 3 formats)
+| Item | Status | Notes |
+|---|---|---|
+| Scrape → brand brief (Claude call site 1) | ✅ | |
+| Trend matching + slot-fill (call site 2) | ✅ | 141 templates seeded; discovery to 300–500 open |
+| Slideshow + hook-video render | ✅ | Pillow + ffmpeg, Latin + all 10 Indic scripts |
+| **AI avatar format** | ⬜ | **placeholder only** — no stock characters, no lipsync, no "brand gets a face" (D2 v1 feature) |
+| 14-language pipeline (FAL + Sarvam) | ✅ | Roman-script style untested |
+| Worker deploy | ✅ | Railway, 14 Sep; trial plan → Hobby upgrade pending |
+
+## M2 — Picks UI
+| Item | Status | Notes |
+|---|---|---|
+| Swipe feed, keep → final render, "also in" variants | ✅ | |
+| Language chip + how-it-sounds | ✅ | |
+| Avatar default-character picker | ⬜ | depends on avatar format |
+
+## M3 — publishing
+| Item | Status | Notes |
+|---|---|---|
+| YouTube OAuth + Shorts upload | ✅ | OAuth verified 14 Sep; quota audit 🔒 pending (10k units/day until then) |
+| TikTok OAuth + draft-to-inbox | ✅ | Content Posting audit 🔒 in review since 10 Sep; Direct Post after |
+| Calendar + scheduled publish (cron) | ✅ | |
+| MFA gate before connect, disconnect/revoke, delete account | ✅ | Clerk self-serve deletion on (dev instance) |
+| User notices (expired access, failed post) | ✅ | |
+
+## M4 — metrics, billing, growth
+| Item | Status | Notes |
+|---|---|---|
+| YouTube view/like/comment counts + Analytics page | ✅ | daily, compliant |
+| TikTok metrics | 🔒 | needs a scope not in the current TikTok audit |
+| **Tracked links** (north-star metric) | ⬜ | schema + analytics query ready; slug creation, /l/<slug> redirect, click logging not built — **in progress now** |
+| "Friday, more like this" | ⬜ | |
+| Stripe billing (Free → paid, Founding 200 counter, pause, top-ups) | ⬜ | Settings shows M4 placeholders; no Stripe code |
+| Beta invites | ⬜ | |
+| Calculator pages (SEO) | ⬜ | |
+| Resend / PostHog / Axiom | ⬜ | named in privacy policy as processors; not integrated, no keys |
+| Analytics by language | ⬜ | |
+
+## Launch checklist (from CLAUDE.md)
+Clerk production instance + Pro plan (passkeys/MFA) + deletion switch · counsel review · Bing · Railway Hobby · TikTok prod creds + Direct Post after audit · YouTube quota audit result · trend library to 300–500 (niches to confirm) · Mum-Test calls · delete the two private test Shorts.
+
+## Compliance guard
+`npm run compliance` runs on every push and weekly (validation/compliance). CLAUDE.md "YouTube API compliance — non-negotiables" governs any scope/consent-screen change.
