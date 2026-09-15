@@ -148,6 +148,7 @@ export default function CalendarPage() {
                 </p>
                 <p className="mono" style={{ margin: "3px 0 0", fontSize: 11, color: "var(--faint)" }}>
                   {new Date(post.publishAt).toLocaleString()}
+                  {post.link && <span title="Tracked link in this post's caption — clicks show in Analytics"> · {post.link}</span>}
                 </p>
                 {post.publications
                   .filter((p) => p.status === "failed")

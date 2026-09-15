@@ -207,3 +207,49 @@ export const rerenderConcept = internalMutation({
     return { status: "render_queued" };
   },
 });
+
+// Dev-only: exercise the tracked-link path without publishing anything — schedule
+// the newest rendered concept 30 days out, return the short link; undo with dev:unschedulePost.
+// Run: npx convex run dev:scheduleFuture
+export const scheduleFuture = internalMutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const users = await ctx.db.query("users").take(20);
+    const real = users.find((u) => u.clerkId && u.clerkId.startsWith("user_"));
+    if (!real) throw new Error("no clerk-backed user found");
+    const rendered = await ctx.db
+      .query("concepts")
+      .withIndex("by_userId_and_status", (q) => q.eq("userId", real._id).eq("status", "rendered"))
+      .order("desc")
+      .take(1);
+    const concept = rendered[0];
+    if (!concept) throw new Error("no rendered concept");
+    const { createTrackedLink, withUtm } = await import("./links");
+    const brand = await ctx.db.get("brands", concept.brandId);
+    const postId = await ctx.db.insert("posts", {
+      userId: real._id,
+      conceptId: concept._id,
+      publishAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      captionByPlatform: { tiktok: "test", youtube: "test" },
+    });
+    const short = await createTrackedLink(ctx, postId, withUtm(brand?.url ?? "https://manfriday.app"));
+    return { postId, short };
+  },
+});
+
+// Run: npx convex run dev:unschedulePost '{"postId":"..."}'
+export const unschedulePost = internalMutation({
+  args: { postId: v.id("posts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const pubs = await ctx.db.query("publications").withIndex("by_postId", (q) => q.eq("postId", args.postId)).collect();
+    for (const p of pubs) await ctx.db.delete("publications", p._id);
+    const links = await ctx.db.query("trackedLinks").withIndex("by_postId", (q) => q.eq("postId", args.postId)).collect();
+    for (const l of links) {
+      const clicks = await ctx.db.query("linkClicks").withIndex("by_linkId_and_clickedAt", (q) => q.eq("linkId", l._id)).collect();
+      for (const c of clicks) await ctx.db.delete("linkClicks", c._id);
+      await ctx.db.delete("trackedLinks", l._id);
+    }
+    await ctx.db.delete("posts", args.postId);
+    return { removed: { publications: pubs.length, links: links.length } };
+  },
+});

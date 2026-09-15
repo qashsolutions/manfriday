@@ -14,6 +14,7 @@ import type * as crons from "../crons.js";
 import type * as dev from "../dev.js";
 import type * as feed from "../feed.js";
 import type * as google from "../google.js";
+import type * as links from "../links.js";
 import type * as oauth from "../oauth.js";
 import type * as onboarding from "../onboarding.js";
 import type * as pipeline from "../pipeline.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   dev: typeof dev;
   feed: typeof feed;
   google: typeof google;
+  links: typeof links;
   oauth: typeof oauth;
   onboarding: typeof onboarding;
   pipeline: typeof pipeline;

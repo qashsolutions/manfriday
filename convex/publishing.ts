@@ -5,6 +5,7 @@ import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { currentUserId } from "./users";
 import { ensureGoogleAccessToken } from "./google";
+import { createTrackedLink, withUtm } from "./links";
 
 // Contract 3 spine: posts → publications; a minute-cron scans by_due and runs
 // the platform adapter. v1 adapter = TikTok draft-to-inbox (FILE_UPLOAD), the
@@ -42,6 +43,19 @@ export const schedulePost = mutation({
       publishAt: args.publishAt,
       captionByPlatform: { tiktok: caption, youtube: caption },
     });
+    // North star: every post carries a tracked link to the user's product.
+    // TikTok shows caption URLs as plain text (only the bio link is clickable);
+    // YouTube descriptions link it. Either way the click lands on /l/<slug>.
+    const brand = await ctx.db.get("brands", concept.brandId);
+    if (brand?.url) {
+      const short = await createTrackedLink(ctx, postId, withUtm(brand.url));
+      await ctx.db.patch("posts", postId, {
+        captionByPlatform: {
+          tiktok: `${caption}\n\n${short.replace("https://", "")}`,
+          youtube: `${caption}\n\n${short}`,
+        },
+      });
+    }
     const publicationIds = [];
     for (const account of targets) {
       const publicationId = await ctx.db.insert("publications", {
@@ -78,9 +92,14 @@ export const myQueue = query({
         .withIndex("by_postId", (q) => q.eq("postId", post._id))
         .take(5);
       const concept = await ctx.db.get("concepts", post.conceptId);
+      const link = await ctx.db
+        .query("trackedLinks")
+        .withIndex("by_postId", (q) => q.eq("postId", post._id))
+        .first();
       out.push({
         id: post._id,
         publishAt: post.publishAt,
+        link: link ? `manfriday.app/l/${link.slug}` : null,
         hook:
           ((concept?.slots as Record<string, string>) ?? {}).hook ??
           ((concept?.slots as Record<string, string>) ?? {}).hook_text ??
