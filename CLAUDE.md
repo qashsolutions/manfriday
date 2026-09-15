@@ -29,7 +29,7 @@ Source files live in-repo: `docs/project-viral-plan.html` (plan), `docs/friday-i
 ## Stack (locked — founder-proven)
 
 Next.js on Vercel · **Convex** (DB, live queries, scheduler, job queue) · Clerk (auth incl. MFA) ·
-**Python + ffmpeg render worker on Railway** (long-polls Convex `renderJobs`) · FAL (media gen/TTS/lipsync) ·
+**Python + ffmpeg render worker on Railway** (long-polls Convex `renderJobs`; deploy runbook docs/railway-worker.md — service not yet created as of 14 Sep, worker runs on the iMac) · FAL (media gen/TTS/lipsync) ·
 Claude API · Stripe · Resend · Axiom (logs) · PostHog (product analytics).
 Supabase/Firebase/raw AWS/GCP were considered and ruled out. Cloud Run revisit only if render concurrency outgrows Railway replicas post-beta.
 
