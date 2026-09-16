@@ -52,5 +52,10 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 ## Launch checklist (from CLAUDE.md)
 Clerk production instance + Pro plan (passkeys/MFA) + deletion switch · counsel review · Bing · Railway Hobby · TikTok prod creds + Direct Post after audit · YouTube quota audit result · trend library to 300–500 (niches to confirm) · Mum-Test calls · delete the two private test Shorts.
 
+## Automated tests (16 Sep)
+- **Worker** (`npm run test:worker`, CI on worker changes): 18 pytest checks with a fake voice — narration, resolution/fps, presenter hook→product cut, caption continuity, Indic shaping via libraqm, planner gating.
+- **Convex** (`npm run test:convex`, CI on convex changes): 13 vitest/convex-test checks — schedule creates link + captions, D1 slideshow rule, discard rules, tokens never exposed, disconnect/expiry wipe + scheduled revoke, stats pruning/purge, delete-account cascade, click logging, presenter/voice.
+- Not covered: browser flows through Clerk sign-in (deliberately skipped), publish adapters against real TikTok/YouTube (nightly live smoke ⬜).
+
 ## Compliance guard
 `npm run compliance` runs on every push and weekly (validation/compliance). CLAUDE.md "YouTube API compliance — non-negotiables" governs any scope/consent-screen change.

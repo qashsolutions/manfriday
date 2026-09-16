@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "compliance": "node validation/compliance/youtube-compliance.mjs",
-    "compliance:static": "node validation/compliance/youtube-compliance.mjs --static"
+    "compliance:static": "node validation/compliance/youtube-compliance.mjs --static",
+    "test:convex": "vitest run",
+    "test:worker": "cd worker && TTS_PROVIDER=fake python -m pytest -q"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.1",
@@ -22,9 +24,12 @@
   },
   "devDependencies": {
     "@clerk/types": "^4.101.26",
+    "@edge-runtime/vm": "^5.0.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "typescript": "^5.7.0"
+    "convex-test": "^0.0.58",
+    "typescript": "^5.7.0",
+    "vitest": "^5.0.1"
   }
 }
