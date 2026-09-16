@@ -127,6 +127,14 @@ const pub = readFileSync("convex/publishing.ts", "utf8");
 if (!/concept\.userId !== userId/.test(pub) || !/concept\.status !== "rendered"/.test(pub)) fail("publishing.ts: schedule gate (own concept + rendered) missing");
 else ok("schedule gate: own concept, fully rendered, user-initiated");
 
+// 5b. Rule 7: the daily quota is scheduled around, never overrun. schedulePost
+// must check capacity before creating a YouTube publication, uploads must count
+// their units, and a quota 403 must defer rather than burn retries.
+if (!/youtubeCapacity\(ctx, args\.publishAt\)/.test(pub)) fail("publishing.ts: schedulePost no longer checks YouTube quota capacity");
+else if (!/countUnits/.test(pub)) fail("publishing.ts: uploads no longer count their quota units");
+else if (!/outcome: "deferred"/.test(pub)) fail("publishing.ts: quota-exhausted uploads no longer defer to the next quota day");
+else ok("quota discipline: capacity checked before scheduling, units counted, 403 defers");
+
 // 6. Branding: product name must not contain "YouTube".
 if (/youtube/i.test(DECLARED.productName)) fail("product name contains YouTube");
 const site = readFileSync("lib/site.ts", "utf8");

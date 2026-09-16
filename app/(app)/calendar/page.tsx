@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import styles from "../app.module.css";
+import { STATUS_LABEL, destination } from "@/lib/queue-copy";
 
 const STATUS_COLOR: Record<string, string> = {
   queued: "var(--amber)",
@@ -22,34 +23,6 @@ function friendlyError(platform: string, error: string | null): string | null {
   if (/quota/i.test(error)) return `${name} upload limit reached for today — Friday will not retry on its own; schedule it again tomorrow.`;
   if (/too large|413|duration/i.test(error)) return `${name} rejected the video file — try a shorter concept.`;
   return `${name} didn't accept this post — Friday will not retry on its own; schedule it again or contact support.`;
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  queued: "SCHEDULED",
-  publishing: "POSTING…",
-  live: "LIVE",
-  draft_fallback: "DRAFT IN TIKTOK",
-  failed: "FAILED",
-};
-
-/** Where the post actually ended up, in the user's words. TikTok's pre-audit
- *  path can only put a draft in the app's inbox — saying "scheduled" for that
- *  would read as a lie when nothing appears on the profile. */
-function destination(p: { platform: string; status: string; publishAt: number; deferred: boolean }): string | null {
-  const when = new Date(p.publishAt).toLocaleString();
-  if (p.platform === "tiktok") {
-    if (p.status === "draft_fallback")
-      return "Waiting in your TikTok app: open TikTok → Inbox → Notifications, tap the draft, then post it. Friday can't publish to TikTok directly until TikTok approves our app.";
-    if (p.status === "queued")
-      return `Friday sends this to your TikTok inbox at ${when}. You tap post in the TikTok app — direct posting turns on when TikTok approves our app.`;
-  }
-  if (p.platform === "youtube") {
-    if (p.deferred)
-      return `YouTube's upload limit for that day was already used, so Friday moved this to ${when}. Nothing to do — it goes out then.`;
-    if (p.status === "queued") return `Friday uploads this to YouTube at ${when}.`;
-    if (p.status === "live") return "Live on your channel. Views land here every morning.";
-  }
-  return null;
 }
 
 /** Date → the value a datetime-local input wants. */
@@ -117,7 +90,7 @@ export default function CalendarPage() {
       <p className="eyebrow">Friday&apos;s queue</p>
       <h1 className={`display ${styles.title}`}>Calendar</h1>
 
-      {!anyConnected && (
+      {accounts !== undefined && !anyConnected && (
         <p className={styles.sub}>
           Friday can&apos;t post anywhere yet —{" "}
           <Link href="/settings">connect TikTok or YouTube in Settings</Link> first.

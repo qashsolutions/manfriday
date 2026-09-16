@@ -276,3 +276,90 @@ export const avatarCandidates = internalQuery({
     return out;
   },
 });
+
+/** Read-only: which platforms are connected, without touching tokens. */
+export const accountStates = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("socialAccounts").take(20);
+    const users = await ctx.db.query("users").take(20);
+    const emailOf = (id: string) => users.find((u) => u._id === id)?.email ?? "?";
+    return {
+      users: await Promise.all(users.map(async (u) => ({
+        id: u._id, email: u.email,
+        concepts: (await ctx.db.query("concepts").withIndex("by_userId_and_status", (q) => q.eq("userId", u._id)).take(200)).length,
+        posts: (await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", u._id)).take(50)).length,
+      }))),
+      accounts: rows.map((a) => ({ platform: a.platform, handle: a.handle, status: a.status, owner: emailOf(a.userId) })),
+    };
+  },
+});
+
+/** UI-only fixture for eyeballing Calendar rows. The TikTok row is terminal
+ *  (draft_fallback) and the YouTube rows sit 30+ days out, so the publish cron
+ *  (queued AND publishAt <= now) can never pick any of them up. Remove with
+ *  dev:removeQueueFixture. */
+export const seedQueueFixture = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await ctx.db.query("users").first();
+    const concept = await ctx.db.query("concepts").withIndex("by_userId_and_status", (q) => q.eq("userId", user!._id).eq("status", "rendered")).first()
+      ?? await ctx.db.query("concepts").first();
+    const accounts = await ctx.db.query("socialAccounts").take(5);
+    const tiktok = accounts.find((a) => a.platform === "tiktok");
+    const youtube = accounts.find((a) => a.platform === "youtube");
+    const far = Date.now() + 30 * 24 * 60 * 60 * 1000;
+    const postId = await ctx.db.insert("posts", {
+      userId: user!._id, conceptId: concept!._id, publishAt: far,
+      captionByPlatform: { tiktok: "fixture", youtube: "fixture" },
+    });
+    if (tiktok) {
+      await ctx.db.insert("publications", { postId, accountId: tiktok._id, platform: "tiktok", status: "draft_fallback", publishAt: far, attempts: 1, idempotencyKey: `fx-tt-${postId}` });
+    }
+    if (youtube) {
+      await ctx.db.insert("publications", { postId, accountId: youtube._id, platform: "youtube", status: "queued", publishAt: far, attempts: 0, idempotencyKey: `fx-yt-${postId}` });
+    }
+    const postId2 = await ctx.db.insert("posts", {
+      userId: user!._id, conceptId: concept!._id, publishAt: far + 86_400_000,
+      captionByPlatform: { youtube: "fixture deferred" },
+    });
+    if (youtube) {
+      await ctx.db.insert("publications", { postId: postId2, accountId: youtube._id, platform: "youtube", status: "queued", publishAt: far + 86_400_000, attempts: 1, lastError: "QUOTA_DEFERRED: quotaExceeded", idempotencyKey: `fx-def-${postId2}` });
+    }
+    return { postId, postId2 };
+  },
+});
+
+export const removeQueueFixture = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    let removed = 0;
+    const pubs = await ctx.db.query("publications").take(200);
+    for (const p of pubs) {
+      if (!p.idempotencyKey.startsWith("fx-")) continue;
+      await ctx.db.delete("publications", p._id);
+      const siblings = await ctx.db.query("publications").withIndex("by_postId", (q) => q.eq("postId", p.postId)).take(5);
+      if (siblings.length === 0) await ctx.db.delete("posts", p.postId);
+      removed++;
+    }
+    // Any fixture post left without publications.
+    const posts = await ctx.db.query("posts").take(200);
+    for (const post of posts) {
+      const caps = post.captionByPlatform as Record<string, string>;
+      if (!Object.values(caps).some((c) => c.startsWith("fixture"))) continue;
+      const pubsLeft = await ctx.db.query("publications").withIndex("by_postId", (q) => q.eq("postId", post._id)).take(5);
+      if (pubsLeft.length === 0) { await ctx.db.delete("posts", post._id); removed++; }
+    }
+    return { removed };
+  },
+});
+
+/** Does the signed-in Clerk identity resolve to a users row? Diagnostics only. */
+export const whoAmI = internalQuery({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const row = await ctx.db.query("users").withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId)).unique();
+    const all = await ctx.db.query("users").take(20);
+    return { matched: row ? row.email : null, storedClerkIds: all.map((u) => ({ email: u.email, clerkId: u.clerkId })) };
+  },
+});
