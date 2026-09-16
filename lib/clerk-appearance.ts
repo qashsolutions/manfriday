@@ -32,8 +32,9 @@ export const clerkAppearance: Appearance = {
     // One-time-code boxes (email code, TOTP): Clerk renders them nearly invisible
     // on a dark card. Visible border, lighter fill, accent ring on focus.
     otpCodeFieldInput: {
-      border: "1px solid rgba(244, 243, 247, 0.35)",
-      backgroundColor: "#1F1D28",
+      border: "1.5px solid rgba(244, 243, 247, 0.6)",
+      backgroundColor: "#2A2836",
+      boxShadow: "inset 0 0 0 1px rgba(244, 243, 247, 0.12)",
       color: "#F4F3F7",
       fontSize: "20px",
       fontWeight: 600,
