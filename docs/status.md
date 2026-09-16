@@ -59,3 +59,18 @@ Clerk production instance + Pro plan (passkeys/MFA) + deletion switch · counsel
 
 ## Compliance guard
 `npm run compliance` runs on every push and weekly (validation/compliance). CLAUDE.md "YouTube API compliance — non-negotiables" governs any scope/consent-screen change.
+
+## 16 Sep 2026 — first-session clarity (pre-Stripe)
+
+Four things a new user hits in session one, each of which used to read as "broken":
+
+1. **The wait after the URL.** Onboarding shows three stages with an ETA each, counts previews as they land, and says the work continues if you leave. Picks says "Friday is rendering your previews" instead of "the feed is empty" while drafts are queued.
+2. **Where a post went.** Queue rows carry a plain line per platform. The TikTok inbox rule is stated once above the queue; the chip reads DRAFT IN TIKTOK, never "scheduled".
+3. **Analytics cadence.** Empty state and the live header both say the first numbers arrive the next morning and refresh once a day.
+4. **YouTube quota.** `convex/youtubeQuota.ts` + a capacity gate in `schedulePost`; the Calendar offers the next open day; a quota 403 defers to the next quota day. Limit in `YOUTUBE_DAILY_QUOTA` (default 10,000).
+
+Also fixed: every app screen flashed a false empty state while Convex waited for the Clerk token (`AppAuthGate`); the Calendar claimed no accounts while they loaded; onboarding said "All 1 previews are ready".
+
+Infrastructure: the Convex push had been failing since the test commit earlier that day (`import.meta` in the test harness) — tests moved to `tests/`. Nothing had deployed in between.
+
+Next: Stripe billing (item 5 of the first-session list: the video meter and what happens at zero).
