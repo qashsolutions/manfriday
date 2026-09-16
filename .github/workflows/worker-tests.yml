@@ -1,0 +1,17 @@
+name: Render worker tests
+on:
+  push:
+    paths: ["worker/**", ".github/workflows/worker-tests.yml"]
+  pull_request:
+    paths: ["worker/**"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg libfribidi0 libharfbuzz0b
+      - run: pip install -r worker/requirements.txt -r worker/requirements-dev.txt
+      - run: python -c "import PIL.features as f; assert f.check('raqm'), 'no raqm'"
+      - run: cd worker && TTS_PROVIDER=fake python -m pytest -q

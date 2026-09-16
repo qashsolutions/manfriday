@@ -74,6 +74,23 @@ def proportional_chunks(script: str, total: float, max_words: int = 5) -> list[t
     return out
 
 
+class FakeTTS:
+    """Test provider (TTS_PROVIDER=fake): a quiet tone whose length tracks the
+    script (≈ 14 chars/s, min 0.8 s), proportional caption chunks. Deterministic,
+    free, no network — used by worker/tests and CI."""
+
+    def synthesize(self, script: str, language: str, outdir: Path, voice: str | None = None) -> TTSResult:
+        dur = max(0.8, round(len(script) / 14.0, 2))
+        wav = outdir / "vo.wav"
+        freq = 220 if voice == "male" else 330
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-t", f"{dur:.2f}",
+             "-i", f"sine=frequency={freq}:sample_rate=44100", "-af", "volume=0.2", "-ac", "1", str(wav)],
+            check=True,
+        )
+        return TTSResult(wav=wav, duration=dur, chunks=proportional_chunks(script, dur))
+
+
 class SayTTS:
     """Dev provider: macOS `say`. No word timestamps → proportional pacing."""
 
@@ -390,6 +407,8 @@ class RoutedTTS:
 
 def get_tts():
     provider = os.environ.get("TTS_PROVIDER", "say")
+    if provider == "fake":
+        return FakeTTS()  # tests: every language, no routing, no network
     base = FalTTS() if provider == "fal" else SayTTS()
     sarvam = SarvamTTS() if os.environ.get("SARVAM_API_KEY") else None
     return RoutedTTS(base, sarvam) if sarvam else base
