@@ -141,7 +141,7 @@ export function AttributionFunnel() {
       <text x="60" y="64" fontSize="13" fill="var(--accent)" style={mono}>SAME WEEK · SAME PRODUCT · TWO POSTS (ILLUSTRATIVE NUMBERS)</text>
       {[
         { x: 60, hook: "“POV: you finally fixed onboarding”", views: "12,400", clicks: "3", win: false },
-        { x: 620, hook: "“Shipped 11 months, 43 signups. Then one change.”", views: "1,900", clicks: "41", win: true },
+        { x: 620, hook: "“Shipped 11 months, 43 signups. Then…”", views: "1,900", clicks: "41", win: true },
       ].map((p) => (
         <g key={p.x} transform={`translate(${p.x} 100)`}>
           <rect width="520" height="380" rx="20" fill="var(--panel-2)" stroke={p.win ? "var(--mint)" : "var(--edge)"} strokeWidth={p.win ? 2 : 1} />
@@ -172,13 +172,13 @@ export function RewardLadder() {
     <svg viewBox="0 0 1200 360" role="img" aria-label="A ladder of five signals from weakest to strongest: kept, published, views, watch-through, click to product.">
       <rect width="1200" height="360" fill="var(--panel)" rx="24" />
       {rungs.map((r, i) => {
-        const w = 180 + i * 190;
+        const w = 170 + i * 150;
         const strong = i === rungs.length - 1;
         return (
           <g key={r} transform={`translate(60 ${60 + i * 54})`}>
             <rect width={w} height="40" rx="20" fill={strong ? "var(--accent)" : "var(--panel-2)"} stroke={strong ? "var(--accent)" : "var(--edge)"} />
             <text x="20" y="26" fontSize="15" fill={strong ? "var(--accent-ink)" : "var(--ink)"} style={display}>{r}</text>
-            <text x={w + 16} y="26" fontSize="12" fill="var(--faint)" style={mono}>{["cheap to fake", "table stakes", "the platform's KPI", "closer", "the only one you can bank"][i]}</text>
+            <text x={w + 16} y="26" fontSize="12" fill="var(--faint)" style={mono}>{["cheap to fake", "table stakes", "the platform's KPI", "closer", "bankable"][i]}</text>
           </g>
         );
       })}
