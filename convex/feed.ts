@@ -136,3 +136,26 @@ export const requestVariant = mutation({
     return null;
   },
 });
+
+/** Discard a rendered video from "ready to schedule": the desktop equivalent of a
+ *  left-swipe. Marks the concept skipped and deletes its files. Only allowed
+ *  while nothing has been scheduled from it (scheduled posts live in the queue). */
+export const discard = mutation({
+  args: { conceptId: v.id("concepts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new Error("not signed in");
+    const c = await ctx.db.get("concepts", args.conceptId);
+    if (!c || c.userId !== userId) throw new Error("not your concept");
+    if (c.status !== "rendered") throw new Error("only rendered videos can be discarded here");
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .take(200);
+    if (posts.some((p) => p.conceptId === c._id)) throw new Error("this video is already scheduled");
+    if (c.videoId) await ctx.storage.delete(c.videoId);
+    if (c.previewThumbId) await ctx.storage.delete(c.previewThumbId);
+    await ctx.db.patch("concepts", args.conceptId, { status: "skipped", videoId: undefined, previewThumbId: undefined, swipedAt: Date.now() });
+    return null;
+  },
+});

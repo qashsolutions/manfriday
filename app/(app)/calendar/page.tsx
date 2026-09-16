@@ -47,6 +47,8 @@ export default function CalendarPage() {
   const rendered = useQuery(api.feed.myRendered);
   const accounts = useQuery(api.oauth.myAccounts);
   const schedule = useMutation(api.publishing.schedulePost);
+  const discard = useMutation(api.feed.discard);
+  const [confirmDiscard, setConfirmDiscard] = useState<string | null>(null);
   const [when, setWhen] = useState(fridaySuggests());
   const [error, setError] = useState<string | null>(null);
 
@@ -118,6 +120,31 @@ export default function CalendarPage() {
                 <button type="button" className={styles.keepBtn} style={{ padding: "10px 0", fontSize: 13.5 }} onClick={() => onSchedule(r.id)}>
                   Schedule →
                 </button>
+                {confirmDiscard === r.id ? (
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      type="button"
+                      className={styles.skipBtn}
+                      style={{ flex: 1, padding: "8px 0", fontSize: 12.5 }}
+                      onClick={() => { setConfirmDiscard(null); void discard({ conceptId: r.id }); }}
+                    >
+                      Yes, discard
+                    </button>
+                    <button type="button" className={styles.skipBtn} style={{ flex: 1, padding: "8px 0", fontSize: 12.5, opacity: 0.7 }} onClick={() => setConfirmDiscard(null)}>
+                      Keep
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.skipBtn}
+                    style={{ padding: "8px 0", fontSize: 12.5 }}
+                    title="Remove this video — it won't be scheduled and its file is deleted"
+                    onClick={() => setConfirmDiscard(r.id)}
+                  >
+                    Discard
+                  </button>
+                )}
               </div>
             ))}
           </div>
