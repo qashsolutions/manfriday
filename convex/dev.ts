@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { createTrackedLink, withUtm } from "./links";
 import { internalQuery, internalMutation } from "./_generated/server";
+import { quotaKey } from "./youtubeQuota";
 import type { QueryCtx, MutationCtx } from "./_generated/server";
 
 // Dev-only seeder: creates one user/brand/template/concept and a pending
@@ -361,5 +362,27 @@ export const whoAmI = internalQuery({
     const row = await ctx.db.query("users").withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId)).unique();
     const all = await ctx.db.query("users").take(20);
     return { matched: row ? row.email : null, storedClerkIds: all.map((u) => ({ email: u.email, clerkId: u.clerkId })) };
+  },
+});
+
+/** Temporarily fill today's YouTube quota so the Calendar's "next open slot"
+ *  notice can be eyeballed. Reverse with dev:clearQuotaForToday. */
+export const fillQuotaForToday = internalMutation({
+  args: { at: v.number() },
+  handler: async (ctx, args) => {
+    const key = quotaKey(args.at);
+    const row = await ctx.db.query("quotaCounters").withIndex("by_key", (q) => q.eq("key", key)).first();
+    if (row) await ctx.db.patch("quotaCounters", row._id, { used: 10_000, limit: 10_000 });
+    else await ctx.db.insert("quotaCounters", { key, used: 10_000, limit: 10_000 });
+    return key;
+  },
+});
+
+export const clearQuotaForToday = internalMutation({
+  args: { at: v.number() },
+  handler: async (ctx, args) => {
+    const row = await ctx.db.query("quotaCounters").withIndex("by_key", (q) => q.eq("key", quotaKey(args.at))).first();
+    if (row) await ctx.db.delete("quotaCounters", row._id);
+    return row ? "cleared" : "nothing to clear";
   },
 });
