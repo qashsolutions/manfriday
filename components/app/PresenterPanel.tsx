@@ -9,9 +9,9 @@ import styles from "./SettingsPanel.module.css";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
-/** The user's own photo becomes the presenter in avatar videos: Friday animates
- *  it for the hook (first seconds), then cuts to the product. Consent is an
- *  explicit attestation; the platforms' AI-generated labels are always set. */
+/** The user's own photo opens presenter videos: a still with a slow push-in for
+ *  the hook, their chosen voice over it, then the cut to the product. No
+ *  animation (removed 15 Sep 2026). Consent is an explicit likeness attestation. */
 export function PresenterPanel({ brandId, presenterUrl, voice }: { brandId: Id<"brands">; presenterUrl: string | null; voice: "female" | "male" }) {
   const setVoice = useMutation(api.brands.setVoice);
   const getUploadUrl = useMutation(api.brands.presenterUploadUrl);
@@ -81,8 +81,8 @@ export function PresenterPanel({ brandId, presenterUrl, voice }: { brandId: Id<"
           <p className={styles.rowTitle}>Your face on camera</p>
           <p className={styles.rowSub}>
             {presenterUrl
-              ? "Friday animates this photo to speak the hook of avatar videos, then cuts to your product. Each avatar video is labelled AI-generated on TikTok and YouTube, as their rules require."
-              : "Add one clear, front-facing photo. Friday animates it to speak the first seconds of avatar videos, then cuts to your product. Without a photo, Friday makes slideshows and hook videos only."}
+              ? "Friday opens presenter videos with this photo — your face for the first seconds, your voice over it — then cuts to your product."
+              : "Add one clear, front-facing photo. Friday opens presenter videos with it — your face for the first seconds, your voice over it — then cuts to your product. Without a photo, Friday makes slideshows and hook videos only."}
           </p>
         </div>
         {presenterUrl && (
@@ -93,7 +93,7 @@ export function PresenterPanel({ brandId, presenterUrl, voice }: { brandId: Id<"
       <div className={styles.row}>
         <div>
           <p className={styles.rowTitle}>Presenter voice</p>
-          <p className={styles.rowSub}>Used for every video Friday makes for you, in any language. Change it any time; already-rendered videos keep theirs.</p>
+          <p className={styles.rowSub}>The voice-over on every video Friday makes for you, in any language. Change it any time; already-rendered videos keep theirs.</p>
         </div>
         <span className={styles.confirmRow} role="radiogroup" aria-label="Presenter voice">
           {(["female", "male"] as const).map((v) => (
@@ -123,8 +123,7 @@ export function PresenterPanel({ brandId, presenterUrl, voice }: { brandId: Id<"
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={busy} style={{ marginTop: 3 }} />
           <span>
             This is a photo of me, or of someone who has given me written permission to use their likeness in my
-            videos. I understand Friday will generate videos of this person speaking, that those videos will carry
-            the platforms&apos; AI-generated label, and that I can remove the photo at any time.
+            videos. I can remove it at any time.
           </span>
         </label>
         {error && <p className={styles.rowSub} style={{ color: "var(--accent)", margin: 0 }}>{error}</p>}

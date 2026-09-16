@@ -152,12 +152,12 @@ def render_hook(structure: dict, values: dict, brand: BrandAssets, language: str
 
 
 def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: str, outdir: Path, preview: bool) -> dict:
-    """Avatar format (D2, amended 14 Sep 2026): the user's own presenter photo is
-    animated to speak the HOOK (first AVATAR_HOOK_SECONDS of the script) by a
-    FAL talking-head model; the rest of the script runs over product screenshots
-    with captions. Preview = free still frame. Without a presenter photo the
-    legacy placeholder path runs (only old concepts reach it — match.py stops
-    planning avatar templates for brands with no photo)."""
+    """Presenter format (D2, amended 15 Sep 2026): the user's own photo opens the
+    video as a still with a slow push-in for the HOOK (first AVATAR_HOOK_SECONDS),
+    voice and captions over it; the rest runs over product screenshots. No
+    animation, no lip-sync, no extra cost beyond TTS. Preview = free still.
+    Without a presenter photo the legacy placeholder path runs (only old
+    concepts reach it — match.py stops planning this format for brands with no photo)."""
     plan = structure["renderPlan"]
     base = presenter_frame(brand)
     if preview:
@@ -184,23 +184,21 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
         img.save(p)
         return p
 
-    cost_cents = 0
     hook_clip: Path | None = None
     hook_end = 0.0
     if brand.presenter:
-        # Hook boundary: the caption chunk end closest to (and not above) the budget.
+        # Hook: the presenter photo as a still with a slow push-in, voice + captions over it.
+        # (The talking-head/lip-sync path was removed 15 Sep 2026 after user testing —
+        # it cost 40¢+/video and viewers disliked it. A real face for two seconds is
+        # the value; the animation was not.)
         budget = float(os.environ.get("AVATAR_HOOK_SECONDS", "8"))
         hook_end = tts.chunks[0][1]
         for _a, b, _t in tts.chunks:
             if b <= budget:
                 hook_end = b
-        hook_wav = outdir / "hook.wav"
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(tts.wav), "-t", f"{hook_end:.3f}", str(hook_wav)], check=True)
         still = outdir / "presenter_frame.jpg"
         base.save(still, quality=92)
-        hook_clip, seconds = talking_head(still, hook_wav, outdir)
-        cost_cents = int(round(seconds * AVATAR_CENTS_PER_SECOND))
-        # Burn the hook overlay + captions onto the talking clip (transparent PNGs, timed).
+        raw = push_in(still, hook_end, outdir / "hook_raw.mp4")
         overlays = []
         j = 0
         for a, b, text in tts.chunks:
@@ -208,7 +206,7 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
                 break
             overlays.append((caption_overlay(text, values, plan, brand, a < overlay_until, outdir, j), a, min(b, hook_end)))
             j += 1
-        hook_clip = burn_overlays(hook_clip, overlays, outdir / "hook_captioned.mp4", trim_to=hook_end)
+        hook_clip = burn_overlays(raw, overlays, outdir / "hook_captioned.mp4", trim_to=hook_end)
 
     # Tail: product screenshots / gradient with captions, then the end card.
     frames = []
@@ -243,31 +241,24 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
         concat_with_audio([hook_clip, tail], tts.wav, total, out)
         thumb = outdir / "preview.png"
         base.copy().save(thumb)
-    return {"video": out, "thumb": thumb, "durationSeconds": total, "costCents": cost_cents}
+    return {"video": out, "thumb": thumb, "durationSeconds": total}
 
 
-# --- talking-head helpers (FAL) -------------------------------------------------
-
-AVATAR_MODEL = os.environ.get("FAL_AVATAR_MODEL", "fal-ai/kling-video/ai-avatar/v2/standard")
-AVATAR_CENTS_PER_SECOND = float(os.environ.get("FAL_AVATAR_CENTS_PER_SECOND", "5.62"))  # Kling v2 standard list price
+# --- presenter hook helpers ---------------------------------------------------
 
 
-def talking_head(still: Path, audio: Path, outdir: Path) -> tuple[Path, float]:
-    """Image + audio → talking video via FAL. Returns (clip path, billed seconds)."""
-    import fal_client
-    import requests
-
-    image_url = fal_client.upload_file(str(still))
-    audio_url = fal_client.upload_file(str(audio))
-    result = fal_client.subscribe(AVATAR_MODEL, arguments={"image_url": image_url, "audio_url": audio_url})
-    url = result["video"]["url"]
-    raw = outdir / "hook_raw.mp4"
-    raw.write_bytes(requests.get(url, timeout=300).content)
-    seconds = float(result.get("duration") or 0.0)
-    if seconds <= 0:
-        probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(raw)], capture_output=True, text=True)
-        seconds = float(probe.stdout.strip() or 0)
-    return raw, seconds
+def push_in(still: Path, seconds: float, out: Path) -> Path:
+    """Slow push-in (≈8 % over the hook) on the presenter still, 1080x1920@30."""
+    frames = max(1, int(round(seconds * 30)))
+    vf = (
+        f"scale=1296:2304,zoompan=z='min(1+0.08*on/{frames},1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+        f":d={frames}:s=1080x1920:fps=30"
+    )
+    subprocess.run([
+        "ffmpeg", "-y", "-loglevel", "error", "-loop", "1", "-i", str(still), "-vf", vf, "-t", f"{seconds:.3f}",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-threads", "2", "-pix_fmt", "yuv420p", str(out),
+    ], check=True)
+    return out
 
 
 def caption_overlay(text: str, values: dict, plan: dict, brand: BrandAssets, with_overlay: bool, outdir: Path, i: int) -> Path:

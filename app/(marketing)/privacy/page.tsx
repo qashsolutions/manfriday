@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   return (
     <div className={`wrap ${styles.legal}`}>
       <h1 className={`display ${styles.title}`}>Privacy Policy</h1>
-      <p className={`mono ${styles.status}`}>LAST UPDATED 14 SEPTEMBER 2026 · counsel review before beta launch</p>
+      <p className={`mono ${styles.status}`}>LAST UPDATED 15 SEPTEMBER 2026 · counsel review before beta launch</p>
 
       <p>
         Man Friday collects the minimum needed to do the job:
@@ -113,12 +113,11 @@ export default function PrivacyPage() {
       <h2 className={styles.h2}>Your presenter photo</h2>
       <p>
         If you add a presenter photo in Settings, we store it and use it for exactly one thing:
-        generating the talking-head segment of the avatar videos you approve, through our video
-        rendering processor. You attest that the photo is of you or of someone who gave you
-        written permission. We never use the photo to train models, never share it with anyone
-        other than the rendering processor for your own videos, and never show it to other users.
-        Videos made from it carry the platforms&apos; AI-generated label. Remove the photo any time
-        in Settings; it is deleted immediately, and deleting your account deletes it too.
+        placing it at the start of the presenter videos you approve, rendered by our own video
+        worker. It is never animated or altered beyond cropping. You attest that the photo is of
+        you or of someone who gave you written permission. We never use the photo to train models,
+        never share it with anyone, and never show it to other users. Remove the photo any time in
+        Settings; it is deleted immediately, and deleting your account deletes it too.
       </p>
       <h2 className={styles.h2}>TikTok</h2>
       <p>

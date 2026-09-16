@@ -11,7 +11,7 @@ from .formats import render_avatar, render_hook, render_slideshow
 
 # unit-economics.md: per-format final-render cost estimates (¢). Replaced by
 # measured telemetry as it accumulates; previews are ~free.
-FINAL_COST_CENTS = {"slideshow": 2, "hook_video": 6, "avatar": 55}  # slideshow now narrated (TTS ≈1¢)
+FINAL_COST_CENTS = {"slideshow": 2, "hook_video": 6, "avatar": 6}  # all voice-only now (no talking head)
 
 
 def _download_screenshots(ids: list[str], outdir: Path) -> list[Path]:
@@ -59,6 +59,5 @@ def render_job(job: dict, outdir: Path) -> dict:
     else:
         raise RuntimeError(f"unknown format {fmt!r} (dev-stub template?)")
 
-    # Avatar finals report their real cost (talking-head seconds × price); others use the table.
     cost = 0 if preview else int(result.get("costCents", FINAL_COST_CENTS.get(fmt, 0)))
     return {"video": result.get("video"), "thumb": result.get("thumb"), "costCents": cost}

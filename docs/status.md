@@ -16,7 +16,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 | Scrape → brand brief (Claude call site 1) | ✅ | |
 | Trend matching + slot-fill (call site 2) | ✅ | 141 templates seeded; discovery to 300–500 open |
 | Slideshow + hook-video render | ✅ | Pillow + ffmpeg, Latin + all 10 Indic scripts. Slideshows narrated since 15 Sep (per-slide voice timing); licensed music bed still ⬜ |
-| **AI avatar format** | ✅ | 15 Sep: user-photo presenter (upload / "use my profile photo" + consent), hook-only talking head via FAL Kling v2 (~8 s, 43¢ recorded), product b-roll tail, AI-generated flag on YouTube. First real render verified on Railway |
+| **Presenter format** (was "AI avatar") | ✅ | 15 Sep: user photo as a still hook with push-in + voice-over, then product b-roll. Talking head / lip-sync built and REMOVED the same day after user testing (fluff, 40¢+/video). Cost now = hook video |
 | 14-language pipeline (FAL + Sarvam) | ✅ | Roman-script style untested |
 | Worker deploy | ✅ | Railway, 14 Sep; trial plan → Hobby upgrade pending |
 
