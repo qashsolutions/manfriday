@@ -1,6 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { action, internalMutation, mutation, query } from "./_generated/server";
+import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
+import { api, internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { currentUserId } from "./users";
 
 const LANGUAGE_CODES = ["en", "es", "pt-BR", "id", "hi", "bn", "ta", "te", "mr", "kn", "ml", "gu", "pa", "or"];
@@ -94,6 +96,37 @@ export const removePresenter = mutation({
     if (!brand || brand.userId !== userId) throw new Error("not your brand");
     if (brand.presenterImageId) await ctx.storage.delete(brand.presenterImageId);
     await ctx.db.patch("brands", args.brandId, { presenterImageId: undefined, presenterConsentAt: undefined });
+    return null;
+  },
+});
+
+/** "Use my profile photo": copy the Clerk avatar into storage server-side (the
+ *  browser can't fetch img.clerk.com cross-origin) and attach it as the presenter.
+ *  Only Clerk-hosted URLs are accepted, so this can't be used to fetch arbitrary hosts. */
+export const usePresenterFromProfile = action({
+  args: { brandId: v.id("brands"), imageUrl: v.string(), consent: v.literal(true) },
+  handler: async (ctx: ActionCtx, args): Promise<null> => {
+    const mine = await ctx.runQuery(api.brands.myBrand, {});
+    if (!mine || mine.id !== args.brandId) throw new Error("not your brand");
+    const u = new URL(args.imageUrl);
+    if (u.protocol !== "https:" || !/(^|\.)clerk\.com$/.test(u.hostname)) throw new Error("not a profile photo URL");
+    const resp = await fetch(args.imageUrl);
+    if (!resp.ok) throw new Error(`profile photo fetch failed (${resp.status})`);
+    const blob = await resp.blob();
+    if (blob.size > 10 * 1024 * 1024) throw new Error("photo too large");
+    const storageId: Id<"_storage"> = await ctx.storage.store(blob);
+    await ctx.runMutation(internal.brands.attachPresenter, { brandId: args.brandId, storageId });
+    return null;
+  },
+});
+
+export const attachPresenter = internalMutation({
+  args: { brandId: v.id("brands"), storageId: v.id("_storage") },
+  handler: async (ctx: MutationCtx, args) => {
+    const brand = await ctx.db.get("brands", args.brandId);
+    if (!brand) throw new Error("no brand");
+    if (brand.presenterImageId && brand.presenterImageId !== args.storageId) await ctx.storage.delete(brand.presenterImageId);
+    await ctx.db.patch("brands", args.brandId, { presenterImageId: args.storageId, presenterConsentAt: Date.now() });
     return null;
   },
 });

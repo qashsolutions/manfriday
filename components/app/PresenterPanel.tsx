@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useMutation } from "convex/react";
+import { useAction, useMutation } from "convex/react";
+import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import styles from "./SettingsPanel.module.css";
@@ -15,6 +16,24 @@ export function PresenterPanel({ brandId, presenterUrl }: { brandId: Id<"brands"
   const getUploadUrl = useMutation(api.brands.presenterUploadUrl);
   const setPresenter = useMutation(api.brands.setPresenter);
   const removePresenter = useMutation(api.brands.removePresenter);
+  const fromProfile = useAction(api.brands.usePresenterFromProfile);
+  const { user } = useUser();
+  const profileUrl = user?.hasImage ? user.imageUrl : null;
+
+  const useProfile = async () => {
+    if (!profileUrl || !consent) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await fromProfile({ brandId, imageUrl: profileUrl, consent: true });
+      setConsent(false);
+    } catch (err) {
+      console.error(err);
+      setError("Couldn't copy your profile photo — upload a file instead.");
+    } finally {
+      setBusy(false);
+    }
+  };
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
@@ -89,8 +108,13 @@ export function PresenterPanel({ brandId, presenterUrl }: { brandId: Id<"brands"
         {error && <p className={styles.rowSub} style={{ color: "var(--accent)", margin: 0 }}>{error}</p>}
         <span className={styles.confirmRow} style={{ justifyContent: "flex-start" }}>
           <button className={styles.ghostBtn} type="button" onClick={upload} disabled={!file || !consent || busy}>
-            {busy ? "Uploading…" : presenterUrl ? "Replace photo" : "Use this photo"}
+            {busy ? "Working…" : presenterUrl ? "Replace with this file" : "Use this file"}
           </button>
+          {profileUrl && (
+            <button className={styles.ghostBtn} type="button" onClick={useProfile} disabled={!consent || busy} title="Copies the photo on your account profile">
+              Use my profile photo
+            </button>
+          )}
           {presenterUrl && (
             <button className={styles.dangerBtn} type="button" onClick={() => removePresenter({ brandId })} disabled={busy}>
               Remove
