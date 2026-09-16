@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts, formatDate } from "@/lib/blog";
 import styles from "./blog.module.css";
+import * as Ill from "@/components/blog/illustrations";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -25,9 +26,14 @@ export default function BlogIndex() {
       <div className={styles.list}>
         {posts.map((p) => (
           <article key={p.slug} className={`panel ${styles.card}`}>
+            {p.hero && p.hero in Ill && (
+              <Link href={`/blog/${p.slug}`} className={styles.cardHero} aria-hidden="true" tabIndex={-1}>
+                {(() => { const H = (Ill as Record<string, () => React.JSX.Element>)[p.hero]; return <H />; })()}
+              </Link>
+            )}
             <p className={`mono ${styles.meta}`}>
               {formatDate(p.date)}
-              {p.tags.length > 0 && <> · {p.tags.join(" · ")}</>}
+              {p.tags.length > 0 && <> · {p.tags.join(" · ")}</>} · {p.readingMinutes} min
             </p>
             <h2 className={styles.cardTitle}>
               <Link href={`/blog/${p.slug}`}>{p.title}</Link>

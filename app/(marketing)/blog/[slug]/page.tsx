@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import { mdxComponents } from "@/components/blog/mdx-components";
 import { getAllPosts, getPost, formatDate } from "@/lib/blog";
 import { SITE } from "@/lib/site";
 import styles from "../blog.module.css";
@@ -26,7 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.description,
       publishedTime: post.date,
       url: `/blog/${post.slug}`,
+      images: [{ url: `/api/og?title=${encodeURIComponent(post.title)}`, width: 1200, height: 630 }],
     },
+    twitter: { card: "summary_large_image", images: [`/api/og?title=${encodeURIComponent(post.title)}`] },
   };
 }
 
@@ -58,11 +61,12 @@ export default async function BlogPost({ params }: Props) {
         <p className={`mono ${styles.meta}`}>
           {formatDate(post.date)}
           {post.tags.length > 0 && <> · {post.tags.join(" · ")}</>}
+          {" · "}{post.readingMinutes} min read
         </p>
         <h1 className={`display ${styles.postTitle}`}>{post.title}</h1>
       </header>
       <article className={styles.prose}>
-        <MDXRemote source={post.content} />
+        <MDXRemote source={post.content} components={mdxComponents} />
       </article>
       <footer className={styles.postFoot}>
         <p>

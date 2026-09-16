@@ -10,6 +10,8 @@ export type PostMeta = {
   description: string;
   date: string; // ISO yyyy-mm-dd
   tags: string[];
+  hero?: string; // illustration component name (components/blog/illustrations)
+  readingMinutes: number;
 };
 
 export type Post = PostMeta & { content: string };
@@ -24,6 +26,8 @@ function parse(file: string): Post {
     description: String(data.description ?? ""),
     date: String(data.date ?? "1970-01-01"),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    hero: data.hero ? String(data.hero) : undefined,
+    readingMinutes: Math.max(1, Math.round(content.split(/\s+/).length / 220)),
     content,
   };
 }
