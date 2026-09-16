@@ -208,7 +208,7 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
                 break
             overlays.append((caption_overlay(text, values, plan, brand, a < overlay_until, outdir, j), a, min(b, hook_end)))
             j += 1
-        hook_clip = burn_overlays(hook_clip, overlays, outdir / "hook_captioned.mp4")
+        hook_clip = burn_overlays(hook_clip, overlays, outdir / "hook_captioned.mp4", trim_to=hook_end)
 
     # Tail: product screenshots / gradient with captions, then the end card.
     frames = []
@@ -288,8 +288,11 @@ def caption_overlay(text: str, values: dict, plan: dict, brand: BrandAssets, wit
     return p
 
 
-def burn_overlays(clip: Path, overlays: list[tuple[Path, float, float]], out: Path) -> Path:
-    """Scale the talking clip to 1080x1920@30 and overlay timed caption PNGs."""
+def burn_overlays(clip: Path, overlays: list[tuple[Path, float, float]], out: Path, trim_to: float | None = None) -> Path:
+    """Scale the talking clip to 1080x1920@30, overlay timed caption PNGs, and
+    cut it at exactly the hook audio length — the model pads its output by a few
+    seconds, and an untrimmed clip leaves the face on screen, mouth idle, while
+    the next line already plays (looked like broken lip-sync)."""
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(clip)]
     for p, _a, _b in overlays:
         cmd += ["-i", str(p)]
@@ -299,7 +302,10 @@ def burn_overlays(clip: Path, overlays: list[tuple[Path, float, float]], out: Pa
         chain += f";[{prev}][{k}:v]overlay=0:0:enable='between(t,{a:.3f},{b:.3f})'[v{k}]"
         prev = f"v{k}"
     cmd += ["-filter_complex", chain, "-map", f"[{prev}]", "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-threads", "2",
-            "-x264-params", "rc-lookahead=10:ref=1:bframes=2", "-pix_fmt", "yuv420p", str(out)]
+            "-x264-params", "rc-lookahead=10:ref=1:bframes=2", "-pix_fmt", "yuv420p"]
+    if trim_to:
+        cmd += ["-t", f"{trim_to:.3f}"]
+    cmd += [str(out)]
     subprocess.run(cmd, check=True)
     return out
 
