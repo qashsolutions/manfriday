@@ -11,7 +11,7 @@ from .formats import render_avatar, render_hook, render_slideshow
 
 # unit-economics.md: per-format final-render cost estimates (¢). Replaced by
 # measured telemetry as it accumulates; previews are ~free.
-FINAL_COST_CENTS = {"slideshow": 1, "hook_video": 6, "avatar": 55}
+FINAL_COST_CENTS = {"slideshow": 2, "hook_video": 6, "avatar": 55}  # slideshow now narrated (TTS ≈1¢)
 
 
 def _download_screenshots(ids: list[str], outdir: Path) -> list[Path]:
@@ -51,7 +51,7 @@ def render_job(job: dict, outdir: Path) -> dict:
     language = concept.get("language", "en")
 
     if fmt == "slideshow":
-        result = render_slideshow(structure, values, brand, outdir, preview)
+        result = render_slideshow(structure, values, brand, outdir, preview, language)
     elif fmt == "hook_video":
         result = render_hook(structure, values, brand, language, outdir, preview)
     elif fmt == "avatar":

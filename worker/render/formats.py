@@ -57,7 +57,12 @@ def segment_timeline(shot_spans, caption_spans, total: float):
     return segs
 
 
-def render_slideshow(structure: dict, values: dict, brand: BrandAssets, outdir: Path, preview: bool) -> dict:
+def render_slideshow(structure: dict, values: dict, brand: BrandAssets, outdir: Path, preview: bool, language: str = "en") -> dict:
+    """Slideshow: one still per slide, NARRATED — each slide's line is spoken in
+    the brand voice and the slide stays up for as long as it takes to say it
+    (+ a beat). Added 15 Sep 2026: silent slideshows read as broken on TikTok;
+    the template spec's 'licensed music' bed is still not wired (needs a licensed
+    library), so the voice carries the audio for now."""
     plan = structure["renderPlan"]
     slides = plan["slides"]
     if preview:
@@ -65,18 +70,48 @@ def render_slideshow(structure: dict, values: dict, brand: BrandAssets, outdir: 
         thumb = outdir / "preview.png"
         img.save(thumb)
         return {"thumb": thumb}
-    files = []
+    tts = get_tts()
+    frames: list[tuple[Path, float]] = []
+    parts: list[tuple[Path | None, float]] = []  # (wav or None for silence, seconds)
+    beat = 0.45
     for i, slide in enumerate(slides, 1):
         img = compose_slide(slide["bg"], slide.get("text"), values, brand)
         f = outdir / f"slide_{i}.png"
         img.save(f)
-        files.append(f)
-    # one video artifact: 2.5s montage per slide (TikTok photo-mode gets the
-    # PNGs at publish time; the mp4 is the in-app playable)
-    frames = [(f, 2.5) for f in files]
+        text = values.get((slide.get("text") or {}).get("slotRef", ""), "") if slide.get("text") else ""
+        if text.strip():
+            sub = outdir / f"slide_{i}_tts"
+            sub.mkdir(exist_ok=True)
+            r = tts.synthesize(text, language, sub)
+            dur = r.duration + beat
+            parts.append((r.wav, r.duration))
+            parts.append((None, beat))
+        else:
+            dur = 2.5
+            parts.append((None, dur))
+        frames.append((f, dur))
+    total = sum(d for _, d in frames)
+    wav = concat_audio(parts, outdir / "narration.wav")
     out = outdir / "post.mp4"
-    assemble(frames, None, 2.5 * len(files), out)
-    return {"video": out, "thumb": files[0], "slides": files}
+    assemble(frames, wav, total, out)
+    return {"video": out, "thumb": frames[0][0], "slides": [p for p, _ in frames], "durationSeconds": total}
+
+
+def concat_audio(parts: list[tuple[Path | None, float]], out: Path) -> Path:
+    """Join voice clips and silences into one 44.1 kHz stereo WAV (inputs may be
+    mono/stereo, mp3-derived or Sarvam wav — everything is normalised first)."""
+    cmd = ["ffmpeg", "-y", "-loglevel", "error"]
+    labels = []
+    for k, (p, secs) in enumerate(parts):
+        if p is None:
+            cmd += ["-f", "lavfi", "-t", f"{secs:.3f}", "-i", "anullsrc=r=44100:cl=stereo"]
+        else:
+            cmd += ["-i", str(p)]
+        labels.append(f"[{k}:a]aresample=44100,aformat=channel_layouts=stereo[a{k}]")
+    graph = ";".join(labels) + ";" + "".join(f"[a{k}]" for k in range(len(parts))) + f"concat=n={len(parts)}:v=0:a=1[out]"
+    cmd += ["-filter_complex", graph, "-map", "[out]", "-ar", "44100", str(out)]
+    subprocess.run(cmd, check=True)
+    return out
 
 
 def render_hook(structure: dict, values: dict, brand: BrandAssets, language: str, outdir: Path, preview: bool) -> dict:
