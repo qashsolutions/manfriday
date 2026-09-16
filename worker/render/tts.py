@@ -77,7 +77,7 @@ def proportional_chunks(script: str, total: float, max_words: int = 5) -> list[t
 class SayTTS:
     """Dev provider: macOS `say`. No word timestamps → proportional pacing."""
 
-    def synthesize(self, script: str, language: str, outdir: Path) -> TTSResult:
+    def synthesize(self, script: str, language: str, outdir: Path, voice: str | None = None) -> TTSResult:
         voice = SAY_VOICES.get(language) or SAY_VOICES["en"]
         aiff = outdir / "vo.aiff"
         wav = outdir / "vo.wav"
@@ -95,8 +95,12 @@ class FalTTS:
     def __init__(self) -> None:
         self.model = os.environ.get("FAL_TTS_MODEL", "fal-ai/elevenlabs/tts/multilingual-v2")
         self.voice = os.environ.get("FAL_TTS_VOICE", "Rachel")
+        # Brand "presenter voice" (Settings): female = Rachel (user-picked 11 Sep), male = Adam.
+        self.voices = {"female": self.voice, "male": os.environ.get("FAL_TTS_VOICE_MALE", "Adam")}
 
     def synthesize(self, script: str, language: str, outdir: Path, voice: str | None = None) -> TTSResult:
+        if voice in self.voices:
+            voice = self.voices[voice]
         import fal_client  # lazy: dev machines without the extra still run SayTTS
         import requests
 
@@ -333,6 +337,8 @@ class SarvamTTS:
     def synthesize(self, script: str, language: str, outdir: Path, speaker: str | None = None) -> TTSResult:
         import requests
 
+        if speaker in SARVAM_VOICES:  # "female" / "male" → first speaker of that set (env override per set)
+            speaker = os.environ.get(f"SARVAM_SPEAKER_{speaker.upper()}") or SARVAM_VOICES[speaker][0]
         lang_code = SARVAM_LANG.get(language)
         if not lang_code:
             raise RuntimeError(f"sarvam tts: unsupported language {language}")
@@ -376,10 +382,10 @@ class RoutedTTS:
         self.sarvam = sarvam
         self.indian_english = os.environ.get("TTS_INDIAN_ENGLISH") == "1"
 
-    def synthesize(self, script: str, language: str, outdir: Path) -> TTSResult:
+    def synthesize(self, script: str, language: str, outdir: Path, voice: str | None = None) -> TTSResult:
         if self.sarvam and (language in INDIC or (language == "en" and self.indian_english)):
-            return self.sarvam.synthesize(script, language, outdir)
-        return self.base.synthesize(script, language, outdir)
+            return self.sarvam.synthesize(script, language, outdir, speaker=voice)
+        return self.base.synthesize(script, language, outdir, voice=voice)
 
 
 def get_tts():

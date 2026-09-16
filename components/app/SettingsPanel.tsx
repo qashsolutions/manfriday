@@ -306,7 +306,7 @@ export function SettingsPanel() {
         {/* Presenter (D2: your brand gets a face — the user's own photo) */}
         <section className={styles.section} aria-labelledby="s-presenter">
           <h2 id="s-presenter" className={`mono ${styles.sectionTitle}`}>YOUR PRESENTER</h2>
-          {brand ? <PresenterPanel brandId={brand.id} presenterUrl={brand.presenterUrl} /> : <div className={styles.panel} />}
+          {brand ? <PresenterPanel brandId={brand.id} presenterUrl={brand.presenterUrl} voice={brand.voice} /> : <div className={styles.panel} />}
         </section>
 
         {/* Language */}

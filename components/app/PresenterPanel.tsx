@@ -12,7 +12,8 @@ const MAX_BYTES = 10 * 1024 * 1024;
 /** The user's own photo becomes the presenter in avatar videos: Friday animates
  *  it for the hook (first seconds), then cuts to the product. Consent is an
  *  explicit attestation; the platforms' AI-generated labels are always set. */
-export function PresenterPanel({ brandId, presenterUrl }: { brandId: Id<"brands">; presenterUrl: string | null }) {
+export function PresenterPanel({ brandId, presenterUrl, voice }: { brandId: Id<"brands">; presenterUrl: string | null; voice: "female" | "male" }) {
+  const setVoice = useMutation(api.brands.setVoice);
   const getUploadUrl = useMutation(api.brands.presenterUploadUrl);
   const setPresenter = useMutation(api.brands.setPresenter);
   const removePresenter = useMutation(api.brands.removePresenter);
@@ -88,6 +89,27 @@ export function PresenterPanel({ brandId, presenterUrl }: { brandId: Id<"brands"
           // eslint-disable-next-line @next/next/no-img-element
           <img src={presenterUrl} alt="Your presenter photo" width={72} height={96} style={{ objectFit: "cover", borderRadius: 12, flexShrink: 0 }} />
         )}
+      </div>
+      <div className={styles.row}>
+        <div>
+          <p className={styles.rowTitle}>Presenter voice</p>
+          <p className={styles.rowSub}>Used for every video Friday makes for you, in any language. Change it any time; already-rendered videos keep theirs.</p>
+        </div>
+        <span className={styles.confirmRow} role="radiogroup" aria-label="Presenter voice">
+          {(["female", "male"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={voice === v}
+              className={voice === v ? styles.dangerBtn : styles.ghostBtn}
+              style={voice === v ? { background: "var(--accent)", color: "var(--accent-ink)", borderColor: "var(--accent)" } : undefined}
+              onClick={() => setVoice({ brandId, voice: v })}
+            >
+              {v === "female" ? "Female" : "Male"}
+            </button>
+          ))}
+        </span>
       </div>
       <div className={styles.row} style={{ flexDirection: "column", alignItems: "stretch", gap: 10 }}>
         <input

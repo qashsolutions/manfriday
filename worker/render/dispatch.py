@@ -45,6 +45,7 @@ def render_job(job: dict, outdir: Path) -> dict:
         name=brand_info.get("name", "Your product"),
         screenshots=_download_screenshots(brand_info.get("screenshotIds", []), outdir),
         presenter=presenter,
+        voice=brand_info.get("voice") or "female",
     )
     values = concept.get("slots") or {}
     language = concept.get("language", "en")

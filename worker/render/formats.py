@@ -89,7 +89,7 @@ def render_hook(structure: dict, values: dict, brand: BrandAssets, language: str
         img.save(thumb)
         return {"thumb": thumb}
 
-    tts = get_tts().synthesize(values[plan["voice"]["slotRef"]], language, outdir)
+    tts = get_tts().synthesize(values[plan["voice"]["slotRef"]], language, outdir, voice=brand.voice)
     fixed = sum(s.get("holdSeconds", 0) for s in shots)
     flex_dur = max(1.0, tts.duration - fixed + 1.0)
     total = fixed + flex_dur
@@ -132,7 +132,7 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
         img.save(thumb)
         return {"thumb": thumb}
 
-    tts = get_tts().synthesize(values[plan["speech"]["slotRef"]], language, outdir)
+    tts = get_tts().synthesize(values[plan["speech"]["slotRef"]], language, outdir, voice=brand.voice)
     end_hold = plan["endCard"]["holdSeconds"]
     total = tts.duration + end_hold
     cap = plan.get("durationCapSeconds", 60)

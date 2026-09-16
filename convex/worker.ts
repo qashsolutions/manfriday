@@ -61,6 +61,7 @@ export const claimJob = mutation({
             language: brand.language,
             screenshotIds: brand.screenshotIds,
             presenterImageId: brand.presenterImageId ?? null,
+            voice: brand.voice ?? "female",
           }
         : null,
     };

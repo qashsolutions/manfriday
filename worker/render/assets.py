@@ -77,6 +77,7 @@ class BrandAssets:
     screenshots: list[Path] = field(default_factory=list)  # [hero, product, ...]
     palette: dict = field(default_factory=lambda: dict(DEFAULT_PALETTE))
     presenter: Path | None = None  # the user's own photo (D2 amended 14 Sep 2026)
+    voice: str = "female"  # brand presenter voice: "female" | "male" (Settings)
 
     def screenshot(self, pick: str) -> Path | None:
         order = {"hero": 0, "product": 1}

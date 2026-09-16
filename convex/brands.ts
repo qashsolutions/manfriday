@@ -29,6 +29,7 @@ export const myBrand = query({
       status: brand.status,
       presenterUrl: brand.presenterImageId ? await ctx.storage.getUrl(brand.presenterImageId) : null,
       hasPresenter: !!brand.presenterImageId,
+      voice: brand.voice ?? "female",
     };
   },
 });
@@ -127,6 +128,19 @@ export const attachPresenter = internalMutation({
     if (!brand) throw new Error("no brand");
     if (brand.presenterImageId && brand.presenterImageId !== args.storageId) await ctx.storage.delete(brand.presenterImageId);
     await ctx.db.patch("brands", args.brandId, { presenterImageId: args.storageId, presenterConsentAt: Date.now() });
+    return null;
+  },
+});
+
+/** Presenter voice (female/male) — applies to every video the brand renders from now on. */
+export const setVoice = mutation({
+  args: { brandId: v.id("brands"), voice: v.union(v.literal("female"), v.literal("male")) },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new Error("not signed in");
+    const brand = await ctx.db.get("brands", args.brandId);
+    if (!brand || brand.userId !== userId) throw new Error("not your brand");
+    await ctx.db.patch("brands", args.brandId, { voice: args.voice });
     return null;
   },
 });

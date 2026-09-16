@@ -61,6 +61,8 @@ export default defineSchema({
     // attested it is them (or someone who gave written permission).
     presenterImageId: v.optional(v.id("_storage")),
     presenterConsentAt: v.optional(v.number()),
+    // Presenter voice for every format (TTS): explicit user choice, never inferred.
+    voice: v.optional(v.union(v.literal("female"), v.literal("male"))),
     status: v.union(v.literal("analyzing"), v.literal("ready")),
     briefVersion: v.number(), // bumped on user edit; concepts pin it
   }).index("by_userId", ["userId"]),
