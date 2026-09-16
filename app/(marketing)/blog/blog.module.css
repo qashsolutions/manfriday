@@ -86,7 +86,7 @@
 }
 
 .prose {
-  max-width: 680px;
+  max-width: 860px; /* widened 16 Sep: figures and stat tiles carry the post */
   padding-bottom: 40px;
   font-size: 17px;
   line-height: 1.7;
@@ -154,7 +154,7 @@
 }
 
 .postFoot {
-  max-width: 680px;
+  max-width: 860px;
   border-top: 1px solid var(--edge);
   padding: 28px 0 20px;
   display: flex;
@@ -174,14 +174,9 @@
   margin: 34px 0;
 }
 .figureBleed {
-  margin-left: min(0px, calc((100vw - 100%) / -2 + 24px));
-  margin-right: min(0px, calc((100vw - 100%) / -2 + 24px));
-}
-@media (min-width: 900px) {
-  .figureBleed {
-    margin-left: -80px;
-    margin-right: -80px;
-  }
+  /* bleed removed 16 Sep: negative margins ran off-screen at narrower windows */
+  margin-left: 0;
+  margin-right: 0;
 }
 .figureFrame {
   border: 1px solid var(--edge);
@@ -213,4 +208,56 @@
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* Big-number tiles (components/blog/Stats) */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 26px 0;
+}
+.stat {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+}
+.statValue {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(26px, 3.2vw, 36px);
+  line-height: 1;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+.statValue[data-tone="accent"] { color: var(--accent); }
+.statValue[data-tone="mint"] { color: var(--mint); }
+.statLabel {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.prose .takeaways {
+  margin: 22px 0;
+  padding: 0;
+  list-style: none;
+}
+.prose .takeaways li {
+  padding: 10px 0 10px 26px;
+  position: relative;
+  border-bottom: 1px solid var(--edge);
+  font-size: 17px;
+}
+.prose .takeaways li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 19px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
 }

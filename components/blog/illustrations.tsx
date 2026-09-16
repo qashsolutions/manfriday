@@ -239,7 +239,7 @@ export function FirstThreeSeconds() {
           <circle r="10" fill={i === 3 ? "var(--mint)" : "var(--accent)"} />
           <text x="0" y="-26" fontSize="12" fill="var(--faint)" style={mono}>{p.t}</text>
           <text x="0" y="48" fontSize="16" fill="var(--ink)" style={display}>{p.l}</text>
-          <foreignObject x="0" y="60" width="290" height="80">
+          <foreignObject x="0" y="60" width={Math.min(290, 1170 - p.x)} height="80">
             <div style={{ fontFamily: "var(--font-body)", fontSize: 13, lineHeight: 1.4, color: "var(--dim)" }}>{p.d}</div>
           </foreignObject>
         </g>
