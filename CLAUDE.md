@@ -7,7 +7,7 @@ Short-form video content engine for solo builders, modeled on the category leade
 ## Working process (mandated)
 
 **Plan → Design → Build, with hard gates.** Build starts only after the design gate clears.
-Current status (4 Sep 2026, late): **BUILD STARTED** on user's go — order: marketing site + blog first (SEO lead time), then M1 → M2 → M3, language support built in from the schema up. Artboard pricing copy (Founding 500 / $34/mo) predates the 4 Sep pricing amendment below — code is source of truth; refresh artboards opportunistically.
+Current status (16 Sep 2026): **M0–M3 built and live; M4 partly done** (YouTube stats, tracked links). Worker on Railway; OAuth verified by Google; TikTok audit + YouTube quota audit pending. Live scope tracker: **docs/status.md** (keep it current). Next: Stripe billing. Artboard pricing copy (Founding 500 / $34/mo) predates the 4 Sep pricing amendment below — code is source of truth; refresh artboards opportunistically.
 
 Source files live in-repo: `docs/project-viral-plan.html` (plan), `docs/friday-internals.html` (technical design), `design/*.dc.html` + `design/canvas.json` (the 9 design-canvas artboards; edit these and re-publish to the screens artifact via the design skill — never hand-edit the published artifact). Published versions:
 - Plan: https://claude.ai/code/artifact/57f0657b-a3b7-4da5-9c4f-e4c581c7afc9
@@ -61,7 +61,7 @@ Marketing copy leads with click attribution ("see which post sent people to your
 - M1 (wk 1–3): headless pipeline — URL in → brand brief → 10 rendered concepts (all 3 formats). **If M1 output is weak, stop and fix before any UI.**
 - M2 (wk 4–5): Picks UI over the pipeline; lazy full-res render on right-swipe.
 - M3 (wk 6–7): TikTok + YouTube OAuth, calendar, scheduled publish (TikTok draft-to-inbox fallback until audit clears).
-- M4 (wk 8–9): metrics ingestion (**YouTube view/like/comment counts + Analytics page shipped early, 12 Sep 2026** — TikTok counts wait for its API review), "more like this", Stripe billing (Free tier → paid checkout; card only at subscribe) + Founding-200 counter + pause/top-ups, beta invites, free calculator pages on manfriday.app (engagement-rate + creator-earnings; static, deterministic, zero COGS — SEO doors into the trial, from the competitor teardown).
+- M4 (wk 8–9): metrics ingestion (**YouTube counts + Analytics page shipped 12 Sep; tracked links shipped 14 Sep** — TikTok counts wait for its API review), "more like this", Stripe billing (Free tier → paid checkout; card only at subscribe) + Founding-200 counter + pause/top-ups, beta invites, free calculator pages on manfriday.app (engagement-rate + creator-earnings; static, deterministic, zero COGS — SEO doors into the trial, from the competitor teardown).
 
 ## Launch checklist (accumulating)
 
@@ -76,7 +76,7 @@ Marketing copy leads with click attribution ("see which post sent people to your
 - [x] Google Cloud project + YouTube Data API enabled; **OAuth verification APPROVED 14 Sep 2026 for youtube.readonly + youtube.upload** (submitted 11 Sep; round-2 response 13 Sep (Google asked for a fuller demo + three privacy-policy disclosures → new demo https://youtu.be/_aZEliCyCOE recorded on the production app, privacy policy rewritten with 'uses / shares / protects Google user data' sections + Limited Use statement; checklist and reply in docs/google-verification-round2.md). Consent screen is now verified: no 'unverified app' interstitial, no 100-user cap on these scopes.; **YouTube API quota/compliance audit submitted 12 Sep 2026** (company: Qash Solutions; use cases Video Uploading & Account Management + Tools for Creators + Analytics & Reporting; endpoints videos.insert / videos.list / channels.list; requested 300,000 units/day for videos.insert + 10,000 general; evidence + diagrams in docs/quota-screenshots and docs/diagrams) (scopes youtube.upload + youtube.readonly, sensitive not restricted → no CASA; app published to production; demo https://youtu.be/aRPVtmi-5EU unlisted; Google says first Trust & Safety email in 3–5 days, review up to 4–6 weeks; until approval the consent screen shows the unverified warning and the 100-user cap applies). Search Console verified, sitemap submitted. Default quota until the audit clears: 10,000 units/day ≈ 6 uploads/day.
 - [x] Template spec validated by hand-producing 3 real posts with it (validation/template-spec/ — PASS, spec bumped to v1.1, see FINDINGS.md)
 - [x] Trend library curation started (11 Sep: 141 templates seeded — 7 hand-made + 134 built from 252 vidIQ-sourced references hand-tagged in `worker/templates/curation/candidates.jsonl`; 6 niches: ai-tools, dev-tools, build-in-public, solo-saas, consumer-apps, productivity-tools. Tooling: `worker/pipeline/ingest_vidiq.py` → `build_templates.py` → `seed_library.py`. Target 300–500 still open — ~105 vidIQ credits left this month)
-- [ ] Accounts provisioned: Convex, Clerk, Railway, FAL, Anthropic API, Resend, Axiom, PostHog, Stripe
+- [x] Accounts provisioned: Convex, Clerk, Railway (live 14 Sep), FAL, Anthropic API, Sarvam · [ ] Resend, Axiom, PostHog, Stripe
 - [ ] ~15 Mum-Test discovery calls with target users
 - [ ] User sign-off on screens + prototype
 
@@ -92,6 +92,23 @@ We signed the YouTube API Services Terms, Developer Policies, and a truthfulness
 6. **Branding.** The product name never contains "YouTube"; YouTube is named only to describe the integration; no implied endorsement; use only official marks if a logo is ever added.
 7. **Quota discipline.** Stay within granted quota (300k/day requested for videos.insert); request increases with usage data, never work around limits with extra projects or clients. One API client = one Google Cloud project (845649489196).
 8. **Stay current.** Google emails about policy changes go to admin@manfriday.app; act on them, and re-submit the compliance form if the use case changes. The audit must be re-done if ownership, name, or scopes change. **Google's approval letter (14 Sep): any change to the OAuth consent screen configuration — app name, logo, authorised domains, homepage/privacy/terms URLs, scopes — requires a NEW verification request; verification is not inherited by new scopes. Keep Project Owner/Editor accounts current in the Cloud Console. Edit Branding/Data access only with a re-verification planned.**
+
+## Automated tests (mandatory before merging pipeline/backend changes)
+
+- `npm run test:worker` — 18 pytest checks in `worker/tests` with a fake voice (`TTS_PROVIDER=fake`): every format renders with audio at 1080×1920@30, narration/caption continuity, presenter hook → product cut, Indic shaping via libraqm, planner gating. CI: `.github/workflows/worker-tests.yml` on `worker/**`.
+- `npm run test:convex` — 13 convex-test/vitest checks in `convex/tests`: scheduling + tracked links, D1 slideshow rule, discard rules, tokens never exposed, disconnect/expiry wipe + scheduled revoke, stats pruning/purge, delete-account cascade, click logging, presenter/voice. CI: `.github/workflows/convex-tests.yml` on `convex/**`.
+- `npm run compliance` — YouTube API guard (see below). Weekly + on push.
+- Not covered on purpose: browser flows behind Clerk sign-in. Nightly live smoke render waits for an alerting channel (Resend).
+
+**Product rule (user, 15 Sep 2026): every feature must answer "what is in it for the user and what value do they derive" — remove fluff.** This is why the AI talking head was removed the day it shipped and why pricing has no sub-caps.
+
+## Rendering notes (worker/render)
+
+- Text legibility (15 Sep): `draw_text_block` measures the region behind a block and adds a dark scrim on bright/busy/transparent backgrounds plus a drop shadow on non-stroked text. Don't hand-draw bands behind text.
+- Slideshows are narrated (per-slide voice, slide timing follows speech); the licensed music bed is still not wired.
+- Presenter videos: photo still + push-in for the hook (`AVATAR_HOOK_SECONDS`, default 8), voice over, then product b-roll. Caption windows are contiguous.
+- Voice: brand `voice` female/male → FAL Rachel/Adam (`FAL_TTS_VOICE`, `FAL_TTS_VOICE_MALE`), Sarvam priya/rahul (`SARVAM_SPEAKER_FEMALE/MALE`).
+- Encode is memory-bounded (veryfast, 2 threads) — Railway trial container is 1 GB.
 
 ## Operating principle (from the category leader's founder playbook)
 
