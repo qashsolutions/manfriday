@@ -199,12 +199,41 @@ def draw_text_block(img, text: str, token: str, position: str, pal: dict, max_w:
             "upper-third": int(H * 0.16),
         }[position]
 
+    # Legibility (15 Sep 2026): white text is not always clear over screenshots,
+    # photos or the lighter part of a gradient. Measure what sits behind the block;
+    # if it is bright or busy, put a soft dark scrim behind the text. Always add a
+    # subtle drop shadow to non-stroked text so it holds on mid-tones too.
+    if not st.get("pill") and img.mode in ("RGB", "RGBA"):
+        block_w = max(d.textbbox((0, 0), ln, font=fnt)[2] for ln in lines)
+        bx0, bx1 = max(0, (W - block_w) // 2 - 36), min(W, (W + block_w) // 2 + 36)
+        by0, by1 = max(0, y0 - 20), min(H, y0 + block_h + 20)
+        region = img.crop((bx0, by0, bx1, by1)).convert("L")
+        hist = region.histogram()
+        n = max(1, sum(hist))
+        mean = sum(i * c for i, c in enumerate(hist)) / n
+        var = sum(c * (i - mean) ** 2 for i, c in enumerate(hist)) / n
+        busy = var ** 0.5 > 38
+        bright = mean > 96
+        # transparent overlays (RGBA, alpha 0) are drawn onto photos/video later → always scrim
+        transparent = img.mode == "RGBA" and img.getchannel("A").getextrema()[1] == 0
+        if bright or busy or transparent:
+            from PIL import Image as _Image, ImageDraw as _ImageDraw
+            scrim = _Image.new("RGBA", img.size, (0, 0, 0, 0))
+            _ImageDraw.Draw(scrim).rounded_rectangle([bx0, by0, bx1, by1], radius=24, fill=(12, 11, 16, 150 if not st.get("stroke") else 110))
+            if img.mode == "RGBA":
+                img = _Image.alpha_composite(img, scrim)
+            else:
+                img = _Image.alpha_composite(img.convert("RGBA"), scrim).convert("RGB")
+            d = ImageDraw.Draw(img)
+
     y = y0
     for ln in lines:
         w_ = d.textbbox((0, 0), ln, font=fnt)[2]
         kwargs = {}
         if st.get("stroke"):
             kwargs = dict(stroke_width=5, stroke_fill=hx(st["stroke"]))
+        else:
+            d.text(((W - w_) // 2 + 3, y + 3), ln, font=fnt, fill=(0, 0, 0))  # shadow
         d.text(((W - w_) // 2, y), ln, font=fnt, fill=hx(st["color"]), **kwargs)
         y += line_h
     return img
