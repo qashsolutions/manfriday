@@ -6,7 +6,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 | Item | Status | Notes |
 |---|---|---|
 | Landing v2, pricing, signup shell | ✅ | live at manfriday.app |
-| Blog (MDX, sitemap, RSS, robots) | 🟡 | plumbing done; only 2 posts — daily-postable cadence not started |
+| Blog (MDX, sitemap, RSS, robots) | 🟡 | 6 posts (4 illustrated flagship posts 16 Sep with theme-aware SVG figures, hero cards, per-post OG); cadence not yet regular |
 | Legal pages | 🟡 | privacy/terms live and Google-approved; counsel review before beta |
 | Search Console / Bing | 🟡 | Google verified + sitemap; Bing not done |
 
