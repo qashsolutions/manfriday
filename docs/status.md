@@ -16,7 +16,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 | Scrape → brand brief (Claude call site 1) | ✅ | |
 | Trend matching + slot-fill (call site 2) | ✅ | 141 templates seeded; discovery to 300–500 open |
 | Slideshow + hook-video render | ✅ | Pillow + ffmpeg, Latin + all 10 Indic scripts |
-| **AI avatar format** | 🟡 | 14 Sep: user-photo presenter (upload + consent in Settings), hook-only talking head via FAL Kling v2, product b-roll tail, AI-generated flag on YouTube. Built and unit-tested; **first real render pending a presenter photo** |
+| **AI avatar format** | ✅ | 15 Sep: user-photo presenter (upload / "use my profile photo" + consent), hook-only talking head via FAL Kling v2 (~8 s, 43¢ recorded), product b-roll tail, AI-generated flag on YouTube. First real render verified on Railway |
 | 14-language pipeline (FAL + Sarvam) | ✅ | Roman-script style untested |
 | Worker deploy | ✅ | Railway, 14 Sep; trial plan → Hobby upgrade pending |
 

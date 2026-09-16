@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { createTrackedLink, withUtm } from "./links";
-import { internalMutation } from "./_generated/server";
-import type { MutationCtx } from "./_generated/server";
+import { internalQuery, internalMutation } from "./_generated/server";
+import type { QueryCtx, MutationCtx } from "./_generated/server";
 
 // Dev-only seeder: creates one user/brand/template/concept and a pending
 // preview render job so the worker loop can be exercised end to end.
@@ -251,5 +251,29 @@ export const unschedulePost = internalMutation({
     }
     await ctx.db.delete("posts", args.postId);
     return { removed: { publications: pubs.length, links: links.length } };
+  },
+});
+
+// Dev-only: avatar-format concepts of the real user, newest first, with status.
+// Run: npx convex run dev:avatarCandidates
+export const avatarCandidates = internalQuery({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const users = await ctx.db.query("users").take(20);
+    const real = users.find((u) => u.clerkId && u.clerkId.startsWith("user_"));
+    if (!real) return [];
+    const out: Array<{ id: string; status: string; hook: string }> = [];
+    for (const status of ["preview_ready", "kept", "rendered", "render_queued", "failed"] as const) {
+      const rows = await ctx.db
+        .query("concepts")
+        .withIndex("by_userId_and_status", (q) => q.eq("userId", real._id).eq("status", status))
+        .order("desc")
+        .take(30);
+      for (const c of rows) {
+        const t = await ctx.db.get("trendTemplates", c.templateId);
+        if (t?.format === "avatar") out.push({ id: c._id, status, hook: String((c.slots as Record<string, string>)?.hook_overlay ?? "").slice(0, 60) });
+      }
+    }
+    return out;
   },
 });
