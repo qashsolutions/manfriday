@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import styles from "../app.module.css";
 import { LanguageChip } from "@/components/app/LanguageChip";
+import { previewLine, stageIndex } from "@/lib/onboarding-copy";
 
 // Each stage says what Friday is doing AND roughly how long it takes, so the
 // wait never looks like a hang. Times are the observed p50 of a real batch.
@@ -22,13 +23,6 @@ const STATUS_COPY: Record<string, string> = {
   drafting: "Brief done. Friday is writing your first ten concepts, about a minute.",
 };
 
-/** Which stage we're in: 0 reading, 1 writing, 2 rendering previews. */
-function stageIndex(status: string | undefined): number {
-  if (status === "done") return 2;
-  if (status === "drafting") return 1;
-  return 0;
-}
-
 export default function OnboardingPage() {
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +33,7 @@ export default function OnboardingPage() {
 
   const busy = request && ["pending", "claimed", "analyzing", "drafting"].includes(request.status);
   const previews = request?.previews ?? { ready: 0, total: 0 };
-  const stage = stageIndex(request?.status);
+  const stage = stageIndex(request?.status, previews);
 
   // The landing hero's URL rides through signup in localStorage (see RememberUrl).
   useEffect(() => {
@@ -90,11 +84,9 @@ export default function OnboardingPage() {
       {(busy || request?.status === "done") && (
         <div className={styles.progress}>
           <p className={styles.statusLine}>
-            <span className={styles.pulse} />
+            <span className={stage === 3 ? styles.liveDot : styles.pulse} />
             {request?.status === "done"
-              ? previews.ready >= previews.total && previews.total > 0
-                ? `All ${previews.total} previews are ready.`
-                : `${previews.ready} of ${previews.total || 10} previews ready — the rest are rendering.`
+              ? previewLine(previews.ready, previews.total)
               : (STATUS_COPY[request!.status] ?? request!.status)}
           </p>
           <ol className={styles.stageList}>
@@ -108,9 +100,11 @@ export default function OnboardingPage() {
               </li>
             ))}
           </ol>
-          <p className={styles.stageNote}>
-            You can leave this page — Friday keeps working and everything waits for you in Picks.
-          </p>
+          {stage < 3 && (
+            <p className={styles.stageNote}>
+              You can leave this page — Friday keeps working and everything waits for you in Picks.
+            </p>
+          )}
         </div>
       )}
 
