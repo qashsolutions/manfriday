@@ -21,15 +21,17 @@ export const STATUS_LABEL: Record<string, string> = {
   failed: "FAILED",
 };
 
+/** Said once above the queue, so the per-row line can stay short. */
+export const TIKTOK_INBOX_NOTE =
+  "TikTok posts land as drafts in your TikTok app: open TikTok → Inbox → Notifications, tap the draft, then post it. Friday can't publish to TikTok directly until TikTok approves our app.";
+
 /** One plain sentence: where this went, and what (if anything) the user does. */
 export function destination(p: QueueChip, now = Date.now()): string | null {
   const when = new Date(p.publishAt).toLocaleString();
   void now;
   if (p.platform === "tiktok") {
-    if (p.status === "draft_fallback")
-      return "Waiting in your TikTok app: open TikTok → Inbox → Notifications, tap the draft, then post it. Friday can't publish to TikTok directly until TikTok approves our app.";
-    if (p.status === "queued")
-      return `Friday sends this to your TikTok inbox at ${when}. You tap post in the TikTok app — direct posting turns on when TikTok approves our app.`;
+    if (p.status === "draft_fallback") return "Waiting in your TikTok inbox — tap the draft to post it.";
+    if (p.status === "queued") return `Friday sends this to your TikTok inbox at ${when}, then you tap post.`;
     if (p.status === "publishing") return "Friday is sending this to your TikTok inbox now.";
   }
   if (p.platform === "youtube") {

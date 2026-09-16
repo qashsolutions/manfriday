@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import styles from "../app.module.css";
-import { STATUS_LABEL, destination } from "@/lib/queue-copy";
+import { STATUS_LABEL, TIKTOK_INBOX_NOTE, destination } from "@/lib/queue-copy";
 
 const STATUS_COLOR: Record<string, string> = {
   queued: "var(--amber)",
@@ -188,6 +188,9 @@ export default function CalendarPage() {
       )}
 
       <span className={styles.sectionTitle}>THE QUEUE</span>
+      {(queue ?? []).some((p) => p.publications.some((x) => x.platform === "tiktok")) && (
+        <p className={styles.queueNote}>{TIKTOK_INBOX_NOTE}</p>
+      )}
       {queue === undefined ? (
         <p className={styles.statusLine}>
           <span className={styles.pulse} /> Loading…
@@ -204,54 +207,56 @@ export default function CalendarPage() {
             <div
               key={post.id}
               className="panel"
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 20px" }}
+              style={{ display: "flex", flexDirection: "column", gap: 8, padding: "14px 20px" }}
             >
-              <div style={{ minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {post.hook || "(untitled concept)"}
-                </p>
-                <p className="mono" style={{ margin: "3px 0 0", fontSize: 11, color: "var(--faint)" }}>
-                  {new Date(post.publishAt).toLocaleString()}
-                  {post.link && <span title="Tracked link in this post's caption — clicks show in Analytics"> · {post.link}</span>}
-                </p>
-                {post.publications.map((p) => {
-                  const d = destination(p);
-                  return d ? (
-                    <p key={`${p.id}-dest`} className={styles.destination}>
-                      {d}
-                    </p>
-                  ) : null;
-                })}
-                {post.publications
-                  .filter((p) => p.status === "failed")
-                  .map((p) => (
-                    <p key={`${p.id}-why`} style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--accent)", whiteSpace: "normal" }}>
-                      {friendlyError(p.platform, p.error)}{" "}
-                      {p.error?.startsWith("AUTH_EXPIRED") && <Link href="/settings">Reconnect →</Link>}
-                    </p>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {post.hook || "(untitled concept)"}
+                  </p>
+                  <p className="mono" style={{ margin: "3px 0 0", fontSize: 11, color: "var(--faint)" }}>
+                    {new Date(post.publishAt).toLocaleString()}
+                    {post.link && <span title="Tracked link in this post's caption — clicks show in Analytics"> · {post.link}</span>}
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {post.publications.map((p) => (
+                    <span
+                      key={p.id}
+                      className="mono"
+                      title={p.error ?? undefined}
+                      style={{
+                        fontSize: 10,
+                        letterSpacing: "0.08em",
+                        color: STATUS_COLOR[p.status] ?? "var(--dim)",
+                        border: `1px solid ${STATUS_COLOR[p.status] ?? "var(--edge-2)"}`,
+                        borderRadius: 999,
+                        padding: "3px 10px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {p.platform.toUpperCase()} · {STATUS_LABEL[p.status] ?? p.status}
+                      {p.views !== null && p.status === "live" ? ` · ${p.views.toLocaleString()} VIEWS` : ""}
+                    </span>
                   ))}
+                </div>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {post.publications.map((p) => (
-                  <span
-                    key={p.id}
-                    className="mono"
-                    title={p.error ?? undefined}
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: "0.08em",
-                      color: STATUS_COLOR[p.status] ?? "var(--dim)",
-                      border: `1px solid ${STATUS_COLOR[p.status] ?? "var(--edge-2)"}`,
-                      borderRadius: 999,
-                      padding: "3px 10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {p.platform.toUpperCase()} · {STATUS_LABEL[p.status] ?? p.status}
-                    {p.views !== null && p.status === "live" ? ` · ${p.views.toLocaleString()} VIEWS` : ""}
-                  </span>
+              {post.publications.map((p) => {
+                const d = destination(p);
+                return d ? (
+                  <p key={`${p.id}-dest`} className={styles.destination}>
+                    {d}
+                  </p>
+                ) : null;
+              })}
+              {post.publications
+                .filter((p) => p.status === "failed")
+                .map((p) => (
+                  <p key={`${p.id}-why`} style={{ margin: 0, fontSize: 12.5, color: "var(--accent)" }}>
+                    {friendlyError(p.platform, p.error)}{" "}
+                    {p.error?.startsWith("AUTH_EXPIRED") && <Link href="/settings">Reconnect →</Link>}
+                  </p>
                 ))}
-              </div>
             </div>
           ))}
         </div>

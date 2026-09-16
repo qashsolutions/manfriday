@@ -1,14 +1,17 @@
 import { describe, expect, test } from "vitest";
-import { STATUS_LABEL, destination } from "../../lib/queue-copy";
+import { STATUS_LABEL, TIKTOK_INBOX_NOTE, destination } from "../../lib/queue-copy";
 
 const at = Date.UTC(2026, 8, 20, 17, 30);
 
 describe("queue copy", () => {
   test("a TikTok post never claims to be published — it names the inbox and the tap", () => {
     const d = destination({ platform: "tiktok", status: "draft_fallback", publishAt: at, deferred: false })!;
-    expect(d).toMatch(/TikTok app/);
-    expect(d).toMatch(/Inbox/);
+    expect(d).toMatch(/inbox/i);
+    expect(d).toMatch(/tap/i);
     expect(d).not.toMatch(/live|published/i);
+    // Short enough to sit on one line of a queue row; the full instructions are said once.
+    expect(d.length).toBeLessThan(80);
+    expect(TIKTOK_INBOX_NOTE).toMatch(/Inbox → Notifications/);
     // The chip agrees with the sentence.
     expect(STATUS_LABEL.draft_fallback).toBe("DRAFT IN TIKTOK");
     expect(STATUS_LABEL.draft_fallback).not.toMatch(/SCHEDULED|LIVE/);
@@ -18,6 +21,7 @@ describe("queue copy", () => {
     const d = destination({ platform: "tiktok", status: "queued", publishAt: at, deferred: false })!;
     expect(d).toMatch(/inbox/i);
     expect(d).toMatch(/tap post/i);
+    expect(d).toContain(new Date(at).toLocaleString());
   });
 
   test("a queued YouTube post says Friday does it, with the time", () => {
