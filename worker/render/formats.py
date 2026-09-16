@@ -241,6 +241,11 @@ def caption_overlay(text: str, values: dict, plan: dict, brand: BrandAssets, wit
 
     img = _Image.new("RGBA", (W, H), (0, 0, 0, 0))
     if with_overlay:
+        # Over a photo the small mint label vanishes: back it with a soft dark band.
+        from PIL import ImageDraw as _ImageDraw
+        band = _Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        _ImageDraw.Draw(band).rounded_rectangle([60, int(H * 0.16) - 34, W - 60, int(H * 0.16) + 96], radius=22, fill=(12, 11, 16, 170))
+        img = _Image.alpha_composite(img, band)
         img = draw_text_block(img, values[plan["overlay"]["slotRef"]], plan["overlay"]["styleToken"], plan["overlay"]["position"], brand.palette)
     img = draw_text_block(img, text, plan["captions"]["styleToken"], plan["captions"]["position"], brand.palette)
     p = outdir / f"ov_{i:02d}.png"
