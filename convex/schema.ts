@@ -37,7 +37,7 @@ export default defineSchema({
     stripeCustomerId: v.optional(v.string()),
     credits: v.number(), // cached sum of creditLedger (internal metering)
     videosUsedThisPeriod: v.number(), // rendered videos this period (the visible unit)
-    avatarVideosUsedThisPeriod: v.number(), // avatar sub-cap consumption
+    avatarVideosUsedThisPeriod: v.optional(v.number()), // deprecated 15 Sep 2026 (sub-caps dropped); unused
     timezone: v.string(), // IANA; publish slots resolve here
   }).index("by_clerkId", ["clerkId"]),
 

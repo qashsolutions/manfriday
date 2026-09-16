@@ -15,11 +15,11 @@ export const POLICY = {
 /** Free plan: try Friday with no card. One-time allowance, not monthly. */
 export const FREE = {
   name: "Free",
-  videosTotal: 3, // slideshow/hook formats; avatar renders are paid
+  videosTotal: 3, // any format
   workspaces: 1,
 } as const;
 
-/** D5 v5 (6 Sep 2026): the visible unit is VIDEOS per month (avatar sub-cap).
+/** D5 v6 (15 Sep 2026): the visible unit is VIDEOS per month, any format — no sub-caps.
  *  Credits remain internal metering only — never user-facing. */
 export type Tier = {
   id: "solo" | "studio";
@@ -29,7 +29,6 @@ export type Tier = {
   annual: number;
   threeYear: number; // Founding 200 only — pay today, no cancellation
   videos: number; // rendered videos per month, any format mix
-  avatarVideos: number; // of which may be avatar renders
   workspaces: number;
   highlight: boolean;
 };
@@ -43,7 +42,6 @@ export const TIERS: readonly Tier[] = [
     annual: 150,
     threeYear: 200,
     videos: 20,
-    avatarVideos: 5,
     workspaces: 2,
     highlight: false,
   },
@@ -55,19 +53,18 @@ export const TIERS: readonly Tier[] = [
     annual: 250,
     threeYear: 300,
     videos: 100,
-    avatarVideos: 15,
     workspaces: 2,
     highlight: true,
   },
 ] as const;
 
-export const TOPUP = { videos: 10, avatarVideos: 3, price: 5 } as const;
+export const TOPUP = { videos: 10, price: 5 } as const;
 
 /** The 3-year deal is scoped to the first N customers, pay-today, non-cancellable. */
 export const FOUNDING = { cap: 200, label: "Founding 200" } as const;
 
 export const SHARED_FEATURES = [
-  "Slideshows, faceless videos + 20 AI avatars",
+  "Slideshows, faceless videos, presenter videos with your face",
   "Direct publish to TikTok + YouTube Shorts",
   "Tracked links — see which post sent people to you",
   "Trend library curated for your niche",

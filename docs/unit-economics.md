@@ -1,3 +1,5 @@
+> **Superseded 15 Sep 2026:** the avatar sub-cap is gone (D5 v6). The AI talking head was removed; a presenter video costs the same as a hook video (≈6¢, voice only), so every plan is simply N videos/month. The COGS analysis below is kept for history; worst-case COGS per video is now the hook-video figure.
+
 # Unit economics — pricing limits & margins (v1, 6 Sep 2026)
 
 The visible pricing unit is **videos per month** with an **avatar sub-cap**; credits exist

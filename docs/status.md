@@ -43,7 +43,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 waiting on a third p
 | TikTok metrics | 🔒 | needs a scope not in the current TikTok audit |
 | **Tracked links** (north-star metric) | ✅ | 14 Sep: slug per post at schedule time, appended to both captions (UTM-tagged target), `/l/<slug>` redirect logs clicks with platform from Referer, crawlers skipped; Analytics shows clicks per post |
 | "Friday, more like this" | ⬜ | |
-| Stripe billing (Free → paid, Founding 200 counter, pause, top-ups) | ⬜ | Settings shows M4 placeholders; no Stripe code |
+| Stripe billing (Free → paid, Founding 200 counter, pause, top-ups) | ⬜ | Settings shows M4 placeholders; no Stripe code. Pricing simplified 15 Sep: N videos/month, no avatar sub-caps |
 | Beta invites | ⬜ | |
 | Calculator pages (SEO) | ⬜ | |
 | Resend / PostHog / Axiom | ⬜ | named in privacy policy as processors; not integrated, no keys |

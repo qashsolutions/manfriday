@@ -31,7 +31,6 @@ export const ensureCurrent = mutation({
       plan: "free",
       credits: 0,
       videosUsedThisPeriod: 0,
-      avatarVideosUsedThisPeriod: 0,
       timezone: args.timezone ?? "UTC",
     });
   },
@@ -53,7 +52,6 @@ export const current = query({
       tier: row.tier ?? null,
       term: row.term ?? null,
       videosUsedThisPeriod: row.videosUsedThisPeriod,
-      avatarVideosUsedThisPeriod: row.avatarVideosUsedThisPeriod,
     };
   },
 });

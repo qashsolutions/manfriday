@@ -29,7 +29,6 @@ export const ensureDevUser = mutation({
       plan: "free",
       credits: 0,
       videosUsedThisPeriod: 0,
-      avatarVideosUsedThisPeriod: 0,
       timezone: "America/Los_Angeles",
     });
   },

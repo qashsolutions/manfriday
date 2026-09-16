@@ -15,7 +15,6 @@ export const seedTestJob = internalMutation({
       plan: "free",
       credits: 0,
       videosUsedThisPeriod: 0,
-      avatarVideosUsedThisPeriod: 0,
       timezone: "America/Los_Angeles",
     });
     const brandId = await ctx.db.insert("brands", {

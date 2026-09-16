@@ -69,9 +69,6 @@ export default function PricingPage() {
                 <strong>{t.videos}</strong> videos / month, any format
               </li>
               <li>
-                up to <strong>{t.avatarVideos}</strong> with your AI presenter
-              </li>
-              <li>
                 <strong>{t.workspaces}</strong> workspaces
               </li>
               <li>Publishes on schedule, hands-free</li>

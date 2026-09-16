@@ -28,7 +28,7 @@ export default function TermsPage() {
         anytime, effective at period end. Quarterly and annual prepaid terms are refundable
         within the first 14 days, then non-refundable. The <strong>{FOUNDING.label} 3-year
         plan is pay-today, non-cancellable, and non-refundable</strong> — it is limited to the
-        first {FOUNDING.cap} customers and priced accordingly. Monthly video allowances (including the avatar sub-cap)
+        first {FOUNDING.cap} customers and priced accordingly. Monthly video allowances
         reset each month and don&apos;t roll over; top-up packs (+{TOPUP.videos} videos for $
         {TOPUP.price}) are available.
       </p>
