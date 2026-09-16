@@ -174,6 +174,9 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
     if total > cap:
         raise RuntimeError(f"duration {total:.1f}s exceeds cap {cap}s")
     overlay_until = plan["overlay"]["showSeconds"]
+    # Contiguous caption windows: a caption stays up through the pause before the
+    # next line (no blank frames, no drift in the tail where gaps used to be dropped).
+    chunks = contiguous_chunks(tts.chunks, tts.duration)
 
     def caption_png(text: str, with_overlay: bool, i: int) -> Path:
         img = base.copy()
@@ -192,8 +195,8 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
         # it cost 40¢+/video and viewers disliked it. A real face for two seconds is
         # the value; the animation was not.)
         budget = float(os.environ.get("AVATAR_HOOK_SECONDS", "8"))
-        hook_end = tts.chunks[0][1]
-        for _a, b, _t in tts.chunks:
+        hook_end = chunks[0][1]
+        for _a, b, _t in chunks:
             if b <= budget:
                 hook_end = b
         still = outdir / "presenter_frame.jpg"
@@ -201,7 +204,7 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
         raw = push_in(still, hook_end, outdir / "hook_raw.mp4")
         overlays = []
         j = 0
-        for a, b, text in tts.chunks:
+        for a, b, text in chunks:
             if a >= hook_end:
                 break
             overlays.append((caption_overlay(text, values, plan, brand, a < overlay_until, outdir, j), a, min(b, hook_end)))
@@ -211,7 +214,7 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
     # Tail: product screenshots / gradient with captions, then the end card.
     frames = []
     i = 0
-    for a, b, text in tts.chunks:
+    for a, b, text in chunks:
         if b <= hook_end:
             continue
         a = max(a, hook_end)
@@ -232,7 +235,7 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
     out = outdir / "post.mp4"
     if hook_clip is None:
         # legacy placeholder path (no presenter): stills for the whole script
-        frames = [(caption_png(t, a < overlay_until, k), b - a) for k, (a, b, t) in enumerate(tts.chunks)] + [frames[-1]]
+        frames = [(caption_png(t, a < overlay_until, k), b - a) for k, (a, b, t) in enumerate(chunks)] + [frames[-1]]
         assemble(frames, tts.wav, total, out)
         thumb = frames[0][0]
     else:
@@ -245,6 +248,18 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
 
 
 # --- presenter hook helpers ---------------------------------------------------
+
+
+def contiguous_chunks(chunks: list[tuple[float, float, str]], total: float) -> list[tuple[float, float, str]]:
+    """Close the gaps between caption chunks: each runs until the next starts,
+    the first from 0, the last to the end of the voice track."""
+    out = []
+    for i, (a, b, text) in enumerate(chunks):
+        start = 0.0 if i == 0 else out[-1][1]
+        end = chunks[i + 1][0] if i + 1 < len(chunks) else max(b, total)
+        out.append((start, max(end, start + 0.05), text))
+    return out
+
 
 
 def push_in(still: Path, seconds: float, out: Path) -> Path:
