@@ -6,12 +6,53 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { currentUserId } from "./users";
 import { ensureGoogleAccessToken } from "./google";
 import { createTrackedLink, withUtm } from "./links";
+import { UPLOAD_UNITS, dailyLimit, nextQuotaDayStart, quotaDay, quotaDayBounds, quotaKey, shiftDays } from "./youtubeQuota";
 
 // Contract 3 spine: posts → publications; a minute-cron scans by_due and runs
 // the platform adapter. v1 adapter = TikTok draft-to-inbox (FILE_UPLOAD), the
 // pre-audit path; direct post + YouTube land as the approvals clear.
 
 const MAX_ATTEMPTS = 3;
+const MAX_QUOTA_DEFERRALS = 5;
+
+/** Can one more YouTube upload fit in the quota day containing `ts`?
+ *  used = units already spent that day (uploads + the daily stats refresh);
+ *  reserved = uploads already queued for that day, across ALL users. */
+async function youtubeCapacity(ctx: QueryCtx | MutationCtx, ts: number) {
+  const row = await ctx.db.query("quotaCounters").withIndex("by_key", (q) => q.eq("key", quotaKey(ts))).first();
+  const limit = row?.limit ?? dailyLimit(env.YOUTUBE_DAILY_QUOTA);
+  const { start, end } = quotaDayBounds(ts);
+  let reserved = 0;
+  for (const status of ["queued", "publishing"] as const) {
+    const pubs = await ctx.db
+      .query("publications")
+      .withIndex("by_status_and_publishAt", (q) => q.eq("status", status).gte("publishAt", start).lt("publishAt", end))
+      .take(500);
+    reserved += pubs.filter((p) => p.platform === "youtube").length * UPLOAD_UNITS;
+  }
+  return { ok: (row?.used ?? 0) + reserved + UPLOAD_UNITS <= limit, day: quotaDay(ts) };
+}
+
+/** The first time at or after `ts` (same wall-clock, later day) with room for a YouTube upload. */
+async function nextOpenYoutubeSlot(ctx: QueryCtx | MutationCtx, ts: number): Promise<number | null> {
+  for (let d = 1; d <= 14; d++) {
+    const candidate = shiftDays(ts, d);
+    if ((await youtubeCapacity(ctx, candidate)).ok) return candidate;
+  }
+  return null;
+}
+
+/** For the Calendar: is there room on YouTube at `publishAt`? If not, when is the next open slot? */
+export const youtubeSlot = query({
+  args: { publishAt: v.number() },
+  handler: async (ctx: QueryCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) return null;
+    const cap = await youtubeCapacity(ctx, args.publishAt);
+    if (cap.ok) return { ok: true as const, nextOpenAt: null };
+    return { ok: false as const, nextOpenAt: await nextOpenYoutubeSlot(ctx, args.publishAt) };
+  },
+});
 
 /** Schedule a rendered concept. Slideshows are TikTok-only (D1). */
 export const schedulePost = mutation({
@@ -35,6 +76,17 @@ export const schedulePost = mutation({
       (a) => a.platform === "tiktok" || (a.platform === "youtube" && template?.format !== "slideshow"),
     );
     if (targets.length === 0) throw new Error("connect a TikTok or YouTube account first");
+
+    // Compliance rule 7: never schedule past the day's YouTube quota. The limit is
+    // shared by every user until the audit clears, so the Calendar offers the
+    // next open day instead of letting the upload fail at publish time.
+    if (targets.some((a) => a.platform === "youtube")) {
+      const cap = await youtubeCapacity(ctx, args.publishAt);
+      if (!cap.ok) {
+        const next = await nextOpenYoutubeSlot(ctx, args.publishAt);
+        throw new Error(`QUOTA_FULL|${next ?? ""}|YouTube's upload limit for that day is already spoken for.`);
+      }
+    }
 
     const caption: string = (concept.slots as Record<string, string>).caption ?? "";
     const postId = await ctx.db.insert("posts", {
@@ -116,6 +168,9 @@ export const myQueue = query({
               id: p._id,
               platform: p.platform,
               status: p.status,
+              publishAt: p.publishAt,
+              // Pushed to the next quota day after YouTube said the daily limit was hit.
+              deferred: p.status === "queued" && (p.lastError ?? "").startsWith("QUOTA_DEFERRED"),
               error: p.lastError ?? null,
               views: latest?.views ?? null,
             };
@@ -167,9 +222,10 @@ export const markPublishing = internalMutation({
 export const finishPublish = internalMutation({
   args: {
     publicationId: v.id("publications"),
-    outcome: v.union(v.literal("draft_fallback"), v.literal("live"), v.literal("retryable"), v.literal("fatal")),
+    outcome: v.union(v.literal("draft_fallback"), v.literal("live"), v.literal("retryable"), v.literal("deferred"), v.literal("fatal")),
     platformPostId: v.optional(v.string()),
     error: v.optional(v.string()),
+    retryAt: v.optional(v.number()),
   },
   handler: async (ctx: MutationCtx, args) => {
     const pub = await ctx.db.get("publications", args.publicationId);
@@ -179,6 +235,13 @@ export const finishPublish = internalMutation({
         status: args.outcome,
         platformPostId: args.platformPostId,
         lastError: undefined,
+      });
+    } else if (args.outcome === "deferred" && args.retryAt !== undefined && pub.attempts <= MAX_QUOTA_DEFERRALS) {
+      // YouTube's daily quota is spent; the same approved upload waits for the next quota day.
+      await ctx.db.patch("publications", args.publicationId, {
+        status: "queued",
+        publishAt: args.retryAt,
+        lastError: `QUOTA_DEFERRED: ${args.error ?? ""}`.slice(0, 400),
       });
     } else if (args.outcome === "retryable" && pub.attempts < MAX_ATTEMPTS) {
       // backoff: 2m, 10m, 60m (contract 3)
@@ -263,12 +326,21 @@ export const publishOne = internalAction({
             await ctx.runMutation(internal.oauth.markAuthExpired, { accountId: account._id });
             return await fail("fatal", `AUTH_EXPIRED: ${text}`), null;
           }
-          if (initResp.status === 403) {
-            // daily quota exhausts and refills at midnight PT — retry later
-            return await fail("retryable", `QUOTA_EXCEEDED: ${text}`), null;
+          if (initResp.status === 403 && /quota/i.test(text)) {
+            // The day's quota is spent (refills at midnight Pacific): wait for the next quota day.
+            await ctx.runMutation(internal.publishing.finishPublish, {
+              publicationId: args.publicationId,
+              outcome: "deferred",
+              retryAt: nextQuotaDayStart(Date.now()),
+              error: text.slice(0, 200),
+            });
+            return null;
           }
+          await ctx.runMutation(internal.stats.countUnits, { units: UPLOAD_UNITS });
           return await fail(initResp.status >= 500 ? "retryable" : "fatal", `${initResp.status}: ${text}`), null;
         }
+        // The insert is accepted at init: the 1,600 units are spent whether or not the PUT completes.
+        await ctx.runMutation(internal.stats.countUnits, { units: UPLOAD_UNITS });
         const uploadUrl = initResp.headers.get("Location");
         if (!uploadUrl) {
           return await fail("retryable", "TRANSIENT: no resumable upload URL"), null;

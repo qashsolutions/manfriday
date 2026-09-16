@@ -96,7 +96,7 @@ We signed the YouTube API Services Terms, Developer Policies, and a truthfulness
 ## Automated tests (mandatory before merging pipeline/backend changes)
 
 - `npm run test:worker` — 18 pytest checks in `worker/tests` with a fake voice (`TTS_PROVIDER=fake`): every format renders with audio at 1080×1920@30, narration/caption continuity, presenter hook → product cut, Indic shaping via libraqm, planner gating. CI: `.github/workflows/worker-tests.yml` on `worker/**`.
-- `npm run test:convex` — 13 convex-test/vitest checks in `convex/tests`: scheduling + tracked links, D1 slideshow rule, discard rules, tokens never exposed, disconnect/expiry wipe + scheduled revoke, stats pruning/purge, delete-account cascade, click logging, presenter/voice. CI: `.github/workflows/convex-tests.yml` on `convex/**`.
+- `npm run test:convex` — 13 convex-test/vitest checks in `tests/convex`: scheduling + tracked links, D1 slideshow rule, discard rules, tokens never exposed, disconnect/expiry wipe + scheduled revoke, stats pruning/purge, delete-account cascade, click logging, presenter/voice. CI: `.github/workflows/convex-tests.yml` on `convex/**`.
 - `npm run compliance` — YouTube API guard (see below). Weekly + on push.
 - Not covered on purpose: browser flows behind Clerk sign-in. Nightly live smoke render waits for an alerting channel (Resend).
 

@@ -7,12 +7,27 @@ import { api } from "@/convex/_generated/api";
 import styles from "../app.module.css";
 import { LanguageChip } from "@/components/app/LanguageChip";
 
+// Each stage says what Friday is doing AND roughly how long it takes, so the
+// wait never looks like a hang. Times are the observed p50 of a real batch.
+const STAGES: { key: string; label: string; eta: string }[] = [
+  { key: "analyzing", label: "Reading your site", eta: "about 20 seconds" },
+  { key: "drafting", label: "Writing ten concepts", eta: "about a minute" },
+  { key: "rendering", label: "Rendering previews", eta: "a few minutes" },
+];
+
 const STATUS_COPY: Record<string, string> = {
   pending: "Friday is picking this up…",
   claimed: "Friday is picking this up…",
-  analyzing: "Friday is reading your site and writing the brief…",
-  drafting: "Brief done — Friday is drafting your first concepts…",
+  analyzing: "Friday is reading your site — the brief lands in about 20 seconds.",
+  drafting: "Brief done. Friday is writing your first ten concepts, about a minute.",
 };
+
+/** Which stage we're in: 0 reading, 1 writing, 2 rendering previews. */
+function stageIndex(status: string | undefined): number {
+  if (status === "done") return 2;
+  if (status === "drafting") return 1;
+  return 0;
+}
 
 export default function OnboardingPage() {
   const [url, setUrl] = useState("");
@@ -23,6 +38,8 @@ export default function OnboardingPage() {
   const setBrandLanguage = useMutation(api.brands.setLanguage);
 
   const busy = request && ["pending", "claimed", "analyzing", "drafting"].includes(request.status);
+  const previews = request?.previews ?? { ready: 0, total: 0 };
+  const stage = stageIndex(request?.status);
 
   // The landing hero's URL rides through signup in localStorage (see RememberUrl).
   useEffect(() => {
@@ -70,11 +87,31 @@ export default function OnboardingPage() {
       )}
       {error && <p className={styles.error}>{error}</p>}
 
-      {busy && (
-        <p className={styles.statusLine}>
-          <span className={styles.pulse} />
-          {STATUS_COPY[request.status] ?? request.status}
-        </p>
+      {(busy || request?.status === "done") && (
+        <div className={styles.progress}>
+          <p className={styles.statusLine}>
+            <span className={styles.pulse} />
+            {request?.status === "done"
+              ? previews.ready >= previews.total && previews.total > 0
+                ? `All ${previews.total} previews are ready.`
+                : `${previews.ready} of ${previews.total || 10} previews ready — the rest are rendering.`
+              : (STATUS_COPY[request!.status] ?? request!.status)}
+          </p>
+          <ol className={styles.stageList}>
+            {STAGES.map((s, i) => (
+              <li key={s.key} className={styles.stage} data-state={i < stage ? "done" : i === stage ? "active" : "todo"}>
+                <span className={styles.stageDot} />
+                <span className={styles.stageLabel}>{s.label}</span>
+                <span className={`mono ${styles.stageEta}`}>
+                  {i < stage ? "DONE" : i === stage ? s.eta.toUpperCase() : ""}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p className={styles.stageNote}>
+            You can leave this page — Friday keeps working and everything waits for you in Picks.
+          </p>
+        </div>
       )}
 
       {request?.status === "failed" && (
@@ -107,15 +144,9 @@ export default function OnboardingPage() {
       )}
 
       {request?.status === "done" && (
-        <>
-          <p className={styles.statusLine}>
-            <span className={styles.liveDot} /> First concepts are rendering — they appear in
-            Picks as they finish.
-          </p>
-          <Link href="/picks" className="btn btn--accent">
-            Open Picks →
-          </Link>
-        </>
+        <Link href="/picks" className="btn btn--accent">
+          {previews.ready > 0 ? `Open Picks (${previews.ready} ready) →` : "Open Picks →"}
+        </Link>
       )}
     </div>
   );

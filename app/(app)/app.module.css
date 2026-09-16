@@ -246,3 +246,70 @@
   color: var(--dim);
   max-width: 480px;
 }
+
+/* Onboarding progress: what Friday is doing now, and what's next. */
+.progress {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+.stageList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--edge);
+}
+.stage:last-child { border-bottom: none; }
+.stageDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex: none;
+  background: var(--edge-2);
+}
+.stage[data-state="done"] .stageDot { background: var(--mint); }
+.stage[data-state="active"] .stageDot {
+  background: var(--accent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.stageLabel { flex: 1; font-size: 14.5px; color: var(--dim); }
+.stage[data-state="active"] .stageLabel { color: var(--ink); font-weight: 600; }
+.stage[data-state="done"] .stageLabel { color: var(--dim); }
+.stageEta {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.stageNote { margin: 0; font-size: 13px; color: var(--faint); }
+
+/* Calendar: where a post actually went, and what the user does next. */
+.destination {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--dim);
+  white-space: normal;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}

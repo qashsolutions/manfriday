@@ -12,6 +12,10 @@ const app = defineApp({
     TIKTOK_CLIENT_SECRET: v.optional(v.string()),
     GOOGLE_CLIENT_ID: v.optional(v.string()),
     GOOGLE_CLIENT_SECRET: v.optional(v.string()),
+    // YouTube Data API units/day granted to the project (10,000 until the quota
+    // audit clears). Raise it in the Convex dashboard when Google raises ours —
+    // compliance rule 7: never work around the limit, schedule around it.
+    YOUTUBE_DAILY_QUOTA: v.optional(v.string()),
   },
 });
 

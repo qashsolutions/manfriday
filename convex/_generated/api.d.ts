@@ -22,6 +22,7 @@ import type * as publishing from "../publishing.js";
 import type * as stats from "../stats.js";
 import type * as users from "../users.js";
 import type * as worker from "../worker.js";
+import type * as youtubeQuota from "../youtubeQuota.js";
 
 import type {
   ApiFromModules,
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   stats: typeof stats;
   users: typeof users;
   worker: typeof worker;
+  youtubeQuota: typeof youtubeQuota;
 }>;
 
 /**

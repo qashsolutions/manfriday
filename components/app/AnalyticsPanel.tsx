@@ -23,10 +23,24 @@ export function AnalyticsPanel() {
   if (data === null) return <div className={styles.stub}>Sign in to see how your posts did.</div>;
   const published = data.rows.filter((r) => r.platforms.some((p) => p.status === "live"));
   if (published.length === 0) {
+    // Counts come from one cron a day (compliance rule 4) — say so, or an empty
+    // page an hour after posting reads as "this doesn't work".
+    const waiting = data.rows.length > 0;
     return (
       <div className={styles.stub}>
-        Nothing published yet. Once a Short is live, its views land here every morning —{" "}
-        <Link href="/calendar">schedule one from the Calendar</Link>.
+        {waiting ? (
+          <>
+            Your first post is scheduled but nothing is live yet. Once a Short goes up, its first
+            numbers appear here the next morning — Friday refreshes counts once a day, so nothing
+            changes minute to minute.
+          </>
+        ) : (
+          <>
+            Nothing published yet. Once a Short is live, its first numbers appear here the next
+            morning and refresh once a day —{" "}
+            <Link href="/calendar">schedule one from the Calendar</Link>.
+          </>
+        )}
       </div>
     );
   }
@@ -45,9 +59,11 @@ export function AnalyticsPanel() {
           </div>
         ))}
       </div>
-      <p className="mono" style={{ margin: 0, fontSize: 11, color: "var(--faint)" }}>
-        {updated ? `YOUTUBE COUNTS UPDATED ${updated.toUpperCase()} · REFRESHED ONCE A DAY` : "FIRST YOUTUBE REFRESH LANDS TOMORROW MORNING"}
-        {" · TIKTOK COUNTS COMING AFTER ITS API REVIEW"}
+      <p style={{ margin: 0, fontSize: 12.5, color: "var(--faint)" }}>
+        {updated
+          ? `YouTube counts last updated ${updated}. Friday refreshes them once a day, each morning — a post from today shows its first numbers tomorrow.`
+          : "No YouTube counts yet. Friday refreshes them once a day, so a post from today shows its first numbers tomorrow morning."}
+        {" TikTok counts arrive when TikTok approves our app."}
       </p>
       <span className={styles.sectionTitle}>BY POST</span>
       {published.map((r) => (

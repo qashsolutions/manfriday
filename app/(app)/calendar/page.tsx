@@ -25,12 +25,38 @@ function friendlyError(platform: string, error: string | null): string | null {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  queued: "QUEUED",
-  publishing: "PUBLISHING…",
+  queued: "SCHEDULED",
+  publishing: "POSTING…",
   live: "LIVE",
-  draft_fallback: "IN YOUR TIKTOK INBOX",
+  draft_fallback: "DRAFT IN TIKTOK",
   failed: "FAILED",
 };
+
+/** Where the post actually ended up, in the user's words. TikTok's pre-audit
+ *  path can only put a draft in the app's inbox — saying "scheduled" for that
+ *  would read as a lie when nothing appears on the profile. */
+function destination(p: { platform: string; status: string; publishAt: number; deferred: boolean }): string | null {
+  const when = new Date(p.publishAt).toLocaleString();
+  if (p.platform === "tiktok") {
+    if (p.status === "draft_fallback")
+      return "Waiting in your TikTok app: open TikTok → Inbox → Notifications, tap the draft, then post it. Friday can't publish to TikTok directly until TikTok approves our app.";
+    if (p.status === "queued")
+      return `Friday sends this to your TikTok inbox at ${when}. You tap post in the TikTok app — direct posting turns on when TikTok approves our app.`;
+  }
+  if (p.platform === "youtube") {
+    if (p.deferred)
+      return `YouTube's upload limit for that day was already used, so Friday moved this to ${when}. Nothing to do — it goes out then.`;
+    if (p.status === "queued") return `Friday uploads this to YouTube at ${when}.`;
+    if (p.status === "live") return "Live on your channel. Views land here every morning.";
+  }
+  return null;
+}
+
+/** Date → the value a datetime-local input wants. */
+function toLocalInput(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function fridaySuggests(): string {
   // Friday suggests 17:30 local, tomorrow if 17:30 already passed (lookup-table
@@ -51,6 +77,9 @@ export default function CalendarPage() {
   const [confirmDiscard, setConfirmDiscard] = useState<string | null>(null);
   const [when, setWhen] = useState(fridaySuggests());
   const [error, setError] = useState<string | null>(null);
+  // Compliance rule 7: the YouTube upload limit is shared by everyone until the
+  // quota audit clears, so the Calendar checks for room BEFORE the user schedules.
+  const slot = useQuery(api.publishing.youtubeSlot, { publishAt: new Date(when).getTime() });
 
   const tiktokConnected = accounts?.some((a) => a.platform === "tiktok" && a.status === "connected");
   const youtubeConnected = accounts?.some((a) => a.platform === "youtube" && a.status === "connected");
@@ -65,7 +94,21 @@ export default function CalendarPage() {
     try {
       await schedule({ conceptId, publishAt: new Date(when).getTime() });
     } catch (err) {
-      setError(err instanceof Error ? err.message.replace(/^.*Error: /, "") : "Couldn't schedule");
+      const raw = err instanceof Error ? err.message.replace(/^.*Error: /, "") : "Couldn't schedule";
+      if (raw.startsWith("QUOTA_FULL|")) {
+        const [, next] = raw.split("|");
+        if (next) {
+          const at = new Date(Number(next));
+          setError(
+            `YouTube's upload limit for that day is already taken. The next open slot is ${at.toLocaleString()} — pick it above and schedule again.`,
+          );
+          setWhen(toLocalInput(at));
+        } else {
+          setError("YouTube's upload limit is taken for the next two weeks. Try a TikTok-only concept, or schedule this later.");
+        }
+        return;
+      }
+      setError(raw);
     }
   };
 
@@ -112,6 +155,26 @@ export default function CalendarPage() {
                 }}
               />
             </label>
+            {slot && !slot.ok && (
+              <p className={styles.destination} style={{ maxWidth: 320 }}>
+                YouTube&apos;s uploads for that day are taken.{" "}
+                {slot.nextOpenAt ? (
+                  <>
+                    Next open:{" "}
+                    <button
+                      type="button"
+                      className={styles.linkBtn}
+                      onClick={() => setWhen(toLocalInput(new Date(slot.nextOpenAt!)))}
+                    >
+                      {new Date(slot.nextOpenAt).toLocaleString()}
+                    </button>
+                    . TikTok is unaffected.
+                  </>
+                ) : (
+                  "Try a later date. TikTok is unaffected."
+                )}
+              </p>
+            )}
           </div>
           <div className={styles.renderedGrid}>
             {unscheduled.map((r) => (
@@ -158,8 +221,9 @@ export default function CalendarPage() {
         </p>
       ) : queue.length === 0 ? (
         <div className={styles.stub}>
-          Nothing scheduled yet. Right-swipe in Picks, then schedule the rendered videos here —
-          Friday handles the posting.
+          Nothing scheduled yet. Right-swipe in Picks, then schedule the rendered videos here.
+          YouTube posts go up on their own; TikTok posts land in your TikTok inbox for one tap,
+          until TikTok approves direct posting for our app.
         </div>
       ) : (
         <div style={{ width: "100%", maxWidth: 640, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -177,6 +241,14 @@ export default function CalendarPage() {
                   {new Date(post.publishAt).toLocaleString()}
                   {post.link && <span title="Tracked link in this post's caption — clicks show in Analytics"> · {post.link}</span>}
                 </p>
+                {post.publications.map((p) => {
+                  const d = destination(p);
+                  return d ? (
+                    <p key={`${p.id}-dest`} className={styles.destination}>
+                      {d}
+                    </p>
+                  ) : null;
+                })}
                 {post.publications
                   .filter((p) => p.status === "failed")
                   .map((p) => (

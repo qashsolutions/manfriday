@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { api, internal } from "../_generated/api";
+import { api, internal } from "../../convex/_generated/api";
 import { CLERK_ID, harness, seed } from "./setup";
 
 describe("YouTube compliance promises", () => {

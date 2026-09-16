@@ -36,6 +36,7 @@ type Env = {
   readonly TIKTOK_CLIENT_KEY: string | undefined;
   readonly TIKTOK_CLIENT_SECRET: string | undefined;
   readonly WORKER_TOKEN: string | undefined;
+  readonly YOUTUBE_DAILY_QUOTA: string | undefined;
 };
 
 /**

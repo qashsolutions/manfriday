@@ -100,15 +100,32 @@ export default function PicksPage() {
       ) : (
         <>
           <p className="eyebrow">Picks</p>
-          <h1 className={`display ${styles.title}`}>The feed is empty — for now.</h1>
-          <p className={styles.sub}>
-            {feed.kept > 0
-              ? "You've swiped through everything. Friday drafts fresh concepts overnight — or point Friday at another product."
-              : "Friday hasn't drafted anything for you yet. Hand over a URL and the first ten concepts arrive in minutes."}
-          </p>
-          <Link href="/onboarding" className="btn btn--accent">
-            Put Friday to work →
-          </Link>
+          {feed.pending > 0 ? (
+            <>
+              {/* Drafts exist but their previews are still rendering — not an empty state. */}
+              <h1 className={`display ${styles.title}`}>Friday is rendering your previews.</h1>
+              <p className={styles.sub}>
+                {feed.pending} {feed.pending === 1 ? "concept is" : "concepts are"} in the render
+                queue. They appear here as they finish, usually within a few minutes. This page
+                updates on its own.
+              </p>
+              <p className={styles.statusLine}>
+                <span className={styles.pulse} /> Rendering…
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className={`display ${styles.title}`}>The feed is empty — for now.</h1>
+              <p className={styles.sub}>
+                {feed.kept > 0
+                  ? "You've swiped through everything. Friday drafts fresh concepts overnight — or point Friday at another product."
+                  : "Friday hasn't drafted anything for you yet. Hand over a URL and the first ten concepts arrive in minutes."}
+              </p>
+              <Link href="/onboarding" className="btn btn--accent">
+                Put Friday to work →
+              </Link>
+            </>
+          )}
         </>
       )}
 

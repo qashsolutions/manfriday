@@ -1,10 +1,11 @@
 import { v } from "convex/values";
-import { internalAction, internalMutation, internalQuery, query } from "./_generated/server";
+import { env, internalAction, internalMutation, internalQuery, query } from "./_generated/server";
 import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { currentUserId } from "./users";
 import { ensureGoogleAccessToken } from "./google";
+import { dailyLimit, quotaKey } from "./youtubeQuota";
 
 /** YouTube view counts for the Shorts Man Friday published — the youtube.readonly
  *  half of what we declared to Google (OAuth verification + quota audit, Sep 2026):
@@ -135,10 +136,11 @@ export const recordSnapshots = internalMutation({
 export const countUnits = internalMutation({
   args: { units: v.number() },
   handler: async (ctx: MutationCtx, args) => {
-    const key = `youtube:${new Date().toISOString().slice(0, 10)}`;
+    // Keyed by the Pacific-time quota day (YouTube resets at midnight PT), shared with the upload gate.
+    const key = quotaKey(Date.now());
     const row = await ctx.db.query("quotaCounters").withIndex("by_key", (q) => q.eq("key", key)).first();
     if (row) await ctx.db.patch("quotaCounters", row._id, { used: row.used + args.units });
-    else await ctx.db.insert("quotaCounters", { key, used: args.units, limit: 10_000 });
+    else await ctx.db.insert("quotaCounters", { key, used: args.units, limit: dailyLimit(env.YOUTUBE_DAILY_QUOTA) });
     return null;
   },
 });

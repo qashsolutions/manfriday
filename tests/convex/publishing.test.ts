@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { api } from "../_generated/api";
+import { api } from "../../convex/_generated/api";
 import { CLERK_ID, OTHER_CLERK_ID, harness, seed } from "./setup";
 
 describe("schedulePost", () => {

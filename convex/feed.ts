@@ -8,7 +8,7 @@ export const myFeed = query({
   args: {},
   handler: async (ctx: QueryCtx) => {
     const userId = await currentUserId(ctx);
-    if (!userId) return { concepts: [], kept: 0 };
+    if (!userId) return { concepts: [], kept: 0, pending: 0 };
 
     const rows = await ctx.db
       .query("concepts")
@@ -22,6 +22,11 @@ export const myFeed = query({
     const renderedRows = await ctx.db
       .query("concepts")
       .withIndex("by_userId_and_status", (q) => q.eq("userId", userId).eq("status", "rendered"))
+      .take(100);
+    // Drafts whose preview is still rendering — the screen says so instead of "empty".
+    const draftRows = await ctx.db
+      .query("concepts")
+      .withIndex("by_userId_and_status", (q) => q.eq("userId", userId).eq("status", "draft"))
       .take(100);
 
     const concepts = [];
@@ -40,7 +45,7 @@ export const myFeed = query({
         thumbUrl: c.previewThumbId ? await ctx.storage.getUrl(c.previewThumbId) : null,
       });
     }
-    return { concepts, kept: keptRows.length + renderedRows.length };
+    return { concepts, kept: keptRows.length + renderedRows.length, pending: draftRows.length };
   },
 });
 

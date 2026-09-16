@@ -1,8 +1,8 @@
 import { convexTest } from "convex-test";
-import schema from "../schema";
-import type { Id } from "../_generated/dataModel";
+import schema from "../../convex/schema";
+import type { Id } from "../../convex/_generated/dataModel";
 
-export const modules = import.meta.glob("../**/*.ts");
+export const modules = import.meta.glob("../../convex/**/*.ts");
 
 export function harness() {
   return convexTest(schema, modules);

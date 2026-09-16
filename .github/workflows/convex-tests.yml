@@ -1,9 +1,9 @@
 name: Convex function tests
 on:
   push:
-    paths: ["convex/**", "vitest.config.mts", "package.json", ".github/workflows/convex-tests.yml"]
+    paths: ["convex/**", "tests/convex/**", "vitest.config.mts", "package.json", ".github/workflows/convex-tests.yml"]
   pull_request:
-    paths: ["convex/**"]
+    paths: ["convex/**", "tests/convex/**"]
 jobs:
   test:
     runs-on: ubuntu-latest
