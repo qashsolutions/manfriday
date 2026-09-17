@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { atZero, meterChip, parseBillingError, type BillingView } from "../../lib/billing-copy";
 
 const base: BillingView = {
-  standing: "paid", limit: 20, used: 0, topup: 0, remaining: 20, resetsAt: Date.UTC(2026, 9, 3), tier: "solo", term: "monthly",
+  standing: "paid", unlimited: false, limit: 20, used: 0, topup: 0, remaining: 20, resetsAt: Date.UTC(2026, 9, 3), tier: "solo", term: "monthly",
   foundingNumber: null, accessEndsAt: null, cancelAt: null, paymentFailed: false, pausedUntil: null, canPause: true, pauseAvailableAt: null, canManage: true,
 };
 
@@ -11,6 +11,10 @@ describe("billing copy", () => {
     expect(parseBillingError({ data: "ALLOWANCE|free_used|You've used your 3 free videos." })).toEqual({ kind: "ALLOWANCE", reason: "free_used", message: "You've used your 3 free videos." });
     expect(parseBillingError(new Error("[CONVEX M(feed:swipe)] Uncaught ConvexError: PLAN|has_plan|You already have a plan.\n    at handler"))?.reason).toBe("has_plan");
     expect(parseBillingError(new Error("network down"))).toBeNull();
+  });
+
+  test("a team account reads UNLIMITED", () => {
+    expect(meterChip({ ...base, unlimited: true, standing: "free", remaining: 9999 }).text).toBe("UNLIMITED");
   });
 
   test("the meter says free, low and out plainly", () => {

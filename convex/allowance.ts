@@ -13,11 +13,14 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { FREE, TIERS } from "../lib/site";
 
-export type BilledFrom = "free" | "plan" | "topup";
+export type BilledFrom = "free" | "plan" | "topup" | "unlimited";
+
+/** Shown as "remaining" for unlimited accounts (JSON has no Infinity). */
+export const UNLIMITED_REMAINING = 9999;
 
 type UserBilling = Pick<
   Doc<"users">,
-  "plan" | "tier" | "term" | "videosUsedThisPeriod" | "periodAnchorAt" | "periodStartsAt" | "topupVideos" | "accessEndsAt" | "pausedUntil"
+  "plan" | "tier" | "term" | "videosUsedThisPeriod" | "periodAnchorAt" | "periodStartsAt" | "topupVideos" | "accessEndsAt" | "pausedUntil" | "superUser"
 >;
 
 /** Same wall-clock moment `n` months after `anchor`, clamped to the month's last day. */
@@ -53,7 +56,8 @@ export function standing(u: UserBilling, now: number): Standing {
 }
 
 export type Meter = {
-  standing: Standing;
+  standing: Standing; // from the real plan, so checkout rules still apply to a super user
+  unlimited: boolean;
   limit: number; // videos in this allowance (Free: lifetime; paid: this month)
   used: number;
   topup: number; // bought videos left (paid plans only)
@@ -63,13 +67,18 @@ export type Meter = {
 };
 
 export function meter(u: UserBilling, now: number): Meter {
+  const m = plainMeter(u, now);
+  return u.superUser ? { ...m, unlimited: true, remaining: UNLIMITED_REMAINING } : m;
+}
+
+function plainMeter(u: UserBilling, now: number): Meter {
   const s = standing(u, now);
   if (s === "free") {
     const used = u.videosUsedThisPeriod;
-    return { standing: s, limit: FREE.videosTotal, used, topup: 0, remaining: Math.max(0, FREE.videosTotal - used), resetsAt: null, periodStart: null };
+    return { standing: s, unlimited: false, limit: FREE.videosTotal, used, topup: 0, remaining: Math.max(0, FREE.videosTotal - used), resetsAt: null, periodStart: null };
   }
   if (s === "lapsed") {
-    return { standing: s, limit: 0, used: 0, topup: u.topupVideos ?? 0, remaining: 0, resetsAt: null, periodStart: null };
+    return { standing: s, unlimited: false, limit: 0, used: 0, topup: u.topupVideos ?? 0, remaining: 0, resetsAt: null, periodStart: null };
   }
   const tier = TIERS.find((t) => t.id === u.tier) ?? TIERS[0];
   const period = currentPeriod(u.periodAnchorAt ?? now, now);
@@ -78,6 +87,7 @@ export function meter(u: UserBilling, now: number): Meter {
   const topup = u.topupVideos ?? 0;
   return {
     standing: s,
+    unlimited: false,
     limit: tier.videos,
     used,
     topup,
@@ -91,6 +101,8 @@ export function meter(u: UserBilling, now: number): Meter {
 export function planCharge(u: UserBilling, now: number):
   | { ok: true; from: BilledFrom; patch: Partial<Doc<"users">>; periodStart: number | null }
   | { ok: false; reason: "free_used" | "month_used" | "no_plan" } {
+  // Team test account: never charged, never refused, never counted.
+  if (u.superUser) return { ok: true, from: "unlimited", patch: {}, periodStart: null };
   const m = meter(u, now);
   if (m.standing === "lapsed") return { ok: false, reason: "no_plan" };
   if (m.standing === "free") {
@@ -108,6 +120,7 @@ export function planCharge(u: UserBilling, now: number):
 
 /** Undo a charge. A plan video from a month that has since reset is not given back. */
 export function planRefund(u: UserBilling, from: BilledFrom, billedPeriodStart: number | null, now: number): Partial<Doc<"users">> | null {
+  if (from === "unlimited") return null;
   if (from === "topup") return { topupVideos: (u.topupVideos ?? 0) + 1 };
   if (from === "free") return { videosUsedThisPeriod: Math.max(0, u.videosUsedThisPeriod - 1) };
   const m = meter(u, now);
@@ -127,7 +140,7 @@ export async function chargeVideo(ctx: MutationCtx, userId: Id<"users">): Promis
   if (!user) throw new Error("not signed in");
   const charge = planCharge(user, Date.now());
   if (!charge.ok) throw new ConvexError(EXHAUSTED_MESSAGE[charge.reason]);
-  await ctx.db.patch("users", userId, charge.patch);
+  if (Object.keys(charge.patch).length > 0) await ctx.db.patch("users", userId, charge.patch);
   return { from: charge.from, periodStart: charge.periodStart };
 }
 

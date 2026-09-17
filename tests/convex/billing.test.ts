@@ -314,3 +314,29 @@ describe("account deletion and billing", () => {
     expect(cancel?.args[0]).toEqual({ subscriptionId: "sub_del" });
   });
 });
+
+describe("super user", () => {
+  test("a team account keeps without being charged or refused, and checkout rules still follow the real plan", async () => {
+    const t = harness();
+    const s = await seedPicks(t, { videosUsedThisPeriod: 3, superUser: true });
+    const me = t.withIdentity({ subject: CLERK_ID });
+    await me.mutation(api.feed.swipe, { conceptId: s.conceptId, keep: true });
+    const user = await t.run(async (ctx) => await ctx.db.get("users", s.userId));
+    expect(user?.videosUsedThisPeriod).toBe(3);
+    const b = await me.query(api.billing.myBilling, {});
+    expect(b?.unlimited).toBe(true);
+    expect(b?.standing).toBe("free");
+    vi.stubGlobal("fetch", vi.fn());
+    await expect(me.action(api.billing.startCheckout, { lookupKey: "topup_10" })).rejects.toThrow(/topup_needs_plan/);
+  });
+
+  test("only the internal admin function can grant it", async () => {
+    const t = harness();
+    const s = await seed(t);
+    await t.mutation(internal.admin.setSuperUser, { email: "OWNER@example.com", on: true });
+    expect((await t.run(async (ctx) => await ctx.db.get("users", s.userId)))?.superUser).toBe(true);
+    await t.mutation(internal.admin.setSuperUser, { email: "owner@example.com", on: false });
+    expect((await t.run(async (ctx) => await ctx.db.get("users", s.userId)))?.superUser).toBeUndefined();
+    expect(Object.keys((api as any).admin ?? {})).toHaveLength(0);
+  });
+});

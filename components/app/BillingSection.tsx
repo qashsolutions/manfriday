@@ -36,15 +36,17 @@ export function BillingSection() {
   const founding = billing.term === "threeYear";
   const tier = TIERS.find((t) => t.id === billing.tier);
 
-  const chip =
-    billing.standing === "free"
+  const chip = billing.unlimited
+    ? `TEAM · UNLIMITED${billing.standing === "paid" ? ` · ${tier?.name.toUpperCase()}` : ""}`
+    : billing.standing === "free"
       ? `FREE · ${billing.remaining} OF ${FREE.videosTotal} LEFT · NO CARD`
       : billing.standing === "lapsed"
         ? "PLAN ENDED"
         : `${tier?.name.toUpperCase()} · ${billing.term ? TERM_LABEL[billing.term] : ""}${billing.foundingNumber ? ` #${billing.foundingNumber}` : ""}`;
 
-  const summary =
-    billing.standing === "free"
+  const summary = billing.unlimited
+    ? "Team test account: unlimited videos, no allowance. Checkout, top-ups and pause still work here, so billing can be tested end to end with Stripe test cards."
+    : billing.standing === "free"
       ? `Previews are always free. Each video you keep uses one of your ${FREE.videosTotal} free videos.`
       : billing.standing === "lapsed"
         ? "Your plan has ended. Your brand, drafts and schedule are still here. Pick a plan below to keep making videos."

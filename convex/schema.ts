@@ -44,6 +44,9 @@ export default defineSchema({
     periodStartsAt: v.optional(v.number()), // start of the allowance month videosUsedThisPeriod counts
     topupVideos: v.optional(v.number()), // bought top-up videos left; used after the monthly allowance
     lastPauseStartedAt: v.optional(v.number()),
+    // Team test account: unlimited videos, no allowance charge. Billing flows still
+    // work so checkout can be tested. Set only via internal admin:setSuperUser.
+    superUser: v.optional(v.boolean()),
     credits: v.number(), // cached sum of creditLedger (internal metering)
     videosUsedThisPeriod: v.number(), // rendered videos this period (the visible unit); lifetime on Free
     avatarVideosUsedThisPeriod: v.optional(v.number()), // deprecated 15 Sep 2026 (sub-caps dropped); unused
@@ -129,7 +132,7 @@ export default defineSchema({
     batchId: v.string(), // groups one generation batch
     costCents: v.number(), // running media+LLM cost, for telemetry
     // Which allowance paid for this video, so a failed render can give it back.
-    billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"))),
+    billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"), v.literal("unlimited"))),
     billedPeriodStartsAt: v.optional(v.number()),
     swipedAt: v.optional(v.number()),
   }).index("by_userId_and_status", ["userId", "status"]),
@@ -159,7 +162,7 @@ export default defineSchema({
     claimedBy: v.optional(v.string()),
     claimedAt: v.optional(v.number()),
     // "also in" variants are charged when requested; refunded if the request fails.
-    billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"))),
+    billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"), v.literal("unlimited"))),
     billedPeriodStartsAt: v.optional(v.number()),
   })
     .index("by_status", ["status"])

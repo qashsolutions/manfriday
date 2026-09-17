@@ -5,6 +5,7 @@ import { FREE, TIERS, TOPUP } from "./site";
 
 export type BillingView = {
   standing: "free" | "paid" | "lapsed";
+  unlimited: boolean;
   limit: number;
   used: number;
   topup: number;
@@ -38,6 +39,7 @@ const day = (ms: number) => new Date(ms).toLocaleDateString(undefined, { month: 
 /** The nav chip. Short, and honest about zero. */
 export function meterChip(b: BillingView): { text: string; tone: "ok" | "low" | "out" | "warn"; title: string } {
   if (b.paymentFailed) return { text: "PAYMENT FAILED", tone: "warn", title: "Your last payment didn't go through. Update your card in Settings." };
+  if (b.unlimited) return { text: "UNLIMITED", tone: "ok", title: "Team test account: unlimited videos. Billing still works here, so checkout can be tested." };
   if (b.pausedUntil) return { text: `PAUSED · ${day(b.pausedUntil).toUpperCase()}`, tone: "warn", title: "Posting is held until the pause ends." };
   if (b.standing === "lapsed") return { text: "PLAN ENDED", tone: "out", title: "Pick a plan to keep making videos." };
   const tone = b.remaining === 0 ? "out" : b.remaining <= 2 ? "low" : "ok";
