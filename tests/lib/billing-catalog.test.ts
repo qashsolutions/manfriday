@@ -26,6 +26,10 @@ describe("Stripe catalog mirrors the public pricing", () => {
     expect(topup.prices[0].recurring).toBeUndefined();
   });
 
+  test("every product carries the SaaS business-use tax code", () => {
+    for (const c of CATALOG) expect(c.taxCode).toBe("txcd_10103001");
+  });
+
   test("lookup keys are unique and names never mention a platform", () => {
     const keys = CATALOG.flatMap((c) => c.prices.map((p) => p.lookupKey));
     expect(new Set(keys).size).toBe(keys.length);

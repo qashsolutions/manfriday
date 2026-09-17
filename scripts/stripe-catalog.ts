@@ -34,13 +34,20 @@ for (const item of CATALOG) {
     if (!apply) {
       console.log(`  would create product  ${item.name}`);
     } else {
-      const args = ["products", "create", "--name", item.name, "--description", item.description];
+      const args = ["products", "create", "--name", item.name, "--description", item.description, "-d", `tax_code=${item.taxCode}`];
       for (const [k, v] of Object.entries(item.metadata)) args.push("-d", `metadata[${k}]=${v}`);
       product = stripe(args);
       console.log(`  created product       ${item.name}  ${product.id}`);
     }
+  } else if (product.tax_code !== item.taxCode) {
+    // Tax code is mutable on a product, so fix it in place.
+    if (!apply) console.log(`  would set tax code    ${item.name}  ${product.tax_code ?? "none"} -> ${item.taxCode}`);
+    else {
+      product = stripe(["products", "update", product.id, "-d", `tax_code=${item.taxCode}`]);
+      console.log(`  set tax code          ${item.name}  ${product.tax_code}`);
+    }
   } else {
-    console.log(`  ok product            ${item.name}  ${product.id}${product.active ? "" : "  (ARCHIVED)"}`);
+    console.log(`  ok product            ${item.name}  ${product.id}  ${product.tax_code}${product.active ? "" : "  (ARCHIVED)"}`);
   }
 
   for (const price of item.prices) {

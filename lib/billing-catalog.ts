@@ -14,8 +14,14 @@ export type CatalogPrice = {
   term: "monthly" | "quarterly" | "annual" | "three_year" | "topup";
 };
 
+/** Stripe Tax code: Software as a service, business use. Man Friday is bought by
+ *  founders for their product's marketing, so business use is the honest class.
+ *  (Old products on this account carried a childcare code — never copy it.) */
+export const TAX_CODE = "txcd_10103001";
+
 export type CatalogProduct = {
   key: string; // metadata.mf_key — how the sync script finds the product again
+  taxCode: string;
   name: string;
   description: string;
   metadata: Record<string, string>;
@@ -27,6 +33,7 @@ const cents = (usd: number) => Math.round(usd * 100);
 export const CATALOG: CatalogProduct[] = [
   ...TIERS.map((t) => ({
     key: t.id,
+    taxCode: TAX_CODE,
     name: `Man Friday ${t.name}`,
     description: `${t.videos} videos a month, any format. ${t.workspaces} workspaces. Every language.`,
     metadata: { app: "manfriday", mf_key: t.id, videos_per_month: String(t.videos), workspaces: String(t.workspaces) },
@@ -40,6 +47,7 @@ export const CATALOG: CatalogProduct[] = [
   })),
   {
     key: "topup",
+    taxCode: TAX_CODE,
     name: `Man Friday Top-up: ${TOPUP.videos} videos`,
     description: `${TOPUP.videos} more videos this month, any format. Paid plans only.`,
     metadata: { app: "manfriday", mf_key: "topup", videos: String(TOPUP.videos) },
