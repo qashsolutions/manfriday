@@ -248,6 +248,35 @@ async function releaseHeld(ctx: MutationCtx, userId: Id<"users">, at: number) {
   }
 }
 
+/** Operator check: which Stripe account and mode the Convex key belongs to, and
+ *  whether the catalog is visible from it. Returns no secrets. */
+export const diagnoseStripe = internalAction({
+  args: {},
+  handler: async (): Promise<Record<string, unknown>> => {
+    const key = env.STRIPE_SECRET_KEY ?? "";
+    const out: Record<string, unknown> = {
+      keyKind: key.startsWith("sk_test_") ? "secret test" : key.startsWith("sk_live_") ? "secret LIVE" : key.startsWith("rk_") ? "restricted" : key ? "unrecognised" : "missing",
+      webhookSecretSet: !!env.STRIPE_WEBHOOK_SECRET,
+    };
+    try {
+      const acct = await stripeCall(key, "GET", "/account");
+      out.account = acct.id;
+      out.name = acct.settings?.dashboard?.display_name ?? acct.business_profile?.name ?? null;
+    } catch (err) {
+      out.accountError = err instanceof Error ? err.message : String(err);
+    }
+    try {
+      const prices = await stripeCall(key, "GET", "/prices", { lookup_keys: ["solo_monthly"], limit: 1 });
+      out.soloMonthlyFound = (prices.data ?? []).length > 0;
+      const products = await stripeCall(key, "GET", "/products", { limit: 100 });
+      out.products = (products.data ?? []).map((p: any) => `${p.active ? "active" : "archived"}: ${p.name}`);
+    } catch (err) {
+      out.catalogError = err instanceof Error ? err.message : String(err);
+    }
+    return out;
+  },
+});
+
 /** Account deletion: stop billing immediately, no proration refund, no invoice. */
 export const cancelSubscriptionNow = internalAction({
   args: { subscriptionId: v.string() },
