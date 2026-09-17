@@ -114,10 +114,10 @@ export default function PricingPage() {
         <p className={styles.fine}>
           <strong>Start free, no card</strong> — a card only appears when you subscribe. Video
           allowances reset monthly and don&apos;t roll over; need more, add{" "}
-          <strong>+{TOPUP.videos} videos for ${TOPUP.price}</strong> anytime. The 3-year{" "}
+          <strong>+{TOPUP.videos} videos for ${TOPUP.price}</strong> on any paid plan. The 3-year{" "}
           {FOUNDING.label} plan is pay-today, no cancellation, first {FOUNDING.cap} customers
-          only. Pause any paid plan for up to {POLICY.pauseMaxDays} days — paused days are
-          added to your term.
+          only. Pause any paid plan for up to {POLICY.pauseMaxDays} days, once a month — paused
+          days are added to your term.
         </p>
       </section>
     </div>

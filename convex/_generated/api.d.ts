@@ -9,17 +9,21 @@
  */
 
 import type * as account from "../account.js";
+import type * as allowance from "../allowance.js";
+import type * as billing from "../billing.js";
 import type * as brands from "../brands.js";
 import type * as crons from "../crons.js";
 import type * as dev from "../dev.js";
 import type * as feed from "../feed.js";
 import type * as google from "../google.js";
+import type * as http from "../http.js";
 import type * as links from "../links.js";
 import type * as oauth from "../oauth.js";
 import type * as onboarding from "../onboarding.js";
 import type * as pipeline from "../pipeline.js";
 import type * as publishing from "../publishing.js";
 import type * as stats from "../stats.js";
+import type * as stripeApi from "../stripeApi.js";
 import type * as users from "../users.js";
 import type * as worker from "../worker.js";
 import type * as youtubeQuota from "../youtubeQuota.js";
@@ -32,17 +36,21 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   account: typeof account;
+  allowance: typeof allowance;
+  billing: typeof billing;
   brands: typeof brands;
   crons: typeof crons;
   dev: typeof dev;
   feed: typeof feed;
   google: typeof google;
+  http: typeof http;
   links: typeof links;
   oauth: typeof oauth;
   onboarding: typeof onboarding;
   pipeline: typeof pipeline;
   publishing: typeof publishing;
   stats: typeof stats;
+  stripeApi: typeof stripeApi;
   users: typeof users;
   worker: typeof worker;
   youtubeQuota: typeof youtubeQuota;

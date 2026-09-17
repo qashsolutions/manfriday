@@ -29,12 +29,16 @@ export default function TermsPage() {
         within the first 14 days, then non-refundable. The <strong>{FOUNDING.label} 3-year
         plan is pay-today, non-cancellable, and non-refundable</strong> — it is limited to the
         first {FOUNDING.cap} customers and priced accordingly. Monthly video allowances
-        reset each month and don&apos;t roll over; top-up packs (+{TOPUP.videos} videos for $
-        {TOPUP.price}) are available.
+        reset each month and don&apos;t roll over. Top-up packs (+{TOPUP.videos} videos for $
+        {TOPUP.price}) are for paid plans; top-up videos are used after the monthly allowance
+        and stay available while your plan is active. A video counts against your allowance
+        when you keep it; if Man Friday fails to render it, it is given back. Payments are
+        processed by Stripe; Man Friday never sees or stores card details.
       </p>
       <p>
-        <strong>Pausing.</strong> Any paid plan can be paused for up to {POLICY.pauseMaxDays} days;
-        paused days are added to the end of your current term.
+        <strong>Pausing.</strong> Any paid plan can be paused for up to {POLICY.pauseMaxDays} days,
+        once every 30 days. Scheduled posts are held during a pause, and paused days are added
+        to the end of your current term.
       </p>
       <p>
         <strong>Sessions and security.</strong> Sessions sign out automatically after{" "}

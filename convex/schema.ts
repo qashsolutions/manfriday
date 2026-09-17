@@ -35,11 +35,23 @@ export default defineSchema({
     cardAddedAt: v.optional(v.number()), // D4v4: card appears only at paid checkout
     pausedUntil: v.optional(v.number()), // pause ≤3 days; days added to term
     stripeCustomerId: v.optional(v.string()),
+    // ── billing (M4, 16 Sep 2026) — written only by convex/billing.ts ──
+    stripeSubscriptionId: v.optional(v.string()),
+    accessEndsAt: v.optional(v.number()), // Founding 200: purchase + 3 years (+ paused days)
+    cancelAt: v.optional(v.number()), // subscription set to end at period end
+    paymentFailedAt: v.optional(v.number()), // last invoice failed; cleared when one is paid
+    periodAnchorAt: v.optional(v.number()), // monthly allowance resets on this day of the month
+    periodStartsAt: v.optional(v.number()), // start of the allowance month videosUsedThisPeriod counts
+    topupVideos: v.optional(v.number()), // bought top-up videos left; used after the monthly allowance
+    lastPauseStartedAt: v.optional(v.number()),
     credits: v.number(), // cached sum of creditLedger (internal metering)
-    videosUsedThisPeriod: v.number(), // rendered videos this period (the visible unit)
+    videosUsedThisPeriod: v.number(), // rendered videos this period (the visible unit); lifetime on Free
     avatarVideosUsedThisPeriod: v.optional(v.number()), // deprecated 15 Sep 2026 (sub-caps dropped); unused
     timezone: v.string(), // IANA; publish slots resolve here
-  }).index("by_clerkId", ["clerkId"]),
+  })
+    .index("by_clerkId", ["clerkId"])
+    .index("by_stripeCustomerId", ["stripeCustomerId"])
+    .index("by_foundingNumber", ["foundingNumber"]),
 
   brands: defineTable({
     // the brand brief (Claude call site 1 output; user edits it)
@@ -116,6 +128,9 @@ export default defineSchema({
     videoId: v.optional(v.id("_storage")),
     batchId: v.string(), // groups one generation batch
     costCents: v.number(), // running media+LLM cost, for telemetry
+    // Which allowance paid for this video, so a failed render can give it back.
+    billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"))),
+    billedPeriodStartsAt: v.optional(v.number()),
     swipedAt: v.optional(v.number()),
   }).index("by_userId_and_status", ["userId", "status"]),
 
@@ -143,6 +158,9 @@ export default defineSchema({
     error: v.optional(v.string()),
     claimedBy: v.optional(v.string()),
     claimedAt: v.optional(v.number()),
+    // "also in" variants are charged when requested; refunded if the request fails.
+    billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"))),
+    billedPeriodStartsAt: v.optional(v.number()),
   })
     .index("by_status", ["status"])
     .index("by_userId", ["userId"]),
@@ -238,6 +256,12 @@ export default defineSchema({
     reason: v.string(), // "final_render" | "avatar_render" | "monthly_grant" | "call_bonus" | "topup" | …
     refId: v.optional(v.string()),
   }).index("by_userId", ["userId"]),
+
+  stripeEvents: defineTable({
+    // Webhook idempotency: an event is applied and recorded in the same mutation.
+    eventId: v.string(),
+    type: v.string(),
+  }).index("by_eventId", ["eventId"]),
 
   quotaCounters: defineTable({
     // e.g. YouTube uploads/day, global

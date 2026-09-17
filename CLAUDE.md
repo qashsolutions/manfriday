@@ -61,7 +61,7 @@ Marketing copy leads with click attribution ("see which post sent people to your
 - M1 (wk 1–3): headless pipeline — URL in → brand brief → 10 rendered concepts (all 3 formats). **If M1 output is weak, stop and fix before any UI.**
 - M2 (wk 4–5): Picks UI over the pipeline; lazy full-res render on right-swipe.
 - M3 (wk 6–7): TikTok + YouTube OAuth, calendar, scheduled publish (TikTok draft-to-inbox fallback until audit clears).
-- M4 (wk 8–9): metrics ingestion (**YouTube counts + Analytics page shipped 12 Sep; tracked links shipped 14 Sep** — TikTok counts wait for its API review), "more like this", Stripe billing (Free tier → paid checkout; card only at subscribe) + Founding-200 counter + pause/top-ups, beta invites, free calculator pages on manfriday.app (engagement-rate + creator-earnings; static, deterministic, zero COGS — SEO doors into the trial, from the competitor teardown).
+- M4 (wk 8–9): metrics ingestion (**YouTube counts + Analytics page shipped 12 Sep; tracked links shipped 14 Sep** — TikTok counts wait for its API review), "more like this", **Stripe billing built 16 Sep in test mode — runbook docs/billing.md** (plan state written only by webhooks; a keep costs one video; refunds on failed renders; pause holds posting) (Free tier → paid checkout; card only at subscribe) + Founding-200 counter + pause/top-ups, beta invites, free calculator pages on manfriday.app (engagement-rate + creator-earnings; static, deterministic, zero COGS — SEO doors into the trial, from the competitor teardown).
 
 ## Launch checklist (accumulating)
 

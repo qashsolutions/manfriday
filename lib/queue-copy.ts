@@ -11,6 +11,7 @@ export type QueueChip = {
   status: string;
   publishAt: number;
   deferred: boolean;
+  held?: boolean;
 };
 
 export const STATUS_LABEL: Record<string, string> = {
@@ -29,6 +30,7 @@ export const TIKTOK_INBOX_NOTE =
 export function destination(p: QueueChip, now = Date.now()): string | null {
   const when = new Date(p.publishAt).toLocaleString();
   void now;
+  if (p.held) return `Your plan is paused. Friday posts this when the pause ends, ${when}.`;
   if (p.platform === "tiktok") {
     if (p.status === "draft_fallback") return "Waiting in your TikTok inbox — tap the draft to post it.";
     if (p.status === "queued") return `Friday sends this to your TikTok inbox at ${when}, then you tap post.`;

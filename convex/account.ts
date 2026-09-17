@@ -19,6 +19,15 @@ export const purgeMine = mutation({
     const counts: Record<string, number> = {};
     const bump = (k: string) => (counts[k] = (counts[k] ?? 0) + 1);
 
+    // 0. Billing: a deleted account must never be charged again. Cancel the
+    //    subscription at Stripe right away (runs once this mutation commits).
+    //    Stripe keeps its own payment records, as the law requires.
+    const me = await ctx.db.get("users", userId);
+    if (me?.stripeSubscriptionId) {
+      await ctx.scheduler.runAfter(0, internal.billing.cancelSubscriptionNow, { subscriptionId: me.stripeSubscriptionId });
+      bump("stripeSubscriptionsCanceled");
+    }
+
     // 1. Social accounts: revoke at provider, wipe tokens, delete.
     const accounts: Doc<"socialAccounts">[] = await ctx.db
       .query("socialAccounts")

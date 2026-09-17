@@ -3,20 +3,18 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Show, UserButton, useClerk, useUser } from "@clerk/nextjs";
-import { TIERS, FREE, POLICY, FOUNDING } from "@/lib/site";
+import { POLICY } from "@/lib/site";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { LanguageChip } from "./LanguageChip";
 import { ConnectedAccounts } from "./ConnectedAccounts";
 import { PresenterPanel } from "./PresenterPanel";
+import { BillingSection } from "./BillingSection";
 import styles from "./SettingsPanel.module.css";
 
 /* Static shell today: theme + language persist locally; every row marked M2/M4
    wires to Clerk/Stripe/Convex at that milestone. */
 
-function Wire({ m }: { m: "M2" | "M4" }) {
-  return <span className={`mono ${styles.wire}`}>{m}</span>;
-}
 
 export function SettingsPanel() {
   const { user } = useUser();
@@ -25,7 +23,6 @@ export function SettingsPanel() {
   const brand = useQuery(api.brands.myBrand);
   const setBrandLanguage = useMutation(api.brands.setLanguage);
   const purgeMine = useMutation(api.account.purgeMine);
-  const [paused, setPaused] = useState(false);
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "working" | "error">("idle");
 
   // Privacy policy › Deletion. Convex data (tokens, briefs, concepts, posts) is
@@ -59,7 +56,6 @@ export function SettingsPanel() {
     } catch {}
   };
 
-  const solo = TIERS[0];
 
   return (
     <div className={styles.scope} data-mode={mode}>
@@ -188,112 +184,8 @@ export function SettingsPanel() {
           </div>
         </section>
 
-        {/* Plan & billing */}
-        <section className={styles.section} aria-labelledby="s-plan">
-          <h2 id="s-plan" className={`mono ${styles.sectionTitle}`}>PLAN &amp; BILLING</h2>
-          <div className={styles.panel}>
-            <div className={styles.row}>
-              <div>
-                <p className={styles.rowTitle}>
-                  Current plan <span className={`mono ${styles.trialChip}`}>FREE · {FREE.videosTotal} VIDEOS INCLUDED · NO CARD</span>
-                </p>
-                <p className={styles.rowSub}>
-                  Browse the full feed, render {FREE.videosTotal} videos on us — upgrade below
-                  when you want volume.
-                </p>
-              </div>
-              <Link href="/pricing" className={styles.ghostBtn}>
-                Compare
-              </Link>
-            </div>
-            <div className={styles.planGridRow}>
-              <table className={styles.planTable}>
-                <thead>
-                  <tr>
-                    <th></th>
-                    {TIERS.map((t) => (
-                      <th key={t.id} className={t.highlight ? styles.planHi : undefined}>
-                        {t.name} · {t.videos} videos/mo
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Monthly</td>
-                    {TIERS.map((t) => (
-                      <td key={t.id}>${t.monthly}/mo</td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td>Quarterly</td>
-                    {TIERS.map((t) => (
-                      <td key={t.id}>${t.quarterly}</td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td>Annual</td>
-                    {TIERS.map((t) => (
-                      <td key={t.id}>${t.annual}</td>
-                    ))}
-                  </tr>
-                  <tr className={styles.planFoundingRow}>
-                    <td>
-                      3 years <span className={styles.planBadge}>{FOUNDING.label.toUpperCase()}</span>
-                    </td>
-                    {TIERS.map((t) => (
-                      <td key={t.id}>
-                        <strong>${t.threeYear} once</strong>
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-              <p className={styles.planFine}>
-                {FOUNDING.label}: first {FOUNDING.cap} customers · pay today · no cancellation ·
-                {FOUNDING.cap} spots left
-              </p>
-            </div>
-            <div className={styles.row}>
-              <div>
-                <p className={styles.rowTitle}>Billing</p>
-                <p className={styles.rowSub}>Card, invoices, and receipts — handled by Stripe.</p>
-              </div>
-              <button className={styles.ghostBtn} type="button" disabled>
-                Manage billing <Wire m="M4" />
-              </button>
-            </div>
-            <div className={styles.row}>
-              <div>
-                <p className={styles.rowTitle}>Pause plan</p>
-                <p className={styles.rowSub}>
-                  Up to {POLICY.pauseMaxDays} days — Friday holds the queue, and the paused days are
-                  added to your term. Paid plans only.
-                </p>
-              </div>
-              <button
-                className={styles.ghostBtn}
-                type="button"
-                aria-pressed={paused}
-                onClick={() => setPaused(!paused)}
-              >
-                {paused ? "Resume now" : "Pause"} <Wire m="M4" />
-              </button>
-            </div>
-            <div className={styles.row}>
-              <div>
-                <p className={styles.rowTitle}>{FOUNDING.label}</p>
-                <p className={styles.rowSub}>
-                  3 years for ${solo.threeYear} ({TIERS[1].name} ${TIERS[1].threeYear}) — pay today,
-                  no cancellation. {FOUNDING.cap} of {FOUNDING.cap} spots left.
-                </p>
-              </div>
-              <Link href="/pricing" className={styles.ghostBtn}>
-                View
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* Plan & billing (M4, live) */}
+        <BillingSection />
 
         {/* Connected accounts (M3) */}
         <section className={styles.section} aria-labelledby="s-connected">

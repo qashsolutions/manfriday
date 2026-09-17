@@ -49,7 +49,7 @@ export const CATALOG: CatalogProduct[] = [
     key: "topup",
     taxCode: TAX_CODE,
     name: `Man Friday Top-up: ${TOPUP.videos} videos`,
-    description: `${TOPUP.videos} more videos this month, any format. Paid plans only.`,
+    description: `${TOPUP.videos} more videos, any format. Used after your monthly videos; kept while your plan is active. Paid plans only.`,
     metadata: { app: "manfriday", mf_key: "topup", videos: String(TOPUP.videos) },
     prices: [{ lookupKey: `topup_${TOPUP.videos}`, amountCents: cents(TOPUP.price), term: "topup" }],
   },

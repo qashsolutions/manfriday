@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TIERS, FOUNDING, SHARED_FEATURES } from "@/lib/site";
 import styles from "./FoundingOffer.module.css";
+import { FoundingSpots } from "./FoundingSpots";
 
 function Check() {
   return (
@@ -18,7 +19,7 @@ export function FoundingOffer() {
         <article className={styles.offer}>
           <div className={styles.offerHead}>
             <span className={`mono ${styles.label}`}>{FOUNDING.label.toUpperCase()}</span>
-            <span className={`mono ${styles.spots}`}>[NN] of {FOUNDING.cap} spots left</span>
+            <FoundingSpots className={`mono ${styles.spots}`} />
           </div>
           <div className={styles.priceRow}>
             <span className={`display ${styles.price}`}>${solo.threeYear}</span>

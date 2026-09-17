@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { currentUserId } from "./users";
+import { chargeVideo } from "./allowance";
 
 /** The Picks feed: the signed-in user's swipeable concepts, newest batch first. */
 export const myFeed = query({
@@ -93,7 +94,14 @@ export const swipe = mutation({
     if (concept.status !== "preview_ready") return null;
 
     if (args.keep) {
-      await ctx.db.patch("concepts", args.conceptId, { status: "render_queued", swipedAt: Date.now() });
+      // The keep is the billable moment (D5): throws ALLOWANCE|… when nothing is left.
+      const billed = await chargeVideo(ctx, userId);
+      await ctx.db.patch("concepts", args.conceptId, {
+        status: "render_queued",
+        swipedAt: Date.now(),
+        billedFrom: billed.from,
+        billedPeriodStartsAt: billed.periodStart ?? undefined,
+      });
       await ctx.db.insert("renderJobs", {
         conceptId: args.conceptId,
         kind: "final",
@@ -128,6 +136,7 @@ export const requestVariant = mutation({
     if (!LANGUAGE_CODES.includes(args.language)) throw new Error("unsupported language");
     if (args.language === concept.language) throw new Error("already in that language");
     const brand = await ctx.db.get("brands", concept.brandId);
+    const billed = await chargeVideo(ctx, userId);
     await ctx.db.insert("pipelineRequests", {
       userId,
       url: brand?.url ?? "",
@@ -137,6 +146,8 @@ export const requestVariant = mutation({
       languageStyle: args.languageStyle,
       status: "pending",
       brandId: concept.brandId,
+      billedFrom: billed.from,
+      billedPeriodStartsAt: billed.periodStart ?? undefined,
     });
     return null;
   },

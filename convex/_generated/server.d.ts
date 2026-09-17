@@ -31,8 +31,11 @@ type Env = {
   readonly CONVEX_CLOUD_URL: string;
   readonly CONVEX_SITE_URL: string;
   readonly ANTHROPIC_API_KEY: string | undefined;
+  readonly APP_URL: string | undefined;
   readonly GOOGLE_CLIENT_ID: string | undefined;
   readonly GOOGLE_CLIENT_SECRET: string | undefined;
+  readonly STRIPE_SECRET_KEY: string | undefined;
+  readonly STRIPE_WEBHOOK_SECRET: string | undefined;
   readonly TIKTOK_CLIENT_KEY: string | undefined;
   readonly TIKTOK_CLIENT_SECRET: string | undefined;
   readonly WORKER_TOKEN: string | undefined;

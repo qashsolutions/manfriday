@@ -278,3 +278,29 @@
   justify-content: flex-end;
 }
 
+
+/* Billing (M4) */
+.notice {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--dim);
+  border-left: 2px solid var(--edge-2);
+  padding: 2px 0 2px 12px;
+}
+.notice[data-tone="ok"] { border-left-color: var(--mint); color: var(--ink); }
+.notice[data-tone="warn"] { border-left-color: var(--amber); color: var(--ink); }
+.priceBtn {
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--edge-2);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.priceBtn[data-strong="true"] { font-weight: 700; }
+.priceBtn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.priceBtn:disabled { opacity: 0.55; cursor: not-allowed; }

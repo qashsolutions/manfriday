@@ -74,3 +74,9 @@ Also fixed: every app screen flashed a false empty state while Convex waited for
 Infrastructure: the Convex push had been failing since the test commit earlier that day (`import.meta` in the test harness) — tests moved to `tests/`. Nothing had deployed in between.
 
 Next: Stripe billing (item 5 of the first-session list: the video meter and what happens at zero).
+
+## 16 Sep 2026 — Stripe billing (test mode)
+
+Built: allowance metering (Free 3 once; monthly per tier; top-ups after), at-zero sheet in Picks, nav meter, Settings checkout/portal/top-up/pause, live Founding 200 counter (landing placeholder removed), signed idempotent webhooks, pause holding the queue, deletion cancelling the subscription, terms + privacy updated. 60 tests. Runbook: docs/billing.md.
+
+Waiting on: `STRIPE_SECRET_KEY` (sandbox) in the Convex dashboard, then a test purchase. Live mode at launch.

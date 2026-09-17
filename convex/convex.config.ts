@@ -16,6 +16,11 @@ const app = defineApp({
     // audit clears). Raise it in the Convex dashboard when Google raises ours —
     // compliance rule 7: never work around the limit, schedule around it.
     YOUTUBE_DAILY_QUOTA: v.optional(v.string()),
+    // M4 billing. Test-mode keys until launch; set in the Convex dashboard, never in code.
+    STRIPE_SECRET_KEY: v.optional(v.string()),
+    STRIPE_WEBHOOK_SECRET: v.optional(v.string()),
+    // Where Checkout and the portal send people back to (default https://manfriday.app).
+    APP_URL: v.optional(v.string()),
   },
 });
 

@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { env, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
@@ -84,7 +84,7 @@ export const schedulePost = mutation({
       const cap = await youtubeCapacity(ctx, args.publishAt);
       if (!cap.ok) {
         const next = await nextOpenYoutubeSlot(ctx, args.publishAt);
-        throw new Error(`QUOTA_FULL|${next ?? ""}|YouTube's upload limit for that day is already spoken for.`);
+        throw new ConvexError(`QUOTA_FULL|${next ?? ""}|YouTube's upload limit for that day is already spoken for.`);
       }
     }
 
@@ -171,6 +171,7 @@ export const myQueue = query({
               publishAt: p.publishAt,
               // Pushed to the next quota day after YouTube said the daily limit was hit.
               deferred: p.status === "queued" && (p.lastError ?? "").startsWith("QUOTA_DEFERRED"),
+              held: p.status === "queued" && (p.lastError ?? "").startsWith("PAUSED_HELD"),
               error: p.lastError ?? null,
               views: latest?.views ?? null,
             };
@@ -198,6 +199,13 @@ export const markPublishing = internalMutation({
   handler: async (ctx: MutationCtx, args) => {
     const pub = await ctx.db.get("publications", args.publicationId);
     if (!pub || pub.status !== "queued") return null;
+    // Paused plan: Friday holds the queue and posts when the pause ends.
+    const heldPost = await ctx.db.get("posts", pub.postId);
+    const owner = heldPost ? await ctx.db.get("users", heldPost.userId) : null;
+    if (owner?.pausedUntil && owner.pausedUntil > Date.now()) {
+      await ctx.db.patch("publications", args.publicationId, { publishAt: owner.pausedUntil, lastError: "PAUSED_HELD" });
+      return null;
+    }
     await ctx.db.patch("publications", args.publicationId, {
       status: "publishing",
       attempts: pub.attempts + 1,

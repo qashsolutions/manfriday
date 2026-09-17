@@ -31,7 +31,9 @@ export default function PrivacyPage() {
       </p>
       <p>
         <strong>Payment details</strong> — go directly to Stripe; card numbers never touch our
-        servers.
+        servers. We keep only your Stripe customer and subscription IDs, your plan, and how many
+        videos you have used. Deleting your account cancels any subscription immediately; Stripe
+        keeps its own payment records as the law requires.
       </p>
       <p>
         <strong>Product analytics</strong> — which features get used and how posts perform, to

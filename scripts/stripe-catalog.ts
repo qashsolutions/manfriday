@@ -39,14 +39,21 @@ for (const item of CATALOG) {
       product = stripe(args);
       console.log(`  created product       ${item.name}  ${product.id}`);
     }
-  } else if (product.tax_code !== item.taxCode) {
+  } else if (product.description !== item.description) {
+    if (!apply) console.log(`  would update description  ${item.name}`);
+    else {
+      product = stripe(["products", "update", product.id, "--description", item.description]);
+      console.log(`  updated description   ${item.name}`);
+    }
+  }
+  if (product && product.tax_code !== item.taxCode) {
     // Tax code is mutable on a product, so fix it in place.
     if (!apply) console.log(`  would set tax code    ${item.name}  ${product.tax_code ?? "none"} -> ${item.taxCode}`);
     else {
       product = stripe(["products", "update", product.id, "-d", `tax_code=${item.taxCode}`]);
       console.log(`  set tax code          ${item.name}  ${product.tax_code}`);
     }
-  } else {
+  } else if (product) {
     console.log(`  ok product            ${item.name}  ${product.id}  ${product.tax_code}${product.active ? "" : "  (ARCHIVED)"}`);
   }
 
@@ -77,4 +84,44 @@ for (const item of CATALOG) {
     console.log(`    created price      ${label}  ${created.id}`);
   }
 }
+// ── billing portal: card, invoices, switch plan/period, cancel at period end ──
+{
+  const fresh: any[] = stripe(["products", "list", "--limit", "100"]).data;
+  const subProducts = CATALOG.filter((c) => c.prices.some((p) => p.recurring)).map((c) => {
+    const prod = fresh.find((p) => p.metadata?.mf_key === c.key && p.metadata?.app === "manfriday");
+    const priceIds = c.prices
+      .filter((p) => p.recurring)
+      .map((p) => stripe(["prices", "list", "-d", `lookup_keys[]=${p.lookupKey}`, "--limit", "1"]).data[0]?.id)
+      .filter(Boolean);
+    return prod ? { product: prod.id, prices: priceIds } : null;
+  }).filter(Boolean) as { product: string; prices: string[] }[];
+
+  const configs: any[] = stripe(["get", "/v1/billing_portal/configurations", "-d", "limit=20", "-d", "active=true"]).data;
+  const existing = configs.find((c) => c.metadata?.app === "manfriday");
+  const args: string[] = [
+    "-d", "business_profile[headline]=Man Friday — manage your plan",
+    "-d", "business_profile[privacy_policy_url]=https://manfriday.app/privacy",
+    "-d", "business_profile[terms_of_service_url]=https://manfriday.app/terms",
+    "-d", "default_return_url=https://manfriday.app/settings#s-plan",
+    "-d", "features[invoice_history][enabled]=true",
+    "-d", "features[payment_method_update][enabled]=true",
+    "-d", "features[customer_update][enabled]=true",
+    "-d", "features[customer_update][allowed_updates][0]=email",
+    "-d", "features[customer_update][allowed_updates][1]=address",
+    "-d", "features[subscription_cancel][enabled]=true",
+    "-d", "features[subscription_cancel][mode]=at_period_end",
+    "-d", "features[subscription_update][enabled]=true",
+    "-d", "features[subscription_update][default_allowed_updates][0]=price",
+    "-d", "features[subscription_update][proration_behavior]=create_prorations",
+    "-d", "metadata[app]=manfriday",
+  ];
+  subProducts.forEach((sp, i) => {
+    args.push("-d", `features[subscription_update][products][${i}][product]=${sp.product}`);
+    sp.prices.forEach((pid, j) => args.push("-d", `features[subscription_update][products][${i}][prices][${j}]=${pid}`));
+  });
+  if (!apply) console.log(`  ${existing ? "would update" : "would create"} billing portal configuration`);
+  else if (existing) { stripe(["post", `/v1/billing_portal/configurations/${existing.id}`, ...args]); console.log(`  updated portal config ${existing.id}`); }
+  else { const c = stripe(["post", "/v1/billing_portal/configurations", ...args]); console.log(`  created portal config ${c.id}`); }
+}
+
 if (problems) { console.log(`\n${problems} price(s) drifted from lib/site.ts`); process.exit(1); }

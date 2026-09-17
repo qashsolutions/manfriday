@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { refundVideo } from "./allowance";
 import { mutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { env } from "./_generated/server";
@@ -124,7 +125,10 @@ export const failJob = mutation({
 
     if (job.attempts >= MAX_ATTEMPTS) {
       await ctx.db.patch("renderJobs", args.jobId, { status: "failed", error: args.error });
-      await ctx.db.patch("concepts", job.conceptId, { status: "failed" });
+      const concept = await ctx.db.get("concepts", job.conceptId);
+      await ctx.db.patch("concepts", job.conceptId, { status: "failed", billedFrom: undefined, billedPeriodStartsAt: undefined });
+      // A video that never rendered doesn't count against the allowance.
+      if (concept && job.kind === "final") await refundVideo(ctx, concept.userId, concept.billedFrom, concept.billedPeriodStartsAt);
     } else {
       // back to the queue for another worker/attempt
       await ctx.db.patch("renderJobs", args.jobId, {
@@ -192,11 +196,25 @@ export const completePipelineRequest = mutation({
   },
   handler: async (ctx: MutationCtx, args) => {
     requireWorker(args.token);
+    const req = await ctx.db.get("pipelineRequests", args.requestId);
     await ctx.db.patch("pipelineRequests", args.requestId, {
       status: "done",
       brandId: args.brandId,
       batchId: args.batchId,
     });
+    // An "also in" variant was charged at request time; the charge now lives on
+    // the concept it produced, so a failed final render can give it back.
+    if (req?.kind === "variant" && req.billedFrom) {
+      const rows = await ctx.db
+        .query("concepts")
+        .withIndex("by_userId_and_status", (q) => q.eq("userId", req.userId))
+        .take(500);
+      const made = rows.find((c) => c.batchId === args.batchId && c.variantOf);
+      if (made) {
+        await ctx.db.patch("concepts", made._id, { billedFrom: req.billedFrom, billedPeriodStartsAt: req.billedPeriodStartsAt });
+        await ctx.db.patch("pipelineRequests", args.requestId, { billedFrom: undefined, billedPeriodStartsAt: undefined });
+      }
+    }
     return null;
   },
 });
@@ -205,7 +223,9 @@ export const failPipelineRequest = mutation({
   args: { token: v.string(), requestId: v.id("pipelineRequests"), error: v.string() },
   handler: async (ctx: MutationCtx, args) => {
     requireWorker(args.token);
-    await ctx.db.patch("pipelineRequests", args.requestId, { status: "failed", error: args.error });
+    const req = await ctx.db.get("pipelineRequests", args.requestId);
+    await ctx.db.patch("pipelineRequests", args.requestId, { status: "failed", error: args.error, billedFrom: undefined, billedPeriodStartsAt: undefined });
+    if (req) await refundVideo(ctx, req.userId, req.billedFrom, req.billedPeriodStartsAt);
     return null;
   },
 });

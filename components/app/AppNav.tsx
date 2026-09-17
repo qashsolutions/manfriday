@@ -7,6 +7,7 @@ import { UserButton, useAuth } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Bolt, Wordmark } from "@/components/ui/Logo";
+import { PlanMeter } from "./PlanMeter";
 
 const TABS = [
   { href: "/picks", label: "PICKS" },
@@ -50,6 +51,7 @@ export function AppNav() {
             {t.label}
           </Link>
         ))}
+        <PlanMeter />
         <UserButton />
       </nav>
     </header>
