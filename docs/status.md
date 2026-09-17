@@ -79,4 +79,4 @@ Next: Stripe billing (item 5 of the first-session list: the video meter and what
 
 Built: allowance metering (Free 3 once; monthly per tier; top-ups after), at-zero sheet in Picks, nav meter, Settings checkout/portal/top-up/pause, live Founding 200 counter (landing placeholder removed), signed idempotent webhooks, pause holding the queue, deletion cancelling the subscription, terms + privacy updated. 60 tests. Runbook: docs/billing.md.
 
-Waiting on: `STRIPE_SECRET_KEY` (sandbox) in the Convex dashboard, then a test purchase. Live mode at launch.
+Verified 17 Sep in the sandbox: a real Checkout purchase (Solo monthly, test card) activated the plan via webhook within seconds; the billing portal opened with the subscription, card and paid invoice. Open before launch: the Stripe account's public name and branding still say Denali Health (account-wide setting); live mode.

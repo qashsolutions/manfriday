@@ -44,6 +44,8 @@ Never paste keys into chat or commit them.
 
 ## Go live checklist
 
+0. **Public business name and branding** on the Stripe account still say Denali Health — Checkout, the portal, receipts and card statements show it. Change them (Settings › Business › Public details, Branding) or move Man Friday to its own Stripe account.
+
 1. Live mode needs write access: the `stripe login` live key is read-only. Either grant Prices/Products/Portal/Webhook write on that key for the session, or create the live catalog from a live restricted key.
 2. `npx tsx scripts/stripe-catalog.ts --live` (dry run), then `--live --apply`.
 3. Create the live webhook endpoint (same 7 events as test) and put its secret in the production Convex deployment.

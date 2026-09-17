@@ -386,3 +386,20 @@ export const clearQuotaForToday = internalMutation({
     return row ? "cleared" : "nothing to clear";
   },
 });
+
+/** Read-only: a user's billing fields (no tokens, no Stripe secrets). */
+export const billingState = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const u = (await ctx.db.query("users").take(1000)).find((x) => x.email === args.email);
+    if (!u) return null;
+    const events = await ctx.db.query("stripeEvents").order("desc").take(10);
+    return {
+      plan: u.plan, tier: u.tier, term: u.term, superUser: u.superUser ?? false,
+      hasCustomer: !!u.stripeCustomerId, hasSubscription: !!u.stripeSubscriptionId,
+      periodAnchorAt: u.periodAnchorAt ? new Date(u.periodAnchorAt).toISOString() : null,
+      used: u.videosUsedThisPeriod, topup: u.topupVideos ?? 0, paymentFailed: !!u.paymentFailedAt,
+      recentEvents: events.map((e) => e.type),
+    };
+  },
+});
