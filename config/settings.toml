@@ -1,0 +1,112 @@
+# Highway settings. Hard rules live here and are never changed by any agent.
+# Tunable strategy knobs live in the database (params table) with fixed bounds.
+
+mode = "paper"            # "paper" for week 1. "live" is not wired yet on purpose.
+poll_seconds = 10         # how often prices are checked and hard rules enforced
+bar_minutes = 15          # crypto strategies decide on each closed 15-minute bar
+equity_bar_minutes = 60   # stocks/ETFs use 1-hour bars (2 years of history for backtests)
+
+[capital]
+lanes = 4
+lane_principal = 100.0    # each lane starts with $100
+lane_cap = 150.0          # a lane never holds more than this
+skim_chunk = 50.0         # every $50 above principal goes to the vault
+lane_floor = 70.0         # a lane at or below this is closed and refilled from reserve
+reserve = 100.0           # restored: the ETF mandate replaced the shared sleeve, so refills work again
+sleeve_lanes = 0          # retired Sept 23: every manager holding the same four funds was the
+sleeve_principal = 25.0   # very sameness the mandates exist to remove
+max_buy = 50.0            # no single buy order may exceed $50
+min_buy = 5.0
+total_risk_cap = 500.0    # total money that can ever be put in
+
+[rules]
+day_window_hours = 24.0
+# Measured Sept 24 over 2 years of hourly bars, all strategies, 10 assets. Against the old
+# -10/+15/12 these settings returned +5.6 points more AND suffered 3.6 points less drawdown -
+# better on both axes, which is why they replaced it. A symmetric -5/+5 band was tested at the
+# same time: it cut drawdown by 2.8 points but was the only setting with clearly negative
+# returns. Tightening the stop helps; capping the winners does not.
+stop_loss_day_pct = -7.0      # down 7% or more in a day -> exit everything
+take_profit_day_pct = 12.0    # up more than 12% in a day -> sell everything
+giveback_pct = 20.0           # fell 20% from its best since entry -> sell everything (trailing stop)
+max_buys_per_lane_per_day = 4
+max_price_divergence_pct = 2.0  # Coinbase vs Crypto.com disagree by more -> skip tick
+max_quote_age_seconds = 90      # crypto quote older than this -> stale
+max_equity_quote_age_seconds = 900
+
+[fees]
+# Crypto goes to the cheapest venue that lists the coin; stocks price as commission-free.
+maker = 0.005             # Coinbase Advanced, Intro tier
+taker = 0.009
+cryptocom_maker = 0.0025  # Crypto.com Exchange base tier
+cryptocom_taker = 0.005
+stock_maker = 0.0         # Webull / Alpaca: commission-free, the cost is the spread
+stock_taker = 0.0
+slippage_bps = 5.0
+equity_half_spread_bps = 3.0
+# Half the bid/ask spread by share price: [price at least, basis points]
+spread_tiers = [[20.0, 3.0], [5.0, 8.0], [1.0, 40.0], [0.0, 150.0]]
+
+[settlement]
+crypto_hours = 0.0            # crypto sale proceeds usable immediately
+equity_business_days = 1      # stock sale proceeds settle next business day
+
+[target]
+# Tempered from 22% on Sept 24. 22% a month compounds to about 11x a year, which needs the
+# violent end of the market and a great deal of luck; 12-15% is about 4-5x a year, which is
+# still extraordinary but is a target a disciplined system can chase without taking silly risk.
+monthly = 0.135           # the midpoint: what the pace line and the scorecards use
+monthly_low = 0.12        # the band the owner set
+monthly_high = 0.15
+
+[agents]
+claude_bin = "claude"
+claude_model = "sonnet"
+max_claude_calls_per_day = 14   # 6 for the Laser manager, the rest for Scout, Coach and news checks
+scout_hour_utc = 13           # 13:00 UTC, before the US open
+coach_hour_utc = 3            # 03:00 UTC nightly review
+
+[news]
+poll_minutes = 5
+fear_greed_minutes = 60
+alphavantage_minutes = 70     # stays under the free 25/day limit
+user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) HighwayBot/0.1"
+sec_user_agent = "HighwayBot research (set a contact email here)"
+general_feeds = [
+  ["CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"],
+  ["Cointelegraph", "https://cointelegraph.com/rss"],
+  ["Decrypt", "https://decrypt.co/feed"],
+  ["CNBC", "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"],
+  ["MarketWatch", "https://feeds.content.dowjones.io/public/rss/mw_topstories"],
+]
+
+[scout]
+# No fixed slots: the four lanes go to the best assets of any type.
+crypto_candidates = 25        # top coins by Coinbase volume that get scored
+min_crypto_volume_usd = 15000000.0
+equities_file = "config/equities.txt"   # every stock/ETF Coinbase lists
+min_equity_dollar_volume = 50000000.0   # average daily $ traded
+min_monthly_vol = 0.10        # needs enough movement to make 22% a month possible
+shortlist = 10                # per type: the top 10 coins AND the top 10 stocks/ETFs get full backtests
+bench_size = 8                # next-best assets tracked live on paper (no money)
+max_per_class = 3             # at most 3 lanes in crypto, or 3 in stocks
+max_correlation = 0.85        # lanes should not all move together
+etf_per_theme = 2             # the best 2 funds of EACH theme get backtested, so the sleeve can spread
+etf_min_monthly_vol = 0.025   # funds move less than single names; the 10% floor excludes GLD (0.071) and VOO (0.028)
+bluechip_min_monthly_vol = 0.04   # measured: the 10% floor excluded 11 of 15 giants incl. AAPL, MSFT, JPM
+bluechip_min_dollar_volume = 250000000.0  # a giant that trades less than this is not a market mover
+etf_min_dollar_volume = 5000000.0   # $5M a day is ample for a $50 clip
+promote_after_flat_h = 24.0   # a lane idle this long can hand its slot to a working bench asset
+
+[radar]
+scan_minutes = 20             # how often the buckets are re-checked
+large_cap = 250               # how many of each bucket to track
+ai_tech = 60
+small_mid = 150
+penny = 120
+crypto = 50
+min_penny_dollar_volume = 2000000.0   # a penny stock must trade at least this much a day
+
+[dashboard]
+host = "127.0.0.1"
+port = 8787
