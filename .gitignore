@@ -1,13 +1,44 @@
-# Python-generated files
+# ---- secrets: nothing in here may ever be committed -------------------------------------
+# The Nasdaq key goes in .env. Every variant is covered so a stray .env.local, .env.prod or
+# editor backup cannot slip through.
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.*
+credentials.*
+*_secret*
+*_credentials*
+service-account*.json
+
+# ---- live state: large, binary, changes every tick, and is not source --------------------
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.pkl
+
+# ---- Python -----------------------------------------------------------------------------
 __pycache__/
 *.py[oc]
 build/
 dist/
 wheels/
 *.egg-info
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
-# Virtual environments
+# ---- environments and editors -----------------------------------------------------------
 .venv
-data/
-*.pkl
-.env
+venv/
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
