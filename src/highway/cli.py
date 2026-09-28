@@ -35,6 +35,48 @@ def cmd_run(args, s):
     Engine(s).run()
 
 
+def cmd_daily(args, s):
+    """One command for the daily review: operational facts, not verdicts on strategy."""
+    from . import daily
+    from .config import DATA_DIR
+    from .db import DB
+    from .mandate import names
+
+    db = DB()
+    r = daily.report(db, s, names(), DATA_DIR / "logs" / "engine.log")
+    problems = []
+    print(f"Day {r['day']} · {time.strftime('%Y-%m-%d %H:%M', time.localtime(r['checked']))}\n")
+
+    if r["rows"]:
+        print(f"  {'#':>2} {'manager':10}{'start':>9}{'now':>9}{'move':>8}{'trades':>8}{'fees':>7}")
+        for x in r["rows"]:
+            print(f"  {x['rank']:>2} {x['name']:10}{x['start_value']:>9.2f}{x['end_value']:>9.2f}"
+                  f"{x['return_pct']:>7.2f}%{x['trades']:>8}{x['fees']:>7.2f}")
+        print()
+
+    def line(ok, good, bad):
+        print(f"  {'OK  ' if ok else 'LOOK'}  {good if ok else bad}")
+        if not ok:
+            problems.append(bad)
+
+    line(not r["health_failing"], "health: all checks passing",
+         "health: " + "; ".join(f"{c['name']} ({c['detail'][:50]})" for c in r["health_failing"]))
+    line(r["tick_errors"] == 0, "engine: no tick errors since it started",
+         f"engine: {r['tick_errors']} ticks raised - {r['last_error']}")
+    line(r["guardrails_clean"], "guardrails: every rule fired on time",
+         f"guardrails: {len(r['late_rules'])} fired late")
+    line(not r["no_candidates"], "scout: every manager has a candidate list",
+         "scout: NO CANDIDATES for " + ", ".join(q["name"] for q in r["no_candidates"]))
+    quiet = [q for q in r["quiet"] if q["has_candidates"]]
+    line(not quiet, "activity: every manager traded in the last 24h",
+         "activity: no trades in 24h from " + ", ".join(q["name"] for q in quiet)
+         + " (fine if they are holding; suspect if they are in cash)")
+
+    print()
+    print("  nothing needs you today" if not problems else f"  {len(problems)} thing(s) to look at")
+    print("\n  A day is not evidence about strategy. Change a rule only from scripts/measure/.")
+
+
 def cmd_audit(args, s):
     """Replay every position the league has held and check each hard rule fired on time."""
     import time
@@ -267,6 +309,7 @@ def main(argv=None):
     wt.add_argument("--apply", action="store_true", help="adopt the recommendation if it clearly wins")
     wt.set_defaults(fn=cmd_weights)
     sub.add_parser("audit", help="did every hard rule actually fire on time?").set_defaults(fn=cmd_audit)
+    sub.add_parser("daily", help="the daily check: is anything broken, what happened").set_defaults(fn=cmd_daily)
     rd = sub.add_parser("radar", help="show what the buckets are flagging")
     rd.add_argument("--rebuild", action="store_true", help="rebuild the universe from the whole market")
     rd.add_argument("--scan", action="store_true", help="run a fresh scan now")

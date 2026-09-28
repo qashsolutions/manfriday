@@ -57,8 +57,16 @@ def breaches(db: DB, s: Settings, pid: str, tolerance_min: float = TOLERANCE_MIN
         series = _prices(db, pid, t["lane"], t["asset"], opened, closed_at or 2e10)
         if len(series) < 2:
             continue
-        entry = t["cost"] / t["qty"] if t.get("qty") else series[0][1]
+        # A closed position leaves floating-point dust in qty, and `if t["qty"]` treats 1e-15
+        # as truthy - dividing cost by it invented an entry price of 95 billion, which made
+        # every later sample look like a -100% crash.
+        qty = t.get("qty") or 0.0
+        entry = t["cost"] / qty if qty > 1e-9 else series[0][1]
+        lo, hi = min(p for _, p in series), max(p for _, p in series)
+        if not (0.01 * lo <= entry <= 100 * hi):   # belt and braces against any other nonsense
+            entry = series[0][1]
         peak = series[0][1]
+        pending = None
         for i, (ts, px) in enumerate(series):
             peak = max(peak, px)
             day = (px / _day_ago(series, i, window, entry) - 1) * 100
@@ -70,13 +78,26 @@ def breaches(db: DB, s: Settings, pid: str, tolerance_min: float = TOLERANCE_MIN
                 rule = ("day take-profit", day, s.rules.take_profit_day_pct)
             elif s.rules.giveback_pct and give <= -s.rules.giveback_pct:
                 rule = ("give-back", give, -s.rules.giveback_pct)
-            if not rule or ts < since:
+            if ts < since:
                 continue
+            # The engine only acts on a breach confirmed by a second consecutive check, so a
+            # momentary dip that recovers is the rule working, not a rule firing late. The audit
+            # has to hold breaches to the same standard or it invents violations.
+            if not rule:
+                pending = None
+                continue
+            if pending is None or pending[0] != rule[0]:
+                pending = (rule[0], ts)
+                continue
+            # Lateness is measured from the confirming sample, not the first one: the engine is
+            # not allowed to act on a single check, so counting that delay against it would be
+            # blaming the design for working.
             name, value, threshold = rule
+            first_seen = pending[1]
             lag = ((closed_at - ts) / 60) if closed_at else None
             out.append({
                 "lane": t["lane"], "asset": t["asset"], "rule": name,
-                "at": ts, "value": round(value, 2), "threshold": threshold,
+                "at": ts, "first_seen": first_seen, "value": round(value, 2), "threshold": threshold,
                 "lag_min": round(lag, 1) if lag is not None else None,
                 "still_open": closed_at is None,
                 "late": closed_at is None or lag > tolerance_min,

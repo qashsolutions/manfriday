@@ -2,7 +2,8 @@
 
 A paper-trading **league**: six managers, each running its own four-lane portfolio. Each lane
 starts with $100 and a $100 reserve covers refills, so every manager has $500 at risk. It runs on
-fake money with live prices, and the winner is the candidate to run real money later.
+fake money with live prices. It is an open-ended pilot, reviewed daily and extended until the
+approach is good enough to trust - or shown not to be.
 
 They all obey the same hard rules and run through the same order and risk code
 (`portfolio.py`). **What differs is the slice of the market each may touch** — because when they

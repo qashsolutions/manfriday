@@ -87,6 +87,7 @@ scripts/service.sh status | logs      # is it alive / tail the log
 .venv/bin/highway status              # leaderboard in the terminal
 .venv/bin/highway days [--day N]      # day-by-day and week-by-week tables
 .venv/bin/highway radar [--scan]      # what the buckets are flagging
+.venv/bin/highway daily               # the daily review: is anything broken, what happened
 .venv/bin/highway audit               # did every hard rule fire, and on time?
 .venv/bin/python scripts/measure/rule_sweep.py   # re-derive a rule change; see scripts/measure/README.md
 .venv/bin/highway scout [--claude]    # re-pick lanes now
@@ -240,7 +241,9 @@ money) waits for the owner.
 
 ## Status (Sept 2026)
 
-- **The league was re-based to day 1 on Sept 24, 08:17 CDT and runs 6 weeks, to Nov 5.** The
+- **The pilot is open-ended.** It was re-based to day 1 on Sept 24, 08:17 CDT. The original
+  six-week framing is now a review milestone, not an end date: it runs until the owner judges the
+  model good enough, reviewed daily and tweaked when evidence supports it. The
   first two days were thrown out of the scored window (not deleted - every row is still on disk)
   because they compared three managers over two days, one under a different mandate, and two
   that had existed for two hours. `league_started` and `league_start_values` define the window.
@@ -260,6 +263,31 @@ money) waits for the owner.
   the most information.
 - For live numbers read the dashboard, `highway status`, `highway audit`, or `data/reports/`.
   Don't trust any figures written here.
+
+## The daily review: what is safe to change daily, and what is not
+
+The pilot runs open-ended and is reviewed daily. That cadence is right for operations and wrong
+for strategy, and the two must not be confused.
+
+**Daily, act freely — `highway daily`.** It answers five operational questions: is health green,
+did any tick raise, did every hard rule fire on time, does every manager have a candidate list,
+and did each one actually trade. It exists because a manager once sat completely inert for hours
+and nothing noticed: *"made no trades"* and *"chose to make no trades"* look identical from the
+outside, so it asks directly. Fixing a bug, an empty candidate list or a dead feed needs no
+evidence beyond the symptom.
+
+**Strategy changes need evidence, not a day.** A day is nowhere near enough to tell a good
+manager from a lucky one - the simulation in `scripts/measure/league_power.py` puts a genuinely
+better manager (5%/month edge) in first place only **39%** of the time over a *whole six weeks*.
+Over one day it is a coin flip. Changing weights because yesterday looked bad is fitting to noise.
+
+So: a rule or parameter changes only when a harness in `scripts/measure/` supports it, and only
+when it wins on the full history **and** the most recent third. Everything there records what it
+found, so a change can be argued against evidence rather than against memory.
+
+There is a second reason to be strict. Re-tuning against the same live record every day is
+adaptive querying of a single holdout - the Ladder result (Blum & Hardt, ICML 2015) shows this
+overfits the leaderboard itself, however honest each individual decision feels.
 
 ## Scoring: raw return is not the score
 
