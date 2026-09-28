@@ -95,7 +95,8 @@ scripts/service.sh status | logs      # is it alive / tail the log
 .venv/bin/highway pause | resume | kill
 ```
 
-Dashboard: http://127.0.0.1:8787 (localhost only, by the owner's decision, for the whole run).
+Dashboard: served locally on the host in `[dashboard]` of `config/settings.toml`. Not exposed
+beyond this machine, by the owner's decision, for the whole run.
 
 ## Hard rules: never weaken these without asking the owner
 
@@ -225,7 +226,8 @@ money) waits for the owner.
   stamps on the shared `scout_picks` and the last one wins.
 - **Run `node --check` on the served JavaScript before trusting a dashboard deploy.** A Python
   import check passes happily on broken JS, and one duplicate `const` blanks *every page*:
-  `curl -s http://127.0.0.1:8787/ | sed -n '/^<script>/,/^<\/script>/p' | sed '1d;$d' > /tmp/hw.js && node --check /tmp/hw.js`.
+  `curl -s "http://$HOST:$PORT/" | sed -n '/^<script>/,/^<\/script>/p' | sed '1d;$d' > /tmp/hw.js && node --check /tmp/hw.js`
+  (host and port from `[dashboard]` in `config/settings.toml`).
   Two variable collisions (`lo`/`hi`, then `pr`) were caught this way.
 - **SVG does not wrap text and does not resolve unknown CSS variables.** A long string is silently
   clipped at the viewBox edge - split it by hand. `var(--card)` does not exist; the surfaces are

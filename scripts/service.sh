@@ -35,7 +35,7 @@ case "${1:-status}" in
 EOF
     launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
     launchctl bootstrap "gui/$(id -u)" "$PLIST"
-    echo "Installed and started. Dashboard: http://127.0.0.1:8787"
+    echo "Installed and started. Dashboard: see [dashboard] in config/settings.toml"
     ;;
   uninstall)
     launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
@@ -57,7 +57,7 @@ EOF
     ;;
   start)
     launchctl bootstrap "gui/$(id -u)" "$PLIST"
-    echo "Started. Dashboard: http://127.0.0.1:8787"
+    echo "Started. Dashboard: see [dashboard] in config/settings.toml"
     ;;
   status)
     launchctl print "gui/$(id -u)/$LABEL" 2>/dev/null | grep -E "state|pid|last exit" || echo "Not installed."

@@ -1,4 +1,5 @@
-"""Local dashboard at http://127.0.0.1:8787. Reads only from the database."""
+"""The local dashboard. Binds to the host and port in `[dashboard]` of settings.toml,
+which is loopback by default. Reads only from the database; it never trades."""
 
 from __future__ import annotations
 
