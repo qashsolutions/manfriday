@@ -66,3 +66,17 @@ def test_every_hard_rule_has_a_plain_english_label():
     for reason in HARD_RULES:
         assert label(reason) != reason
         assert "_" not in label(reason)
+
+
+def test_the_report_scores_the_league_window_not_all_history(db):
+    """The two days thrown out on the Sept 24 re-base must not be blamed on a rule."""
+    db.set_state("league_started", T0 + 1000)
+    fill(db, "laser", T0, 1, "OLD-USD", "buy", 1.0, 100.0, "signal")          # before the window
+    fill(db, "laser", T0 + 10, 1, "OLD-USD", "sell", 1.0, 80.0, "stop_day")
+    fill(db, "laser", T0 + 2000, 2, "NEW-USD", "buy", 1.0, 100.0, "signal")   # inside it
+    fill(db, "laser", T0 + 2010, 2, "NEW-USD", "sell", 1.0, 95.0, "stop_day")
+
+    scored = report(db, {"laser": "Laser"})
+    assert scored["realised"] == pytest.approx(-5.0)      # only the in-window trade
+    everything = report(db, {"laser": "Laser"}, since=0.0)
+    assert everything["realised"] == pytest.approx(-25.0)  # both, when asked for explicitly

@@ -61,12 +61,19 @@ def by_rule(db: DB, pid: str, since: float = 0.0) -> list[dict]:
     return sorted(rows, key=lambda r: r["pnl"])
 
 
-def report(db: DB, names: dict[str, str], since: float = 0.0) -> dict:
+def report(db: DB, names: dict[str, str], since: float | None = None) -> dict:
     """Every manager's rule attribution, plus the league totals and the rules that never fired.
 
     A hard rule with no trades against it is worth surfacing, not hiding: it means the rule has
     never been tested by live prices, so nothing is known about whether its level is right.
+
+    `since` defaults to the scored league window, the same cut the leaderboard uses. Counting
+    all history instead pulled in the two days thrown out on the Sept 24 re-base - including a
+    −18.5% trade held for 37 minutes - and made the day stop look 0.9 points worse than it is.
+    Pass 0.0 deliberately to see every trade ever made.
     """
+    if since is None:
+        since = db.get_state("league_started") or 0.0
     managers, totals = [], {}
     for pid, name in names.items():
         rows = by_rule(db, pid, since)
