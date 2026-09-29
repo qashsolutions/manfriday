@@ -111,3 +111,57 @@ def test_the_league_view_adds_the_same_asset_across_managers(setup):
     assert near["trades"] == 2
     assert sorted(near["managers"]) == ["Hold", "Laser"]
     assert near["total"] == pytest.approx(-15.0)
+
+
+def test_asset_periods_values_a_position_held_through_a_quiet_period(setup):
+    """The point of this view: an asset simply held through a day still made or lost money."""
+    from highway.metrics import asset_periods
+
+    import time as _time
+
+    db, _ = setup
+    _fill(db, "laser", T0, 1, "BTC-USD", "buy", 1.0, 100.0)
+    # price it every hour from the buy until now, rising $10 a day, so every period edge is
+    # priceable the way it is in the live database (a tick every ten seconds)
+    hours = int((_time.time() - T0) // 3600) + 2
+    for h in range(hours):
+        ts = T0 + h * 3600
+        px = 100.0 + 10.0 * (h // 24)
+        db.execute("INSERT INTO ticks (asset, ts, bid, ask, last, gap) VALUES (?,?,?,?,?,0)",
+                   ("BTC-USD", ts, px, px, px))
+    rows = asset_periods(db, "laser", "day", limit=20)
+    assert len(rows) >= 3
+    quiet = [r for r in rows if r["assets"] and r["assets"][0]["trades"] == 0]
+    assert quiet, "a held position with no trades must still appear"
+    assert quiet[0]["assets"][0]["pnl"] == pytest.approx(10.0, abs=0.01)  # one day of the rise
+    assert quiet[0]["assets"][0]["held_start"] and quiet[0]["assets"][0]["held_end"]
+
+
+def test_a_fill_on_a_period_edge_is_not_counted_twice(setup):
+    """Regression: qty carried INTO a period must exclude fills landing exactly on the edge.
+
+    Counting such a fill as both 'already held' and 'bought' subtracts it twice, which put the
+    whole-league total $50 adrift from the lifetime figure.
+    """
+    from highway.metrics import asset_periods, by_asset
+
+    db, _ = setup
+    _fill(db, "laser", T0, 1, "BTC-USD", "buy", 1.0, 100.0)
+    _fill(db, "laser", T0 + 60, 1, "BTC-USD", "sell", 1.0, 108.0)
+    db.execute("INSERT INTO ticks (asset, ts, bid, ask, last, gap) VALUES (?,?,?,?,?,0)",
+               ("BTC-USD", T0, 100.0, 100.0, 100.0))
+    periods = asset_periods(db, "laser", "day", limit=10)
+    total = sum(p["total"] for p in periods)
+    assert total == pytest.approx(8.0, abs=0.01)
+    # and it must agree with the asset's own lifetime figure
+    assert total == pytest.approx(by_asset(db, "laser")[0]["total"], abs=0.01)
+
+
+def test_asset_periods_skips_an_edge_it_cannot_price_rather_than_inventing_one(setup):
+    from highway.metrics import asset_periods
+
+    db, _ = setup
+    _fill(db, "laser", T0 - 40 * 86400, 1, "GHOST-USD", "buy", 1.0, 100.0)  # never priced
+    for p in asset_periods(db, "laser", "day", limit=60):
+        for a in p["assets"]:
+            assert a["asset"] != "GHOST-USD"

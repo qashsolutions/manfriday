@@ -143,14 +143,34 @@ def cmd_rules(args, s):
 
 
 def cmd_assets(args, s):
-    """Every asset the league has held, and what it has made or lost since the first buy."""
+    """Every asset the league has held, and what it has made or lost."""
     import time
 
     from .db import DB
     from .mandate import names
-    from .metrics import assets
+    from .metrics import asset_periods, assets
 
-    r = assets(DB(), names())
+    db = DB()
+    if args.by:
+        periods = asset_periods(db, None, args.by, limit=args.periods)
+        if not periods:
+            print("Nothing has been bought yet.")
+            return
+        print(f"Profit and loss by asset, {args.by} by {args.by}"
+              f"  \u00b7  a held position counts even in a {args.by} with no trades\n")
+        for p in periods:
+            print(f"  {p['period']}   {p['total']:+.2f}")
+            for a in p["assets"]:
+                if abs(a["pnl"]) < 0.005 and not a["trades"]:
+                    continue
+                traded = (f"bought {a['bought']:.0f}" if a["bought"] else "") + \
+                         (f" sold {a['sold']:.0f}" if a["sold"] else "")
+                print(f"      {a['asset']:12}{a['pnl']:>9.2f}   {traded:24}"
+                      f"{'held' if a['held_end'] else ''}")
+            print()
+        return
+
+    r = assets(db, names())
     rows = r["league"]
     if not rows:
         print("Nothing has been bought yet.")
@@ -171,6 +191,7 @@ def cmd_assets(args, s):
         print(f"\n  {worst['asset']} is the biggest drag: {worst['trades']} separate trades across "
               f"{len(worst['managers'])} manager(s) for ${worst['total']:.2f}.")
         print("  Worth asking why it keeps being picked, not just why each trade went wrong.")
+        print("  Break it down with: highway assets --by week")
 
 
 def cmd_status(args, s):
@@ -384,6 +405,9 @@ def main(argv=None):
     sub.add_parser("rules", help="what each exit rule has made or lost, per manager").set_defaults(fn=cmd_rules)
     asn = sub.add_parser("assets", help="what each asset has made or lost since day one of it")
     asn.add_argument("--all", action="store_true", help="include assets with no completed trade yet")
+    asn.add_argument("--by", choices=["day", "week", "month", "quarter", "year"],
+                     help="break the profit and loss down by period instead of since day one")
+    asn.add_argument("--periods", type=int, default=8, help="how many periods to show with --by")
     asn.set_defaults(fn=cmd_assets)
     sub.add_parser("daily", help="the daily check: is anything broken, what happened").set_defaults(fn=cmd_daily)
     rd = sub.add_parser("radar", help="show what the buckets are flagging")

@@ -375,6 +375,7 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
   </div>
   <h2 style="margin-top:14px">Every asset we have owned <span class="sub">· what each one made or lost since the day we first bought it</span></h2>
   <div class="card">
+    <div class="filters" id="assets-periods"></div>
     <div class="tablewrap" id="assets-league"></div>
     <div class="note"><b>Booked</b> is profit from trades already closed; <b>On paper</b> is the
     move on anything still held. <b>Total</b> adds the two, so it is the whole story for that
@@ -573,12 +574,51 @@ async function loadActivity() {
     if (!r.ok) throw new Error(r.status);
     activityData = await r.json();
     renderActivity();
+    panel("assets-pnl", () => renderAssetPnl(lastData));   // the per-period cut lives in here
   } catch (e) {
     $("activity-cards").innerHTML = `<div class="card"><p class="muted">Could not load the activity (${esc(String(e))}).</p></div>`;
   }
 }
 
+let assetSpan = "all";   // all | day | week | month | quarter | year
+
+function renderAssetPeriods() {
+  const spans = ["all", "day", "week", "month", "quarter", "year"];
+  $("assets-periods").innerHTML = spans.map(k =>
+    `<button data-as="${k}" class="${assetSpan === k ? "on" : ""}">${k === "all" ? "Since day one" : k[0].toUpperCase() + k.slice(1)}</button>`).join("");
+  $("assets-periods").querySelectorAll("[data-as]").forEach(b => b.onclick = () => {
+    assetSpan = b.dataset.as;
+    if (assetSpan !== "all" && !activityData) { loadActivity(); return; }
+    renderAssetPnl(lastData);
+  });
+}
+
+function assetPeriodTable(rows) {
+  if (!rows || !rows.length) {
+    return `<p class="muted">Nothing traded or held in this period yet.</p>`;
+  }
+  return rows.map(p => {
+    const shown = p.assets.filter(a => a.trades || Math.abs(a.pnl) >= 0.005);
+    if (!shown.length) return "";
+    return `<h4 style="margin:12px 0 6px">${esc(p.period)}
+      <span class="${p.total >= 0 ? "up" : "down"}">${money(p.total)}</span></h4>
+      <table><tr><th>Asset</th><th class="num">Profit</th><th class="num">Bought</th>
+      <th class="num">Sold</th><th class="num">Trades</th><th>Held</th></tr>` +
+      shown.map(a => `<tr><td><b>${esc(a.asset)}</b></td>
+        <td class="num ${a.pnl >= 0 ? "up" : "down"}">${money(a.pnl)}</td>
+        <td class="num">${a.bought ? money(a.bought) : "–"}</td>
+        <td class="num">${a.sold ? money(a.sold) : "–"}</td>
+        <td class="num">${a.trades || "–"}</td>
+        <td>${a.held_end ? "yes" : ""}</td></tr>`).join("") + `</table>`;
+  }).join("");
+}
+
 function renderAssetPnl(d) {
+  renderAssetPeriods();
+  if (assetSpan !== "all") {
+    $("assets-league").innerHTML = assetPeriodTable(((activityData || {}).by_asset || {})[assetSpan]);
+    return;
+  }
   const rows = (d.assets_pnl || []).filter(a => a.holding || a.trades);
   if (!rows.length) {
     $("assets-league").innerHTML = `<p class="muted">Nothing has been bought yet.</p>`; return;

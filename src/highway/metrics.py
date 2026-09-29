@@ -271,6 +271,106 @@ def assets(db: DB, names: dict[str, str]) -> dict:
     return {"league": sorted(league, key=lambda r: r["total"]), "managers": per_manager}
 
 
+def _price_at(db: DB, asset: str, ts: float, latest: dict[str, float]) -> float | None:
+    """Best price we have for an asset at a moment, for valuing a position at a period edge.
+
+    The newest price is only acceptable for an edge that *is* now. Using today's price to value
+    a position at last Tuesday's edge would invent a profit, so an edge we cannot price is
+    skipped by the caller instead.
+    """
+    p = db.tick_near(asset, ts, 3600)
+    if p:
+        return float(p)
+    row = db.query("SELECT price FROM league_equity WHERE asset=? AND ts<=? AND price>0 "
+                   "ORDER BY ts DESC LIMIT 1", (asset, ts))
+    if row:
+        return float(row[0]["price"])
+    return latest.get(asset) if time.time() - ts < 3600 else None
+
+
+def asset_periods(db: DB, pid: str | None, period: str = "day", limit: int = 40) -> list[dict]:
+    """Profit and loss by asset inside each day, week, month, quarter or year.
+
+    `by_period` answers this for a whole fund and `by_asset` answers it for an asset's whole
+    life; neither crosses the two, so "what did NEAR cost us last week" had no home.
+
+    A position carried across a period edge is valued at that edge, so the answer is the honest
+    one: what the asset did *inside* the period, not just what was banked in it. For each asset,
+    over a window that runs from t0 to t1:
+
+        profit = (what it is worth at t1) - (what it was worth at t0) - (bought) + (sold)
+
+    which is exact whether the position was opened, closed, added to or simply held throughout.
+    """
+    if period not in _PERIODS:
+        raise KeyError(f"unknown period {period}")
+    key = _PERIODS[period]
+    where = "WHERE portfolio=?" if pid else ""
+    args = (pid,) if pid else ()
+    fills = db.query(f"SELECT ts, asset, side, qty, cash, fee FROM fills {where} ORDER BY ts, id", tuple(args))
+    if not fills:
+        return []
+
+    now = time.time()
+    latest = {r["asset"]: float(r["price"]) for r in db.query(
+        "SELECT asset, price FROM league_equity WHERE price>0 ORDER BY ts") if r["asset"]}
+
+    # Every period between the first fill and now, including ones with no trading in them:
+    # an asset simply held through a quiet week still made or lost money that week.
+    starts: dict[str, float] = {}
+    t = fills[0]["ts"]
+    while t <= now:
+        starts.setdefault(key(t), t)
+        t += 3600
+    starts.setdefault(key(now), now)
+    ordered = sorted(starts.items(), key=lambda kv: kv[1])
+    edges = [(name, t0, (ordered[i + 1][1] if i + 1 < len(ordered) else now))
+             for i, (name, t0) in enumerate(ordered)]
+    edges = edges[-limit:]
+
+    by_asset_fills: dict[str, list[dict]] = {}
+    for f in fills:
+        by_asset_fills.setdefault(f["asset"], []).append(f)
+
+    def qty_at(asset: str, ts: float) -> float:
+        q = 0.0
+        for f in by_asset_fills[asset]:
+            if f["ts"] > ts:
+                break
+            q += f["qty"] if f["side"] == "buy" else -f["qty"]
+        return q
+
+    out = []
+    for name, t0, t1 in edges:
+        rows = []
+        for asset, af in by_asset_fills.items():
+            inside = [f for f in af if t0 <= f["ts"] < t1]
+            # Strictly BEFORE each edge. A fill landing exactly on t0 belongs to this period's
+            # `bought`/`sold`, never to the quantity carried into it - counting it as both
+            # subtracts the same trade twice, which is a real bug this had.
+            q0, q1 = qty_at(asset, t0 - 1e-6), qty_at(asset, t1 - 1e-6)
+            if not inside and q0 <= 1e-12 and q1 <= 1e-12:
+                continue
+            bought = sum(f["cash"] for f in inside if f["side"] == "buy")
+            sold = sum(f["cash"] for f in inside if f["side"] == "sell")
+            p0 = _price_at(db, asset, t0, latest) if q0 > 1e-12 else 0.0
+            p1 = _price_at(db, asset, min(t1, now), latest) if q1 > 1e-12 else 0.0
+            if (q0 > 1e-12 and not p0) or (q1 > 1e-12 and not p1):
+                continue  # cannot value an edge, so do not invent a number
+            pnl = (q1 * (p1 or 0.0)) - (q0 * (p0 or 0.0)) - bought + sold
+            rows.append({
+                "asset": asset, "pnl": round(pnl, 2), "bought": round(bought, 2),
+                "sold": round(sold, 2), "fees": round(sum(f["fee"] for f in inside), 2),
+                "trades": len(inside), "held_start": q0 > 1e-12, "held_end": q1 > 1e-12,
+            })
+        if not rows:
+            continue
+        rows.sort(key=lambda r: r["pnl"])
+        out.append({"period": name, "start": t0, "end": t1,
+                    "assets": rows, "total": round(sum(r["pnl"] for r in rows), 2)})
+    return out[::-1]  # newest first
+
+
 def by_period(db: DB, pid: str) -> dict[str, list[dict]]:
     """Each calendar day, week, month, quarter and year: what the fund did and what was traded.
 
@@ -350,6 +450,11 @@ def activity(db: DB, names: dict[str, str], limit: int = 150) -> dict:
                                                     "realised": 0.0, "fees": 0.0, "trades": 0, "wins": 0})
                 for k in ("start_value", "end_value", "realised", "fees", "trades", "wins"):
                     b[k] += r[k]
+    # The same money cut by asset instead of by fund: "what did NEAR cost us last week".
+    # by_period answers it per manager and by_asset answers it for an asset's whole life;
+    # neither crosses the two, which is the question the owner actually asks.
+    per_asset = {span: asset_periods(db, None, span, limit=24) for span in _PERIODS}
+
     league = {}
     for span, bucket in league_periods.items():
         rows = []
@@ -364,4 +469,4 @@ def activity(db: DB, names: dict[str, str], limit: int = 150) -> dict:
     system = db.query(
         "SELECT ts, level, kind, message, lane_id FROM events WHERE portfolio IS NULL "
         "AND kind NOT IN ('agent_call') ORDER BY ts DESC LIMIT ?", (limit,))
-    return {"managers": managers, "league": league, "system": system}
+    return {"managers": managers, "league": league, "system": system, "by_asset": per_asset}
