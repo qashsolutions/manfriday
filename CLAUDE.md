@@ -368,6 +368,42 @@ There is a second reason to be strict. Re-tuning against the same live record ev
 adaptive querying of a single holdout - the Ladder result (Blum & Hardt, ICML 2015) shows this
 overfits the leaderboard itself, however honest each individual decision feels.
 
+## Read this before tuning anything: the premise check failed
+
+`scripts/measure/edge_test.py`, run Sept 29 with its decision rule fixed in advance, asked the
+question sixteen earlier harnesses had skipped: **does the Scout -> tournament -> strategy ->
+exits pipeline beat simply buying the assets it picked and holding them, under the same rules
+and fees?**
+
+It beat buy-and-hold on **1 of 12 assets**. Median difference **−34.1 points**, paired
+**t = −3.27**, significant at the 5% level. Decomposed over the test window:
+
+| | median return |
+|---|---|
+| just owning the asset, no rules | **+73.8%** |
+| after the hard rules (stops, give-back, fees) | **+41.0%** (protection costs ~33 pts) |
+| after the strategy layer on top | **−3.6%** (a further ~45 pts) |
+
+**The caveat must always travel with the number: 10 of the 12 assets rose over their test
+window.** A strongly bullish sample flatters buy-and-hold and penalises anything that goes to
+cash, so this does not prove the strategies lack skill in every regime - the league's own recent
+experience has been a falling market. But it is strong evidence that the pipeline as configured
+destroys value, and it directly contradicts the premise that tuning exit rules reaches
+12-15%/month.
+
+**What follows from it, per the pre-registered rule:**
+
+1. **Stop tuning exit thresholds.** No stop level rescues an entry signal with no edge. Sixteen
+   harnesses tuned pieces of this pipeline; none had asked whether it had an edge to tune.
+2. **The target needs revisiting.** Nothing measured has reached 12-15%/month -
+   `bands_vs_drawdown`, `tight_bands_monthly` and `risk_reward` all agree. A target the design
+   cannot support is a wish, not a goal.
+3. **The open question is the entry side**, not the exits: the Scout's ranking already fails to
+   beat a coin flip on recent data (`scout_skill.py`), and this says the strategy layer on top
+   of it subtracts more.
+4. **Re-run this before trusting any future tuning.** It is a premise check, not a knob - it
+   proposes nothing and should be the first thing run, not the seventeenth.
+
 ## Scoring: raw return is not the score
 
 Raw return ranks whoever took the most risk. `skill.py` is the honest version and feeds the
