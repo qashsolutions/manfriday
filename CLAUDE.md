@@ -414,6 +414,25 @@ intended, not a coincidence worth re-tuning. The stops cost −$175 and the take
 the market, not a broken rule. **The give-back stop has never fired**, so its 20% level remains
 untested by live prices; `highway rules` lists any hard rule in that state rather than hiding it.
 
+**Why the league leans crypto, quantified.** Asked Sept 29. Three causes, and they chain:
+(1) **By design**, 8 of 24 lanes are crypto-only mandates - Coinbase vs Momentum is the fee
+experiment. 8 are equity-only and 8 are free to choose. (2) **The free lanes go crypto too**,
+because `rank_w_vol` is the ranking's largest weight and crypto carries about twice the monthly
+volatility of stocks. Laser's live candidate list ran **crypto in the top 12 of 20**, first
+stock at #13. Measured over a year on a universe that is only **5% crypto (18 of 356), crypto
+still takes 28% of the picks - 5.6x over-representation**. The z-scores are computed across the
+combined universe, so a stock is scored for volatility against crypto's distribution and can
+essentially never win that term. (3) **Equity lanes sit in cash more**, because low-volatility
+assets throw fewer signals that clear the fee test - so crypto's share of open *positions* (57%)
+runs above its share of lanes (33%).
+
+This is the same chain as the stop problem: the monthly target demands movement, the ranking
+selects movement, movement means crypto, and crypto's movement is why a 6% stop fires on noise.
+The floor comment still reads *"needs enough movement to make 22% a month possible"* - a target
+dropped to 12-15% on Sept 24 that nobody revisited. A volatility **ceiling** was measured as the
+way to cut the chain (`vol_ceiling.py`) and **did not clear the two-window bar**; the recent
+third liked it a lot, the full year did not.
+
 **The Scout's ranking is not currently beating a coin flip, and this is the open question.**
 `scripts/measure/scout_skill.py` asks what `weights.py` never did - whether the ranking predicts
 anything at all, rather than which weighting predicts best. Over 47 weeks the top fifth of the
