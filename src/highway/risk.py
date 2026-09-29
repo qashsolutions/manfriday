@@ -66,6 +66,19 @@ def day_change(lane: Lane, bid: float, price_at: PriceAt, now: float, window_hou
     return (lane.qty * bid) / ref_value - 1
 
 
+def falling_knife(price_now: float, price_before: float | None, max_drop_pct: float) -> bool:
+    """Has this asset just fallen too far to buy into?
+
+    The stale-decision check already refuses a buy whose *decision* has gone stale. This is the
+    other half: a decision made seconds ago, on an asset that is already in free fall. Five
+    trades were bought and stopped within hours for an average of -10%, against -1.1% for every
+    other trade, which is the pattern this is meant to catch.
+    """
+    if not max_drop_pct or not price_before or price_before <= 0 or price_now <= 0:
+        return False
+    return (price_now / price_before - 1) * 100 <= -max_drop_pct
+
+
 def hold_hours(lane: Lane, now: float) -> float:
     """How long this position has been open, counted from its first clip."""
     return (now - min(t.ts for t in lane.tranches)) / 3600 if lane.tranches else 0.0

@@ -22,6 +22,8 @@ SPECS: dict[str, Spec] = {
     "cooldown_after_tp_h": Spec(4.0, 1.0, 24.0, "hours before re-buying after a +15% day sale"),
     "cooldown_after_signal_h": Spec(0.0, 0.0, 12.0, "hours a lane waits before re-buying after a plain strategy exit"),
     "min_hold_hours": Spec(0.0, 0.0, 24.0, "a strategy may not sell a position younger than this; hard rules always can"),
+    "no_buy_drop_pct": Spec(0.0, 0.0, 20.0, "refuse a buy if the asset already fell this much recently (0 = off)"),
+    "no_buy_drop_hours": Spec(4.0, 1.0, 24.0, "how far back the falling-knife check looks"),
     "fee_edge_multiple": Spec(1.5, 1.0, 3.0, "expected move must be this many times the round-trip fee"),
     "tournament_window_days": Spec(5.0, 2.0, 14.0, "how far back the strategy tournament looks"),
     "switch_margin_pct": Spec(1.0, 0.25, 5.0, "a challenger must beat the leader by this much to take over"),

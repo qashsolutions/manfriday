@@ -18,7 +18,7 @@ from .config import Settings
 from .db import DB
 from .market import asset_class
 from .venues import NAMES as VENUE_NAMES, venue_for
-from .risk import Quote, day_change, signal_exit_ok
+from .risk import Quote, day_change, falling_knife, signal_exit_ok
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -249,6 +249,11 @@ class Portfolio:
             stale = ctx.fresh_look(lane, target, now)
             if stale:
                 self.blocks[lane.lane_id] = stale
+                return
+            drop_h = ctx.params["no_buy_drop_hours"]
+            if signal_exit_ok and falling_knife(q.ask, ctx.price_at(lane.asset, now - drop_h * 3600),
+                                                ctx.params["no_buy_drop_pct"]):
+                self.blocks[lane.lane_id] = f"already down sharply over {drop_h:.0f}h - not catching it"
                 return
             tilt, why = ctx.session_tilt(lane.asset, now)
             expected = target.expected_move_pct * (1 + w * news.get("score", 0.0)) * (1 + ctx.params["session_weight"] * tilt)

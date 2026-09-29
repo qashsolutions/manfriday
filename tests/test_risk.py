@@ -6,8 +6,8 @@ import pytest
 from highway.book import Fund
 from highway.config import Settings
 from highway.params import Params
-from highway.risk import (Quote, RiskManager, day_change, giveback_pct, hold_hours,
-                          signal_exit_ok)
+from highway.risk import (Quote, RiskManager, day_change, falling_knife, giveback_pct,
+                          hold_hours, signal_exit_ok)
 
 NY = ZoneInfo("America/New_York")
 S = Settings()
@@ -282,3 +282,28 @@ def test_an_empty_lane_has_no_hold_time():
     f, lane, risk = setup()
     assert hold_hours(lane, T0) == 0.0
     assert signal_exit_ok(lane, T0, 4.0)
+
+
+# ---- the falling-knife guard (off by default until measured) -----------------------------
+
+def test_the_guard_is_off_by_default():
+    """It changes nothing until a harness says it should."""
+    assert not falling_knife(90.0, 100.0, 0.0)          # a 10% fall, guard disabled
+    assert S.rules is not None                          # settings still load
+
+
+def test_a_sharp_recent_fall_blocks_the_buy():
+    assert falling_knife(94.0, 100.0, 5.0)              # down 6%, limit 5%
+    assert not falling_knife(96.0, 100.0, 5.0)          # down 4%, inside the limit
+
+
+def test_a_rising_asset_is_never_blocked():
+    for price in (101.0, 120.0, 100.0):
+        assert not falling_knife(price, 100.0, 5.0)
+
+
+def test_missing_history_does_not_block():
+    """No price from that far back is not evidence of a fall, so it must not refuse the buy."""
+    assert not falling_knife(90.0, None, 5.0)
+    assert not falling_knife(90.0, 0.0, 5.0)
+    assert not falling_knife(0.0, 100.0, 5.0)

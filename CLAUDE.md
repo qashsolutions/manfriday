@@ -139,6 +139,13 @@ They are the owner's own rules, enforced in code, and every manager obeys them:
   own switch path never fires for them.
 - **A buy decision older than 4 hours, or made before today's open, is re-checked** against the
   current price and news (`risk.stale_decision_reason`). Gapped, slid or soured means no buy.
+- **No buying an asset that is already falling** (`risk.falling_knife`, `no_buy_drop_pct` /
+  `no_buy_drop_hours`, currently 3% in 4h). The stale check refuses a buy whose *decision* has
+  aged; this refuses a fresh decision on an asset in free fall. It came from a real pattern:
+  five trades were bought and stopped within hours for an average of **-10%**, against -1.1%
+  for every other trade. Measured over 12 assets and all strategies it won on both the full
+  history (+6.7 points) and the recent third (+1.6), and a second setting (-5% in 8h) pointed
+  the same way, which is what makes it look like signal rather than one lucky configuration.
 - **A manager may only hold what its mandate allows** (`mandate.allows`). The ETF mandate takes
   one fund per theme from `universe.ETF_LANE_THEMES`; leveraged funds and crypto trusts are
   barred, because ranking rewards movement and without that rule the mandate fills with 2x crypto

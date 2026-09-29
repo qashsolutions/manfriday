@@ -14,7 +14,7 @@ from .book import Fund
 from .config import Settings
 from .market import asset_class
 from .params import Params
-from .risk import Quote, RiskManager, signal_exit_ok
+from .risk import Quote, RiskManager, falling_knife, signal_exit_ok
 from .venues import half_spread_bps, venue_for
 from .strategies import Decision, Strategy
 
@@ -88,6 +88,7 @@ class LaneSim:
         ts_close = ts_open + bar_seconds
         if self.lane.asset_class == "equity":  # a $2 stock costs far more to cross than a $200 one
             self.half_spread = half_spread_bps(self.asset, row["close"], self.s.fees) / 1e4
+        self._price_at = price_at        # _execute needs it for the falling-knife check
         if self.start_ts is None:
             self.start_ts = ts_open
         if self.lane.status == "active":
@@ -142,6 +143,11 @@ class LaneSim:
         w = self.params["news_weight"]
         if w > 0 and news.get("count", 0) >= 3 and news.get("score", 0.0) < -0.3:
             self.counts["news_veto"] += 1
+            return
+        drop_h = self.params["no_buy_drop_hours"]
+        if falling_knife(row["close"], getattr(self, "_price_at", lambda _t: None)(ts - drop_h * 3600),
+                         self.params["no_buy_drop_pct"]):
+            self.counts["falling_knife"] += 1
             return
         if row["low"] > limit:
             self.counts["unfilled"] += 1
