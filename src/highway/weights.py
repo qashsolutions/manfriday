@@ -2,7 +2,7 @@
 
 Every week over the past year, rank the universe using only data available on that date,
 "buy" the top 4 (at most 3 of one type, no two moving together), hold for 7 days under the
-lane rules (exit on a 10% drop, sell on a 15% up day, fees included), and record the result.
+lane rules, read live from settings so this always tests the game actually being played.
 
 Weights are chosen on the first 60% of weeks and judged only on the last 40%, so a weighting
 cannot win just by fitting the past. New weights are adopted only if they also win there.
@@ -101,9 +101,9 @@ def features_at(hist: dict[str, pd.DataFrame], date: pd.Timestamp, s: Settings) 
 class Week:
     """Everything needed to score any weighting on one rebalance date, computed once."""
 
-    def __init__(self, hist, date: pd.Timestamp, feats: pd.DataFrame):
+    def __init__(self, hist, date: pd.Timestamp, feats: pd.DataFrame, s: Settings):
         self.date, self.feats, self.hist = date, feats, hist
-        self.fwd = {a: forward(hist, a, date) for a in feats["asset"]} if not feats.empty else {}
+        self.fwd = {a: forward(hist, a, date, s) for a in feats["asset"]} if not feats.empty else {}
         vals = [v for v in self.fwd.values() if v is not None]
         self.universe = sum(vals) / len(vals) if vals else None
         self._rets: dict[str, pd.Series] = {}
@@ -131,8 +131,14 @@ def pick(order: list[str], week: Week, s: Settings) -> list[str]:
     return chosen
 
 
-def forward(hist, asset: str, date: pd.Timestamp) -> float | None:
-    """7-day result of holding one asset under the lane rules, after fees."""
+def forward(hist, asset: str, date: pd.Timestamp, s: Settings) -> float | None:
+    """7-day result of holding one asset under the lane rules, after fees.
+
+    The thresholds come from settings, never from literals here. They were hardcoded at the
+    original -10% / +15% and stayed that way through the Sept 24 retune to -7/+12/give-back-20,
+    so every weighting was being judged on a game the league had stopped playing - the same trap
+    `sim.py` fell into with the give-back stop.
+    """
     df = hist[asset]
     # 7 calendar days for everyone (stocks simply have fewer bars: no weekend trading)
     path = df[(df.index > date) & (df.index <= date + pd.Timedelta(days=HOLD_DAYS))]["close"]
@@ -140,11 +146,17 @@ def forward(hist, asset: str, date: pd.Timestamp) -> float | None:
     if len(path) < 4 or entry.empty or date + pd.Timedelta(days=HOLD_DAYS) > df.index.max():
         return None
     entry = float(entry.iloc[-1])
-    prev = entry
+    stop = 1 + s.rules.stop_loss_day_pct / 100      # stop_loss_day_pct is negative
+    take = 1 + s.rules.take_profit_day_pct / 100
+    give = 1 - s.rules.giveback_pct / 100
+    prev = peak = entry
     for px in path:
-        if px <= entry * 0.90:  # day stop: out at the close that breached it
+        if px <= entry * stop:          # day stop: out at the close that breached it
             return px / entry - 1 - ROUND_TRIP_FEE
-        if px > prev * 1.15:  # +15% day: sold
+        if px > prev * take:            # up day: sold
+            return px / entry - 1 - ROUND_TRIP_FEE
+        peak = max(peak, px)
+        if px <= peak * give:           # gave back too much from its own high
             return px / entry - 1 - ROUND_TRIP_FEE
         prev = px
     return float(path.iloc[-1]) / entry - 1 - ROUND_TRIP_FEE
@@ -209,7 +221,7 @@ def run(md: MarketData, s: Settings, db: DB, params: Params) -> dict:
     hist = load_history(md, s)
     last = max(df.index.max() for df in hist.values())
     dates = pd.date_range(last - pd.Timedelta(days=HISTORY_DAYS - 60), last - pd.Timedelta(days=HOLD_DAYS), freq="7D")
-    weeks = [Week(hist, d, features_at(hist, d, s)) for d in dates]
+    weeks = [Week(hist, d, features_at(hist, d, s), s) for d in dates]
     split = int(len(dates) * 0.6)
     train, test = weeks[:split], weeks[split:]
 

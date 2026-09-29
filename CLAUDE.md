@@ -102,6 +102,7 @@ scripts/service.sh status | logs      # is it alive / tail the log
 .venv/bin/highway audit               # did every hard rule fire, and on time?
 .venv/bin/highway rules               # what each exit rule has made or lost, per manager
 .venv/bin/highway assets [--all]      # what each asset has made or lost since day one of it
+.venv/bin/python scripts/measure/scout_skill.py  # does the ranking beat a coin flip?
 .venv/bin/python scripts/measure/rule_sweep.py   # re-derive a rule change; see scripts/measure/README.md
 .venv/bin/highway scout [--claude]    # re-pick lanes now
 .venv/bin/highway weights [--apply]   # backtest the ranking weights
@@ -383,6 +384,19 @@ intended, not a coincidence worth re-tuning. The stops cost −$175 and the take
 +$73, which is what a 4-to-1 ratio of stops to targets looks like in a falling market - it is
 the market, not a broken rule. **The give-back stop has never fired**, so its 20% level remains
 untested by live prices; `highway rules` lists any hard rule in that state rather than hiding it.
+
+**The Scout's ranking is not currently beating a coin flip, and this is the open question.**
+`scripts/measure/scout_skill.py` asks what `weights.py` never did - whether the ranking predicts
+anything at all, rather than which weighting predicts best. Over 47 weeks the top fifth of the
+ranked universe beat the bottom fifth by **+0.66 points a week** and the chosen four beat four
+random names by **+1.03**. Over the most recent third the ranking **inverts**: the top fifth is
+the *worst* of the five buckets (−3.04% against −0.82%) and the Scout loses to a random draw by
+**−0.34**. By this project's own rule that is not an edge - it wins one window, not both.
+
+This is what the per-asset view was pointing at: NEAR-USD was bought 15 times by 5 of the 6
+managers for a net loss, and no single trade looked wrong. Do **not** rush a weight change off
+this - `highway weights` has a train/test protocol for exactly that, and 16 recent weeks is a
+small sample. But do not read a good leaderboard as evidence the Scout is picking well either.
 
 **Statistical reality check, so nobody over-reads a six-week result:** simulated 20,000 times at
 the managers' measured volatility and correlation, a manager with a genuine 5%/month edge wins a
