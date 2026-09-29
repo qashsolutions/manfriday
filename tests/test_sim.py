@@ -53,16 +53,6 @@ def test_sim_take_profit_above_15pct():
     assert sim.lane.cash > 100  # the gain stays in the lane
 
 
-class AlwaysIn(Strategy):
-    name = "always"
-
-    def warmup_bars(self, bpd):
-        return 1
-
-    def decide(self, row, clips, state, news):
-        return Decision(2, 10.0, "in")
-
-
 def test_tournament_sits_in_cash_when_nothing_works():
     bts = [{"strategy": "trend", "params": {"fast": 20, "slow": 96}, "survived": 1,
             "test": {"monthly_pct": -3.0, "max_dd_pct": 10.0}}]
@@ -171,3 +161,28 @@ def test_crossing_the_spread_enters_after_the_configured_wait():
     assert sim.counts["crossed"] > 0
     assert sim.entries > 0  # it stopped waiting and took the position
     assert sim.fund.fees_paid > 0  # paying the taker fee, not the maker one
+
+
+def test_partial_take_sells_half_once_and_leaves_the_position_open():
+    """Taking half off the table is not an exit: no cooldown, and the rest keeps running."""
+    sim = LaneSim(AlwaysIn(), S, Params({"partial_take_pct": 5.0}), "BTC-USD")
+    px = 100.0
+    for i in range(6):
+        sim.on_bar(T0 + i * BAR, {"open": px, "high": px * 1.02, "low": px * 0.999,
+                                  "close": px * 1.01, "volume": 1.0, "day_range_pct": 10.0},
+                   lambda _t: None, NEUTRAL_NEWS, BAR)
+        px *= 1.01
+    assert sim.counts["partial_take"] == 1     # once per position, and counted once
+    assert sim.lane.has_position               # the rest is still running
+    assert sim.took_partial
+
+
+def test_partial_take_is_off_by_default():
+    sim = LaneSim(AlwaysIn(), S, Params(), "BTC-USD")
+    px = 100.0
+    for i in range(6):
+        sim.on_bar(T0 + i * BAR, {"open": px, "high": px * 1.02, "low": px * 0.999,
+                                  "close": px * 1.01, "volume": 1.0, "day_range_pct": 10.0},
+                   lambda _t: None, NEUTRAL_NEWS, BAR)
+        px *= 1.01
+    assert sim.counts["partial_take"] == 0

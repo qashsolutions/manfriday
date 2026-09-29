@@ -55,6 +55,7 @@ class LaneSim:
         self.entries = 0
         self.last_expected = 0.0  # expected move of the latest entry signal
         self.unfilled_streak = 0  # consecutive bars a wanted buy has rested without filling
+        self.took_partial = False  # this position has already sold half into strength
 
     # ---- helpers -------------------------------------------------------------------------
 
@@ -104,6 +105,8 @@ class LaneSim:
             if self.lane.status == "active" and not self.lane.asset:
                 self.lane.asset = self.asset  # a refill clears the asset; a sim keeps its own
             self._record_fills()
+            if not self.lane.has_position:
+                self.took_partial = False  # the next position starts with its half still on
             decision = self.strategy.decide(row, self.clips, self.state, news)
         else:
             decision = Decision(0, reason="lane closed")
@@ -204,6 +207,10 @@ class LaneSim:
         # seconds, would have seen it.
         lane.peak_price = max(lane.peak_price, row["high"] * hs)
         gb_px = lane.peak_price * (1 - r.giveback_pct / 100) if r.giveback_pct else 0.0
+        pt = self.params["partial_take_pct"]
+        # Only worth doing while the full target is still further away, and only once.
+        pt_px = (ref_value * (1 + pt / 100) / qty / hs * 1.0001
+                 if pt and not self.took_partial and pt < r.take_profit_day_pct else 0.0)
         if row["low"] <= stop_px:
             fill = min(row["open"], stop_px)
             self.fund.sell_all(lane, fill * hs, ts, reason="stop_day", strategy=self.strategy.name)
@@ -215,6 +222,16 @@ class LaneSim:
         elif gb_px and row["low"] * hs <= gb_px:
             self.fund.sell_all(lane, min(row["open"] * hs, gb_px), ts, reason="giveback", strategy=self.strategy.name)
             self.risk.start_cooldown(lane, "giveback", ts)
+        elif pt_px and row["high"] >= pt_px:
+            # Take half off the table and let the rest run. The position stays open, so no
+            # cooldown and no state reset - this is not an exit, it is banking part of a winner.
+            half = min(lane.qty, max(t.qty for t in lane.tranches)) if len(lane.tranches) > 1 else lane.qty / 2
+            self.fund.sell(lane, half, max(row["open"], pt_px) * hs, ts,
+                           reason="partial_take", strategy=self.strategy.name, liquidity="maker")
+            # `_record_fills` counts every fund event by its reason, so counting it here too
+            # would double it - the day rules above deliberately do not increment either.
+            self.took_partial = True
+            return
         else:
             return
         self.state.clear()

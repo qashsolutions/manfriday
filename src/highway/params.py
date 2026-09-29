@@ -25,6 +25,10 @@ SPECS: dict[str, Spec] = {
     "no_buy_drop_pct": Spec(0.0, 0.0, 20.0, "refuse a buy if the asset already fell this much recently (0 = off)"),
     "no_buy_drop_hours": Spec(4.0, 1.0, 24.0, "how far back the falling-knife check looks"),
     "taker_after_bars": Spec(0.0, 0.0, 5.0, "cross the spread to enter after this many bars of an unfilled limit buy (0 = never)"),
+    # Take half off the table on the way up, and let the rest run to the full target. Measured
+    # in scripts/measure/partial_exit.py. NOT yet implemented in portfolio.py - see the gotcha
+    # in CLAUDE.md about sim.py and the live rules having to agree before this can ship.
+    "partial_take_pct": Spec(0.0, 0.0, 15.0, "sell half the position once it is up this much (0 = off)"),
     "fee_edge_multiple": Spec(1.5, 1.0, 3.0, "expected move must be this many times the round-trip fee"),
     "tournament_window_days": Spec(5.0, 2.0, 14.0, "how far back the strategy tournament looks"),
     "switch_margin_pct": Spec(1.0, 0.25, 5.0, "a challenger must beat the leader by this much to take over"),
