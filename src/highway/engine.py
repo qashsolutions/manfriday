@@ -252,6 +252,22 @@ class Engine:
         self.db.set_state(f"scout_picks:{pid}", picks)
         return picks
 
+    def _ensure_hold_basket(self) -> None:
+        """Pick the benchmark's basket once, then leave it alone.
+
+        This used to run `hold_basket()` on every Scout pass, which quietly turned the yardstick
+        into an active manager: Hold rotated through 12 assets and made 30 buys in the first
+        week, more churn than the Coinbase or ETF mandates. Everything in `skill.py` measures
+        alpha, beta and contribution *against Hold*, so a drifting benchmark silently corrupts
+        every skill number in the league - and "the benchmark is last" stops meaning anything.
+
+        A lane the hard rules stop out is not re-scouted: the basket still names the same asset,
+        so the lane buys it back once `cooldown_after_stop_h` passes. That is the owner's choice
+        of Sept 29 - the rules still protect the benchmark, but they cannot rotate it.
+        """
+        if not self.db.get_state("hold_assets"):
+            self.db.set_state("hold_assets", self.hold_basket())
+
     def hold_basket(self) -> list[str]:
         """The benchmark's four assets: one from each mandate it can reach.
 
@@ -777,7 +793,7 @@ class Engine:
             if pid in self.tourn_pids:
                 self.actions.put(lambda p=pid, pk=picks: self.apply_picks(p, pk))
         self.db.set_state("scout_picks", self.db.get_state(f"scout_picks:{self.primary.id}", {}))
-        self.actions.put(lambda: self.db.set_state("hold_assets", self.hold_basket()))
+        self.actions.put(self._ensure_hold_basket)
 
     def _coach(self, report: dict) -> None:
         result = agents.coach(self.s, self.db, report, self.params.as_dict())

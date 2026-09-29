@@ -74,6 +74,17 @@ know they were chosen deliberately:
 - **The three crypto managers still overlap** (Coinbase, Momentum, Laser share NEAR/ZEC/UNI).
   That is by design: Coinbase vs Momentum is a controlled test of execution cost (Coinbase
   ~1.40% a round trip against Crypto.com's ~0.75%), not a diversification play.
+- **Hold's basket is frozen at league start and must stay frozen** (`_ensure_hold_basket`).
+  It used to be recomputed on every Scout pass, which turned the yardstick into an active
+  manager: **12 distinct assets and 30 buys in the first week**, more churn than the Coinbase or
+  ETF mandates. Everything in `skill.py` measures alpha, beta and contribution *against Hold*, so
+  a drifting benchmark silently corrupts every skill number - and "the benchmark is last" stops
+  meaning anything. The hard rules still stop Hold out; the owner's decision of Sept 29 is that a
+  stopped lane **buys the same asset back** after `cooldown_after_stop_h` rather than being
+  re-scouted. Frozen in place on Sept 29 at ZEC-USD / AMD / ARKK / PUMP-USD rather than reset to
+  the Sept 24 basket, because resetting would have meant force-selling live positions. Hold's
+  record before Sept 29 is a rotating manager's, not a benchmark's - do not read alpha across
+  that seam.
 - **A venue-pinned mandate needs `venues.listings()` loaded before the Scout runs.** `setup()`
   calls `_venues()` first for exactly this reason; an empty listing set is treated as "unknown,
   allow" rather than "lists nothing", which once left Coinbase with a mandate of zero assets.
