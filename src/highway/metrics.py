@@ -271,6 +271,94 @@ def assets(db: DB, names: dict[str, str]) -> dict:
     return {"league": sorted(league, key=lambda r: r["total"]), "managers": per_manager}
 
 
+def _day_start(now: float | None = None) -> float:
+    """Local midnight. The owner reads this page, and "today" means their today."""
+    t = time.localtime(now or time.time())
+    return time.mktime((t.tm_year, t.tm_mon, t.tm_mday, 0, 0, 0, 0, 0, -1))
+
+
+def performance(db: DB, names: dict[str, str], start_values: dict[str, float] | None = None) -> dict:
+    """Money first: what everything is worth, and what it made today and in total.
+
+    Modelled on how a broker shows a portfolio, because that is what the owner actually wants
+    to know first - value, today's gain or loss in dollars and percent, total gain or loss in
+    dollars and percent. Everything the league does that is strategy rather than money belongs
+    a level below this, not beside it.
+
+    `today` is measured from local midnight, not from the league clock, because "today" on a
+    page a person reads means their today.
+    """
+    since = _day_start()
+    starts = start_values or db.get_state("league_start_values", {}) or {}
+    managers, totals = [], {"value": 0.0, "day": 0.0, "start": 0.0, "opened": 0.0}
+
+    for pid, name in names.items():
+        rows = db.query(
+            "SELECT ts, equity FROM league_equity WHERE portfolio=? AND lane_id=0 ORDER BY ts", (pid,))
+        if not rows:
+            continue
+        value = float(rows[-1]["equity"])
+        opening = next((float(r["equity"]) for r in rows if r["ts"] >= since), None)
+        if opening is None:                      # nothing recorded yet today
+            opening = float(rows[-1]["equity"])
+        began = float(starts.get(pid) or (rows[0]["equity"] if rows else value))
+        managers.append({
+            "id": pid, "name": name, "value": round(value, 2),
+            "day": round(value - opening, 2),
+            "day_pct": round((value / opening - 1) * 100, 2) if opening else 0.0,
+            "total": round(value - began, 2),
+            "total_pct": round((value / began - 1) * 100, 2) if began else 0.0,
+            "start_value": round(began, 2),
+        })
+        totals["value"] += value
+        totals["day"] += value - opening
+        totals["opened"] += opening
+        totals["start"] += began
+
+    totals = {
+        "value": round(totals["value"], 2),
+        "day": round(totals["day"], 2),
+        "day_pct": round((totals["value"] / totals["opened"] - 1) * 100, 2) if totals["opened"] else 0.0,
+        "total": round(totals["value"] - totals["start"], 2),
+        "total_pct": round((totals["value"] / totals["start"] - 1) * 100, 2) if totals["start"] else 0.0,
+        "start_value": round(totals["start"], 2),
+    }
+    return {"total": totals, "managers": sorted(managers, key=lambda m: -m["total_pct"]),
+            "since": since}
+
+
+def positions(db: DB, names: dict[str, str]) -> list[dict]:
+    """Every open position as a broker would list it: cost, value, today's move, total move."""
+    since = _day_start()
+    out = []
+    for pid, name in names.items():
+        marks, _ = _marks(db, pid)
+        for h in holdings(db, pid):
+            price = h["price"] or 0.0
+            qty = h["qty"]
+            avg_cost = h["net_cost"] / qty if qty > 1e-12 else 0.0
+            # A position opened today never lived through this morning's move, so today's gain
+            # runs from what we paid, not from the day's opening price. Otherwise an asset that
+            # fell 14% before we bought it shows a $16 loss on a position that is $0.04 down.
+            if h["since"] >= since or not avg_cost:
+                opening = avg_cost or price
+            else:
+                opening = db.tick_near(h["asset"], since, 7200) or price
+            out.append({
+                "manager": name, "manager_id": pid, "lane": h["lane"], "asset": h["asset"],
+                "qty": qty, "last": round(price, 6),
+                "chg": round(price - opening, 6),
+                "chg_pct": round((price / opening - 1) * 100, 2) if opening else 0.0,
+                "day": round(qty * (price - opening), 2),
+                "avg_cost": round(avg_cost, 6),
+                "opened_today": h["since"] >= since,
+                "total_cost": h["net_cost"], "value": h["value"],
+                "total": h["unrealised"], "total_pct": h["unrealised_pct"],
+                "since": h["since"],
+            })
+    return sorted(out, key=lambda p: -p["value"])
+
+
 def _price_at(db: DB, asset: str, ts: float, latest: dict[str, float]) -> float | None:
     """Best price we have for an asset at a moment, for valuing a position at a period edge.
 

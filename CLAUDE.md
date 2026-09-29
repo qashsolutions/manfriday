@@ -301,6 +301,18 @@ money) waits for the owner.
   at startup whenever the thresholds change (`audit.record_rules`) and `audit.rules_at` picks
   the entry in force at each sampled moment. Seeded by hand for the three known eras. Any
   future hard-rule change needs no action - just do not remove the `record_rules` call.
+- **Never name a script `*_test.py` or `test_*.py` outside `tests/`.** `scripts/measure/edge_test.py`
+  matched pytest's default patterns, so bare `pytest` *imported* it during collection and ran a
+  year of bars and twelve tournament replays **on every test run** - 0.4s became 280s, and the
+  tests themselves still measured as instant because the time was all in collection. It is
+  `edge_check.py` now, and `[tool.pytest.ini_options] testpaths = ["tests"]` in `pyproject.toml`
+  makes the class of mistake impossible.
+- **The dashboard leads with money, not with strategy.** Value, today's move and the total move,
+  in dollars as well as percent, modelled on how a broker shows a portfolio (`metrics.performance`
+  and `metrics.positions`). Everything that is strategy rather than money - the pace table, fees,
+  trades, the skill scoring - sits one level down behind a collapsed section. A position opened
+  today has its day's gain measured from **what we paid**, not from the day's opening price, or an
+  asset that fell 14% before we bought it shows a $16 loss on a position that is $0.04 down.
 - **`if value` treats a genuine 0.0 as missing.** The radar stored `edge: 0.0` as null and rendered
   "passed +null". Use `if value is not None`.
 - **Never write a rule threshold into dashboard text.** The exit labels said "hit the −10% day
@@ -370,7 +382,7 @@ overfits the leaderboard itself, however honest each individual decision feels.
 
 ## Read this before tuning anything: the premise check failed
 
-`scripts/measure/edge_test.py`, run Sept 29 with its decision rule fixed in advance, asked the
+`scripts/measure/edge_check.py`, run Sept 29 with its decision rule fixed in advance, asked the
 question sixteen earlier harnesses had skipped: **does the Scout -> tournament -> strategy ->
 exits pipeline beat simply buying the assets it picked and holding them, under the same rules
 and fees?**

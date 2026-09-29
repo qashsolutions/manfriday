@@ -44,6 +44,7 @@ def data(db: DB) -> dict:
         "picks": {k: v for k, v in (db.get_state("scout_picks", {}) or {}).items() if k in ("ts", "lanes", "bench", "by", "scanned", "qualified", "candidates", "claude_notes", "claude_change", "momentum", "sleeve", "sleeve_considered")},
         "rules": _rule_attribution(db),
         "assets_pnl": _asset_pnl(db),
+        "money": _money(db),
         "build": BUILD,
         "started": db.get_state("fund_started"),
         "league_started": db.get_state("league_started"),
@@ -53,6 +54,18 @@ def data(db: DB) -> dict:
 from .mandate import names as _mandate_names
 
 MANAGER_NAMES = _mandate_names()
+
+
+def _money(db: DB) -> dict:
+    """Value, today's move and the total move - the first thing anyone wants. Never blanks."""
+    try:
+        from .metrics import performance, positions
+
+        r = performance(db, MANAGER_NAMES)
+        r["positions"] = positions(db, MANAGER_NAMES)
+        return r
+    except Exception as e:  # pragma: no cover - defensive, same reason as panel()
+        return {"total": {}, "managers": [], "positions": [], "error": str(e)}
 
 
 def _asset_pnl(db: DB) -> list[dict]:
@@ -181,6 +194,17 @@ h2 .sub { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(
 .pill.paused::before { content: "❚❚"; color: var(--warning); margin-right: 5px; font-size: 10px; }
 .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
 .up { color: var(--good-text); } .down { color: var(--critical); }
+/* Money first: the three numbers anyone opens the page for, before any strategy talk. */
+.money-hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 34px; }
+.money-hero .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-muted); display: block; margin-bottom: 2px; }
+.money-hero .big { font-size: 34px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; }
+.money-hero .mid { font-size: 20px; font-weight: 600; line-height: 1.2; }
+.money-hero .pct { font-size: 15px; font-weight: 500; opacity: .85; margin-left: 6px; }
+#money-managers td.name { font-weight: 600; }
+#money-managers td.bar { width: 3px; padding: 0; }
+#money-managers td.bar span { display: block; width: 3px; height: 26px; border-radius: 2px; }
+@media (max-width: 640px) { .money-hero .big { font-size: 27px; } .money-hero { gap: 8px 20px; } }
 .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 7px; vertical-align: baseline; }
 .lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
 .lane h3 { margin: 0; font-size: 15px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
@@ -286,16 +310,26 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
   </nav>
   <main>
     <section class="page on" data-page="leaderboard">
-  <h2>Leaderboard <span class="sub" id="board-sub"></span></h2>
+  <div class="card money-hero" id="money-hero"></div>
+  <div class="card tablewrap" style="margin-top:10px"><table id="money-managers"></table></div>
+  <h2 style="margin-top:14px">What we own right now</h2>
+  <div class="card tablewrap"><table id="money-positions"></table></div>
+  <details class="sect" data-sect="board" style="margin-top:14px">
+    <summary>The detail behind it <span class="sub">· how each manager is run, pace against target, fees and trades</span></summary>
+    <div class="body">
   <div class="card tablewrap"><table class="board" id="board"></table></div>
   <div id="manager-detail"></div>
+    </div>
+  </details>
   <div class="card" style="margin-top:10px">
     <div class="filters" id="range-filters"></div>
     <div class="legend" id="league-legend"></div>
     <div class="chart" id="league-chart"></div>
   </div>
 
-  <h2 style="margin-top:14px">Who is actually adding something <span class="sub" id="skill-sub"></span></h2>
+  <details class="sect" data-sect="skill" style="margin-top:14px">
+    <summary>Who is actually adding something <span class="sub" id="skill-sub"></span></summary>
+    <div class="body">
   <div class="card"><div class="tablewrap" id="skill"></div>
     <div class="note"><b>Raw return ranks whoever took the most risk.</b> These columns take that out.
     <b>Beta</b> is how much of the benchmark's move a manager simply rode — below 1 means it carried less risk,
@@ -309,6 +343,8 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
 
   <details class="card" style="margin-top:10px"><summary>Scorecard · risk, trading quality and fees since the league started</summary>
     <div class="tablewrap" id="scorecard" style="margin-top:8px"></div></details>
+    </div>
+  </details>
 
     </section>
     <section class="page" data-page="days">
@@ -578,6 +614,48 @@ async function loadActivity() {
   } catch (e) {
     $("activity-cards").innerHTML = `<div class="card"><p class="muted">Could not load the activity (${esc(String(e))}).</p></div>`;
   }
+}
+
+// ---- money first -------------------------------------------------------------------------
+// A broker opens on value, today's move and the total move, in dollars as well as percent.
+// Everything the league does that is strategy rather than money sits a level below this.
+
+function gl(v, pct) {
+  const cls = v >= 0 ? "up" : "down";
+  return `<span class="${cls}">${money(v)}<span class="pct">${signed(pct)}</span></span>`;
+}
+
+function renderMoney(d) {
+  const m = d.money || {}, t = m.total || {};
+  if (t.value == null) { $("money-hero").innerHTML = `<span class="muted">waiting for the engine…</span>`; return; }
+  $("money-hero").innerHTML = `
+    <div><span class="label">All six managers</span><span class="big">${money(t.value)}</span></div>
+    <div><span class="label">Today</span><span class="mid">${gl(t.day, t.day_pct)}</span></div>
+    <div><span class="label">Since the league started</span><span class="mid">${gl(t.total, t.total_pct)}</span></div>
+    <div><span class="label">Started with</span><span class="mid">${money(t.start_value)}</span></div>`;
+
+  $("money-managers").innerHTML = `<tr><th colspan="2">Manager</th><th class="num">Today</th>
+    <th class="num">Since the start</th><th class="num">Worth now</th></tr>` +
+    (m.managers || []).map(x => `<tr>
+      <td class="bar"><span style="background:${MANAGERS[x.id]?.c || "var(--text-muted)"}"></span></td>
+      <td class="name">${esc(x.name)}</td>
+      <td class="num">${gl(x.day, x.day_pct)}</td>
+      <td class="num">${gl(x.total, x.total_pct)}</td>
+      <td class="num"><b>${money(x.value)}</b></td></tr>`).join("");
+
+  const ps = m.positions || [];
+  $("money-positions").innerHTML = ps.length ? `<tr><th>What</th><th>Who holds it</th>
+    <th class="num">Price</th><th class="num">Today</th><th class="num">Since we bought it</th>
+    <th class="num">We paid</th><th class="num">Worth now</th></tr>` +
+    ps.map(p => `<tr>
+      <td><b>${esc(p.asset)}</b>${p.opened_today ? ' <span class="muted" style="font-size:11px">new today</span>' : ""}</td>
+      <td class="muted">${esc(p.manager)}</td>
+      <td class="num">${money(p.last)}</td>
+      <td class="num">${gl(p.day, p.chg_pct)}</td>
+      <td class="num">${gl(p.total, p.total_pct)}</td>
+      <td class="num">${money(p.total_cost)}</td>
+      <td class="num"><b>${money(p.value)}</b></td></tr>`).join("")
+    : `<tr><td class="muted">Everything is in cash right now.</td></tr>`;
 }
 
 let assetSpan = "all";   // all | day | week | month | quarter | year
@@ -1195,7 +1273,9 @@ function showPage(id) {
   if (id === "activity") loadActivity();
 }
 const $ = (id) => document.getElementById(id);
-const money = (v) => v == null ? "–" : "$" + Number(v).toFixed(2);
+// The minus belongs in front of the currency, the way a statement prints it: -$0.67, not $-0.67.
+const money = (v) => v == null ? "–"
+  : (Number(v) < 0 ? "-$" : "$") + Math.abs(Number(v)).toFixed(2);
 const pct = (v) => v == null ? "–" : (v > 0 ? "+" : "") + Number(v).toFixed(2) + "%";
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const when = (ts) => new Date(ts * 1000).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"});
@@ -1309,6 +1389,7 @@ function render(d) {
   lastData = d;
   const s = d.snapshot || {}, now = d.now;
   setExitWhy(s.capital);   // exit labels quote the live thresholds, not a stale copy
+  panel("money", () => renderMoney(d));    // the first thing on the page, so first to render
   panel("rules", () => renderRules(d));
   panel("assets-pnl", () => renderAssetPnl(d));
   if (!s.league) { $("status").textContent = "waiting for the engine…"; return; }

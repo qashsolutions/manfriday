@@ -26,3 +26,10 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+# Only ever collect from tests/. Without this, bare `pytest` walks the whole project and
+# IMPORTS anything matching test_*.py or *_test.py - which ran scripts/measure/edge_test.py
+# (a year of bars and twelve tournament replays) on every test run, taking 280 seconds.
+# The harness is now edge_check.py, and this makes the class of mistake impossible.
+testpaths = ["tests"]
