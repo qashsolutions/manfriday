@@ -42,6 +42,7 @@ def data(db: DB) -> dict:
         "news": db.query("SELECT published, source, title, url, assets, sentiment, severity FROM news ORDER BY published DESC LIMIT 40"),
         "journal": db.query("SELECT ts, agent, content FROM journal ORDER BY ts DESC LIMIT 5"),
         "picks": {k: v for k, v in (db.get_state("scout_picks", {}) or {}).items() if k in ("ts", "lanes", "bench", "by", "scanned", "qualified", "candidates", "claude_notes", "claude_change", "momentum", "sleeve", "sleeve_considered")},
+        "rules": _rule_attribution(db),
         "build": BUILD,
         "started": db.get_state("fund_started"),
         "league_started": db.get_state("league_started"),
@@ -51,6 +52,16 @@ def data(db: DB) -> dict:
 from .mandate import names as _mandate_names
 
 MANAGER_NAMES = _mandate_names()
+
+
+def _rule_attribution(db: DB) -> dict:
+    """What each exit rule made or lost. Never let this blank the page if it raises."""
+    try:
+        from . import attribution
+
+        return attribution.report(db, MANAGER_NAMES)
+    except Exception as e:  # pragma: no cover - defensive, same reason as panel()
+        return {"managers": [], "league": [], "never_fired": [], "realised": 0.0, "error": str(e)}
 
 
 
@@ -351,6 +362,16 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
     held. <b>Booked</b> is only the profit from trades actually closed in that period — a winner still
     being held shows up in the first and not the second.</div>
   </div>
+  <h2 style="margin-top:14px">What ended each trade <span class="sub">· did the safety rules earn their keep?</span></h2>
+  <div class="card">
+    <div class="tablewrap" id="rules-league"></div>
+    <div class="note">Every trade is credited to whatever <b>closed</b> it. The rules marked
+    <b>&#9733;</b> are the owner's hard limits, which no strategy can override: a position sold because
+    it fell too far in a day, rose enough to bank, or slid too far from its own best price.
+    The rest is a strategy choosing its moment.</div>
+    <div class="tablewrap" id="rules-managers" style="margin-top:10px"></div>
+    <div class="note" id="rules-untested"></div>
+  </div>
   <h2 style="margin-top:14px">Each manager <span class="sub">· click one to open its trades and events</span></h2>
   <div id="activity-cards"></div>
   <details class="card" style="margin-top:10px"><summary>Everything else · engine, radar, scout and health</summary>
@@ -494,16 +515,29 @@ function renderManager(l) {
   });
 }
 
-const EXIT_WHY = {
-  stop_day: "hit the −10% day stop",
-  take_profit_day: "hit the +15% day take-profit",
-  giveback: "gave back 12% from its high",
-  lane_floor: "lane fell to the $70 floor",
+// The thresholds are read from the live settings, never written in here: they were retuned once
+// already (-10/+15/12 became -7/+12/20) and hardcoded copies quietly told the owner the old ones.
+let EXIT_WHY = {
+  stop_day: "fell too far in a day",
+  take_profit_day: "rose enough in a day to bank it",
+  giveback: "slid too far from its own best price",
+  lane_floor: "lane fell to its floor",
   signal: "the strategy said to get out",
   signal_market: "the strategy said to get out (sold at market)",
   news_exit: "the news turned against it",
   kill: "the owner stopped everything",
 };
+
+function setExitWhy(cap) {
+  if (!cap) return;
+  const pct = (v, d) => (v == null ? d : Number(v).toFixed(0).replace("-", "−"));
+  EXIT_WHY = Object.assign({}, EXIT_WHY, {
+    stop_day: `hit the ${pct(cap.stop, "−7")}% day stop`,
+    take_profit_day: `hit the +${pct(cap.take, "12")}% day take-profit`,
+    giveback: `gave back ${pct(cap.giveback, "20")}% from its high`,
+    lane_floor: `lane fell to the $${pct(cap.lane_floor, "70")} floor`,
+  });
+}
 
 let activityPeriod = "day";   // day | week | month | quarter | year
 let activityData = null;
@@ -522,6 +556,40 @@ async function loadActivity() {
   } catch (e) {
     $("activity-cards").innerHTML = `<div class="card"><p class="muted">Could not load the activity (${esc(String(e))}).</p></div>`;
   }
+}
+
+function renderRules(d) {
+  const r = d.rules || {};
+  const league = r.league || [], managers = (r.managers || []).filter(m => m.rules.length);
+  if (!league.length) {
+    $("rules-league").innerHTML = `<p class="muted">No trade has been closed yet, so no rule has made or lost anything.</p>`;
+    $("rules-managers").innerHTML = ""; $("rules-untested").innerHTML = ""; return;
+  }
+  $("rules-league").innerHTML = `<table>
+    <tr><th>What closed the trade</th><th class="num">Trades</th><th class="num">Money</th><th class="num">Average</th><th class="num">Went right</th></tr>` +
+    league.map(x => `<tr><td>${x.hard_rule ? '<b title="one of the owner\\u2019s hard limits">★</b> ' : ""}${esc(x.label)}</td>
+      <td class="num">${x.trades}</td><td class="num ${x.pnl >= 0 ? "up" : "down"}">${money(x.pnl)}</td>
+      <td class="num ${x.avg_pct >= 0 ? "up" : "down"}">${signed(x.avg_pct)}</td>
+      <td class="num">${x.trades ? Math.round(100 * x.wins / x.trades) + "%" : "–"}</td></tr>`).join("") +
+    `<tr><td><b>Everything closed, together</b></td><td class="num"></td>
+      <td class="num ${r.realised >= 0 ? "up" : "down"}"><b>${money(r.realised)}</b></td><td class="num"></td><td class="num"></td></tr></table>`;
+
+  const rules = league.map(x => x.reason);
+  $("rules-managers").innerHTML = `<table>
+    <tr><th>Manager</th>${rules.map(k => `<th class="num">${esc((league.find(l => l.reason === k) || {}).label || k)}</th>`).join("")}<th class="num">Booked</th></tr>` +
+    managers.map(m => {
+      const by = {}; m.rules.forEach(x => by[x.reason] = x.pnl);
+      return `<tr><td>${swatch(m.id)}${esc(m.name)}</td>` +
+        rules.map(k => by[k] === undefined ? `<td class="num muted">–</td>`
+          : `<td class="num ${by[k] >= 0 ? "up" : "down"}">${money(by[k])}</td>`).join("") +
+        `<td class="num ${m.realised >= 0 ? "up" : "down"}"><b>${money(m.realised)}</b></td></tr>`;
+    }).join("") + `</table>`;
+
+  const never = r.never_fired || [];
+  $("rules-untested").innerHTML = never.length
+    ? `<b>Not yet tested by real prices:</b> ${never.map(k => esc(EXIT_WHY[k] || k)).join(", ")}. ` +
+      `The rule is live and in the code, but no price move has triggered it, so nothing is yet known about whether its level is set right.`
+    : `Every hard rule has now been triggered at least once by real prices.`;
 }
 
 // The same reason code means opposite things on a buy and a sell: "signal" is the strategy
@@ -1154,6 +1222,8 @@ function panel(name, fn) {  // a broken panel should never blank the rest of the
 function render(d) {
   lastData = d;
   const s = d.snapshot || {}, now = d.now;
+  setExitWhy(s.capital);   // exit labels quote the live thresholds, not a stale copy
+  panel("rules", () => renderRules(d));
   if (!s.league) { $("status").textContent = "waiting for the engine…"; return; }
   const stale = now - s.ts > 120;
   const frozen = !!window.HIGHWAY_SNAPSHOT;

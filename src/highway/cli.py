@@ -111,6 +111,34 @@ def cmd_audit(args, s):
     print("\n" + ("every hard rule fired on time" if r["clean"] else "SOME RULES FIRED LATE - see above"))
 
 
+def cmd_rules(args, s):
+    """What each exit rule has actually made or lost, per manager."""
+    from . import attribution
+    from .db import DB
+    from .mandate import names
+
+    db = DB()
+    r = attribution.report(db, names())
+    if not r["league"]:
+        print("No closed trades yet, so no rule has made or lost anything.")
+        return
+    print("What ended each trade, and what it was worth · * = one of the owner's hard rules\n")
+    print(f"  {'':2}{'rule':36}{'trades':>7}{'net $':>10}{'avg':>8}")
+    for x in r["league"]:
+        print(f"  {'*' if x['hard_rule'] else ' '} {x['label']:36}{x['trades']:>5}{x['pnl']:>10.2f}{x['avg_pct']:>7.1f}%")
+    print(f"\n  realised across every closed trade: ${r['realised']:.2f}")
+
+    print(f"\n  {'manager':10}{'realised':>10}   what closed its trades")
+    for m in r["managers"]:
+        detail = ", ".join(f"{x['reason']} {x['pnl']:+.0f}" for x in m["rules"]) or "nothing closed yet"
+        print(f"  {m['name']:10}{m['realised']:>10.2f}   {detail}")
+
+    if r["never_fired"]:
+        print("\n  Never fired yet, so their level is still untested by live prices:")
+        for reason in r["never_fired"]:
+            print(f"    - {attribution.label(reason)}")
+
+
 def cmd_status(args, s):
     from .db import DB
 
@@ -319,6 +347,7 @@ def main(argv=None):
     wt.add_argument("--apply", action="store_true", help="adopt the recommendation if it clearly wins")
     wt.set_defaults(fn=cmd_weights)
     sub.add_parser("audit", help="did every hard rule actually fire on time?").set_defaults(fn=cmd_audit)
+    sub.add_parser("rules", help="what each exit rule has made or lost, per manager").set_defaults(fn=cmd_rules)
     sub.add_parser("daily", help="the daily check: is anything broken, what happened").set_defaults(fn=cmd_daily)
     rd = sub.add_parser("radar", help="show what the buckets are flagging")
     rd.add_argument("--rebuild", action="store_true", help="rebuild the universe from the whole market")

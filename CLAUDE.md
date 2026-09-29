@@ -89,6 +89,7 @@ scripts/service.sh status | logs      # is it alive / tail the log
 .venv/bin/highway radar [--scan]      # what the buckets are flagging
 .venv/bin/highway daily               # the daily review: is anything broken, what happened
 .venv/bin/highway audit               # did every hard rule fire, and on time?
+.venv/bin/highway rules               # what each exit rule has made or lost, per manager
 .venv/bin/python scripts/measure/rule_sweep.py   # re-derive a rule change; see scripts/measure/README.md
 .venv/bin/highway scout [--claude]    # re-pick lanes now
 .venv/bin/highway weights [--apply]   # backtest the ranking weights
@@ -174,6 +175,7 @@ money) waits for the owner.
 | `mandate.py` | Who may hold what, and where they trade. The table that keeps managers apart. |
 | `skill.py` | Alpha vs the benchmark, contribution beyond the others, probabilistic/deflated Sharpe. |
 | `audit.py` | Replays history and asks whether every hard rule actually fired, and on time. |
+| `attribution.py` | Which rule closed each trade, and what it made or lost. `audit` asks if it fired; this asks if it was worth firing. |
 | `strategies.py` / `sim.py` / `tournament.py` | Strategies, the shared lane simulator, and the per-lane contest. |
 | `scout.py` / `backtest.py` / `weights.py` | Asset selection, walk-forward tests, weight backtests. |
 | `radar.py` / `universe.py` / `seasonality.py` | Buckets, the seven indicators, the ETF lane's fund list, the market clock. |
@@ -245,6 +247,11 @@ money) waits for the owner.
   quietly stopped updating.
 - **`if value` treats a genuine 0.0 as missing.** The radar stored `edge: 0.0` as null and rendered
   "passed +null". Use `if value is not None`.
+- **Never write a rule threshold into dashboard text.** The exit labels said "hit the −10% day
+  stop" and "gave back 12%" for five days after the Sept 24 retune to −7/+12/20, quietly telling
+  the owner the wrong numbers on every trade row. They now read `snapshot.capital`
+  (`stop`, `take`, `giveback`, `lane_floor`), which the engine already publishes. Same rule as
+  the monthly target: the number lives in settings, the page quotes it.
 - **Resting every buy at the bid is deliberate, and it has been measured.** It looks like textbook
   adverse selection - we fill when the price falls *toward* us and miss the entries that run away,
   and about **20% of wanted buys never fill**. It is still the right trade: crossing the spread
@@ -341,6 +348,15 @@ worth remembering before anyone re-proposes it:
 real tournament** over history - priors trained on the first two thirds, then bar by bar with a
 lane following whatever the tournament leads. Use it for any future tournament change; nothing
 else in `scripts/measure/` tests the tournament rather than a single strategy.
+
+**The hard rules are firing, and they are firing at their set levels.** Measured Sept 29 with
+`highway rules`: the day stop has closed **28** trades at an average of **−6.5%** against a −7%
+rule, and the take-profit **7** trades at **+12.1%** against a +12% rule. Landing that close to
+the configured levels is the two-tick confirmation and the rolling-24h window working as
+intended, not a coincidence worth re-tuning. The stops cost −$175 and the take-profits made
++$73, which is what a 4-to-1 ratio of stops to targets looks like in a falling market - it is
+the market, not a broken rule. **The give-back stop has never fired**, so its 20% level remains
+untested by live prices; `highway rules` lists any hard rule in that state rather than hiding it.
 
 **Statistical reality check, so nobody over-reads a six-week result:** simulated 20,000 times at
 the managers' measured volatility and correlation, a manager with a genuine 5%/month edge wins a
