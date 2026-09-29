@@ -39,6 +39,38 @@ def _day_ago(series: list[tuple[float, float]], i: int, window: float, entry: fl
     return entry
 
 
+def rules_at(db: DB, s: Settings, ts: float) -> tuple[float, float, float]:
+    """The stop, take-profit and give-back that were actually in force at a moment.
+
+    Scoring old history against today's thresholds is wrong and it cries wolf: tightening the
+    stop from -7% to -6% on Sept 29 instantly turned eleven correctly-held positions into
+    "fired late", every one of them between -6.1% and -6.8%. The engine appends to
+    `rule_history` whenever the settings change, and this picks the entry in force.
+    """
+    hist = sorted(db.get_state("rule_history", []) or [], key=lambda r: r.get("ts", 0))
+    if not hist:
+        return s.rules.stop_loss_day_pct, s.rules.take_profit_day_pct, s.rules.giveback_pct
+    in_force = hist[0]                       # anything older than the record uses the earliest
+    for row in hist:
+        if row.get("ts", 0) <= ts:
+            in_force = row
+    return in_force["stop"], in_force["take"], in_force["giveback"]
+
+
+def record_rules(db: DB, s: Settings, now: float) -> bool:
+    """Note the live thresholds if they have changed. Called by the engine at startup."""
+    hist = list(db.get_state("rule_history", []) or [])
+    current = {"ts": now, "stop": s.rules.stop_loss_day_pct,
+               "take": s.rules.take_profit_day_pct, "giveback": s.rules.giveback_pct}
+    if hist:
+        last = max(hist, key=lambda r: r.get("ts", 0))
+        if all(abs(last.get(k, 0) - current[k]) < 1e-9 for k in ("stop", "take", "giveback")):
+            return False
+    hist.append(current)
+    db.set_state("rule_history", hist[-50:])
+    return True
+
+
 def breaches(db: DB, s: Settings, pid: str, tolerance_min: float = TOLERANCE_MIN,
              since: float = 0.0) -> list[dict]:
     """Every moment a hard rule should have fired, and how long the exit took.
@@ -71,13 +103,14 @@ def breaches(db: DB, s: Settings, pid: str, tolerance_min: float = TOLERANCE_MIN
             peak = max(peak, px)
             day = (px / _day_ago(series, i, window, entry) - 1) * 100
             give = (px / peak - 1) * 100
+            stop_pct, take_pct, gb_pct = rules_at(db, s, ts)
             rule = None
-            if day <= s.rules.stop_loss_day_pct:
-                rule = ("day stop", day, s.rules.stop_loss_day_pct)
-            elif day > s.rules.take_profit_day_pct:
-                rule = ("day take-profit", day, s.rules.take_profit_day_pct)
-            elif s.rules.giveback_pct and give <= -s.rules.giveback_pct:
-                rule = ("give-back", give, -s.rules.giveback_pct)
+            if day <= stop_pct:
+                rule = ("day stop", day, stop_pct)
+            elif day > take_pct:
+                rule = ("day take-profit", day, take_pct)
+            elif gb_pct and give <= -gb_pct:
+                rule = ("give-back", give, -gb_pct)
             if ts < since:
                 continue
             # The engine only acts on a breach confirmed by a second consecutive check, so a

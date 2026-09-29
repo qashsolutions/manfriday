@@ -205,7 +205,11 @@ class Portfolio:
         if q.bid > lane.peak_price:  # high-water mark for the give-back stop
             lane.peak_price = q.bid
             self.dirty = True
-        sig = ctx.risk.exit_signal(lane, q.bid, lambda ts: ctx.price_at(lane.asset, ts), now)
+        price_at = lambda ts: ctx.price_at(lane.asset, ts)  # noqa: E731 - one call site
+        sig = ctx.risk.exit_signal(lane, q.bid, price_at, now)
+        if not sig:
+            # Nothing wants a full exit. Is it far enough up to bank half and let the rest run?
+            sig = ctx.risk.partial_signal(lane, q.bid, price_at, now, ctx.params["partial_take_pct"])
         if not sig:
             self._triggers.pop(lane.lane_id, None)
             return
@@ -221,12 +225,34 @@ class Portfolio:
             # cleared the moment a real price shows no breach, so a surviving one always means
             # the previous evaluated check breached too - which is what "consecutive" means.
             self._triggers.pop(lane.lane_id, None)
+            if kind == "partial_take":
+                self.take_half(ctx, lane, q, now, pct)
+                return
             detail = (f"gave back {abs(pct):.1f}% from its high of ${lane.peak_price:,.4f}".rstrip("0").rstrip(".")
                       if kind == "giveback" else
                       f"{'down' if kind == 'stop_day' else 'up'} {pct:+.1f}% in a day")
             self.exit(ctx, lane, q, now, kind, detail)
         else:
             self._triggers[lane.lane_id] = (kind, now)
+
+    def take_half(self, ctx: Engine, lane: Lane, q: Quote, now: float, pct: float) -> None:
+        """Bank half the position and let the rest run. Deliberately NOT an exit.
+
+        No cooldown starts and the lane keeps its asset, its stop, its give-back and its
+        high-water mark - the remaining half is still a live position on the same terms. The
+        half is one clip where the lane holds two, which is the usual case.
+        """
+        if not lane.has_position:
+            return
+        half = max(t.qty for t in lane.tranches) if len(lane.tranches) > 1 else lane.qty / 2
+        fill = self.fund.sell(lane, min(half, lane.qty), q.bid, now,
+                              reason="partial_take", strategy="risk", liquidity="maker")
+        lane.took_partial = True
+        self.dirty = True
+        if fill:
+            self.event("partial_take",
+                       f"lane {lane.lane_id} {lane.asset}: up {pct:+.1f}% in a day, banked half "
+                       f"for ${fill.cash:.2f} and left the rest running", lane.lane_id)
 
     def _note_unprotected(self, lane: Lane, why: str, now: float) -> None:
         """Record that the exit rules could not be checked on a live position, and since when."""

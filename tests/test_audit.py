@@ -124,3 +124,39 @@ def test_a_breach_confirmed_on_the_next_check_is_still_caught():
               + [(T0 + 3000, 88.0), (T0 + 3300, 87.0)])   # two in a row
     found = breaches(_position(100.0, series), S, "x")
     assert found and found[0]["rule"] == "day stop"
+
+
+def test_a_rule_change_does_not_make_past_positions_look_late(tmp_path):
+    """Tightening the stop from -7% to -6% turned eleven correctly-held positions into
+    "fired late" overnight, every one between -6.1% and -6.8%. History must be judged
+    against the rule that was actually in force at the time."""
+    from dataclasses import replace
+
+    from highway.audit import record_rules, rules_at
+    from highway.config import Settings
+    from highway.db import DB
+
+    db = DB(tmp_path / "t.db")
+    loose = Settings()
+    loose = replace(loose, rules=replace(loose.rules, stop_loss_day_pct=-7.0,
+                                         take_profit_day_pct=12.0, giveback_pct=20.0))
+    tight = replace(loose, rules=replace(loose.rules, stop_loss_day_pct=-6.0,
+                                         take_profit_day_pct=18.0))
+
+    assert record_rules(db, loose, 1000.0) is True
+    assert record_rules(db, loose, 2000.0) is False     # unchanged: nothing appended
+    assert record_rules(db, tight, 3000.0) is True
+
+    assert rules_at(db, tight, 1500.0) == (-7.0, 12.0, 20.0)   # the old rule still applies
+    assert rules_at(db, tight, 3500.0) == (-6.0, 18.0, 20.0)   # the new one from its moment
+    assert rules_at(db, tight, 10.0) == (-7.0, 12.0, 20.0)     # older than any record
+
+
+def test_rules_at_falls_back_to_settings_with_no_history(tmp_path):
+    from highway.audit import rules_at
+    from highway.config import Settings
+    from highway.db import DB
+
+    s = Settings()
+    assert rules_at(DB(tmp_path / "t.db"), s, 1000.0) == (
+        s.rules.stop_loss_day_pct, s.rules.take_profit_day_pct, s.rules.giveback_pct)

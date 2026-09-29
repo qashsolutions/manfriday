@@ -163,6 +163,14 @@ class Engine:
     def setup(self) -> None:
         # Venue listings first: a venue-pinned mandate cannot be resolved without them.
         self._venues()
+        # Note the thresholds in force from now on, so the guardrail audit judges every past
+        # moment against the rule that actually applied then rather than today's.
+        from . import audit
+
+        if audit.record_rules(self.db, self.s, time.time()):
+            r = self.s.rules
+            self.db.event("info", "rules", f"exit rules now {r.stop_loss_day_pct:+.0f}% / "
+                          f"{r.take_profit_day_pct:+.0f}% / give-back {r.giveback_pct:.0f}%")
         for pid in self.scout_pids:
             picks = self.db.get_state(f"scout_picks:{pid}")
             if not picks or time.time() - picks["ts"] > 36 * 3600:

@@ -168,6 +168,26 @@ class RiskManager:
             return "giveback", give
         return None
 
+    def partial_signal(self, lane: Lane, bid: float, price_at: PriceAt, now: float,
+                       pct: float) -> tuple[str, float] | None:
+        """Is this position far enough up to take half off the table?
+
+        Not an exit: the rest keeps running with its stop and its give-back intact, and no
+        cooldown starts. Only once per position, and only while the full target is still
+        further away - otherwise it would just be the take-profit with extra steps.
+
+        Measured in scripts/measure/partial_exit.py: taking half early (+3% to +6%) helps the
+        full history but hurts the recent third almost everywhere, because it caps you out of
+        the large moves that pay for the losers. At +8% against an +18% target it wins both.
+        """
+        if not pct or lane.took_partial or pct >= self.s.rules.take_profit_day_pct:
+            return None
+        change = day_change(lane, bid, price_at, now, self.s.rules.day_window_hours)
+        if change is None:
+            return None
+        value = change * 100
+        return ("partial_take", value) if value >= pct else None
+
     def start_cooldown(self, lane: Lane, reason: str, now: float) -> None:
         hours = {
             "stop_day": self.p["cooldown_after_stop_h"],

@@ -123,9 +123,29 @@ They are the owner's own rules, enforced in code, and every manager obeys them:
   (`Capital.cap_for` / `floor_for` / `skim_for`). Never hardcode the $100-lane figures - the
   retired ETF sleeve used $25 lanes and that machinery is still live for any future part-lane.
 - **Max $50 per buy, one clip per bar.** A lane scales in, it never goes all-in at once.
-- **Exit everything on −7% in a day; sell everything on +12% in a day** (confirmed on two
+- **Exit everything on −6% in a day; sell everything on +18% in a day** (confirmed on two
   consecutive price checks). Day = rolling 24 hours, not a calendar day.
-  Retuned from −10/+15 on Sept 24 on measurement, not taste: over two years of hourly bars,
+  **Retuned from −7/+12 on Sept 29 on the owner's call, backed by `risk_reward.py`.** The
+  finding there was that the *ratio* matters more than the width: across 24 cells, a higher
+  reward-to-risk ratio won at every stop width, 1:1 was worst everywhere, and 1:3 was best or
+  near-best. −6/+18 scored +5.4 on the full history against −7/+12's +1.6, level on the recent
+  third. The gain comes from **raising the target, never from cutting the stop** - the −3% and
+  −4% rows were deeply negative at every ratio.
+- **Do not tighten the stop. It has been asked for twice and measured twice.**
+  `stop_levels.py`: every level below −5% loses on both windows and gets monotonically worse;
+  −1%/+3% was the worst of nine configurations at **−22.6 full / −16.9 recent** with twelve
+  times the stops. The reason is arithmetic, not opinion: a round trip costs 0.75% on
+  Crypto.com and 1.40% on Coinbase, so at a 0.5% stop **the fee is 1.5 to 2.8 times the stop
+  itself**, and a 1% stop is 0.29 daily standard deviations on the median asset - ordinary
+  noise crosses it constantly. Algorithms that do run 0.5% stops are on perp futures at
+  ~0.02-0.05% fees or earning maker rebates; our costs are 15-56x that.
+- **Bank half at +8% and let the rest run** (`partial_take_pct`, `risk.partial_signal`,
+  `portfolio.take_half`). Not an exit: no cooldown, the lane keeps its asset, its stop, its
+  give-back and its high-water mark, and `Lane.took_partial` stops it happening twice.
+  Measured in `partial_exit.py`: taking half **early** (+3% to +6%) helped the full history but
+  hurt the recent third almost everywhere, because it caps you out of the large moves that pay
+  for the losers. Only +8% against the +18% target won both windows (+2.2 full, +0.2 recent).
+  The earlier retune from −10/+15 on Sept 24 was also measurement, not taste: over two years of hourly bars,
   all strategies, 10 assets, −7/+12/give-back-20 returned **+5.6 points more with 3.6 points
   less drawdown** than −10/+15/12 — better on both axes. A symmetric −5/+5 band was tested at
   the same time and was the only setting with clearly negative returns: tightening the stop
@@ -274,6 +294,13 @@ money) waits for the owner.
 - **A dashboard left open runs the JavaScript it loaded that day.** `/api/data` carries a `build`
   hash and the client reloads itself when it changes; without it a deploy looks like a page that
   quietly stopped updating.
+- **A rule change makes the guardrail audit cry wolf unless history knows about it.**
+  `audit.py` replays every position against a threshold; scoring old history against *today's*
+  threshold turned eleven correctly-held positions into "fired late" the moment the stop went
+  from −7% to −6%, every one between −6.1% and −6.8%. The engine now appends to `rule_history`
+  at startup whenever the thresholds change (`audit.record_rules`) and `audit.rules_at` picks
+  the entry in force at each sampled moment. Seeded by hand for the three known eras. Any
+  future hard-rule change needs no action - just do not remove the `record_rules` call.
 - **`if value` treats a genuine 0.0 as missing.** The radar stored `edge: 0.0` as null and rendered
   "passed +null". Use `if value is not None`.
 - **Never write a rule threshold into dashboard text.** The exit labels said "hit the −10% day

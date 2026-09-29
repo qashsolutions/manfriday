@@ -61,6 +61,7 @@ class Lane:
     tranches: list[Tranche] = field(default_factory=list)
     kind: str = "main"  # "main" = one of the four $100 lanes, "etf" = a slot in the ETF sleeve
     peak_price: float = 0.0  # best bid seen since this position opened; drives the give-back stop
+    took_partial: bool = False  # this position has already sold half into strength
     venue: str = "coinbase"  # where this lane's asset trades (sets the fees)
     cooldown_until: float = 0.0
     buy_times: list[float] = field(default_factory=list)
@@ -243,6 +244,7 @@ class Fund:
                 left = 0.0
         if not lane.has_position:
             lane.peak_price = 0.0  # flat: the next position starts its own high-water mark
+            lane.took_partial = False  # and with its half still on the table
         when = settles_at(lane.asset_class, now, self.settlement.crypto_hours, self.settlement.equity_business_days)
         if when <= now + EPS:
             if to_vault:

@@ -26,8 +26,8 @@ day_window_hours = 24.0
 # better on both axes, which is why they replaced it. A symmetric -5/+5 band was tested at the
 # same time: it cut drawdown by 2.8 points but was the only setting with clearly negative
 # returns. Tightening the stop helps; capping the winners does not.
-stop_loss_day_pct = -7.0      # down 7% or more in a day -> exit everything
-take_profit_day_pct = 12.0    # up more than 12% in a day -> sell everything
+stop_loss_day_pct = -6.0      # down this much in a day -> exit everything
+take_profit_day_pct = 18.0    # up more than this in a day -> sell everything
 giveback_pct = 20.0           # fell 20% from its best since entry -> sell everything (trailing stop)
 max_buys_per_lane_per_day = 4
 max_price_divergence_pct = 2.0  # Coinbase vs Crypto.com disagree by more -> skip tick
