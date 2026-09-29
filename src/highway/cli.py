@@ -139,6 +139,37 @@ def cmd_rules(args, s):
             print(f"    - {attribution.label(reason)}")
 
 
+def cmd_assets(args, s):
+    """Every asset the league has held, and what it has made or lost since the first buy."""
+    import time
+
+    from .db import DB
+    from .mandate import names
+    from .metrics import assets
+
+    r = assets(DB(), names())
+    rows = r["league"]
+    if not rows:
+        print("Nothing has been bought yet.")
+        return
+    if not args.all:
+        rows = [x for x in rows if x["holding"] or x["trades"]]
+    print("What each asset has made or lost since the day it was first bought\n")
+    print(f"  {'asset':12}{'first bought':>14}{'trips':>6}{'held':>6}{'put in':>9}"
+          f"{'booked':>9}{'on paper':>10}{'TOTAL':>9}{'':>7}  who")
+    for a in rows:
+        when = time.strftime("%b %-d", time.localtime(a["first_bought"]))
+        print(f"  {a['asset']:12}{when:>14}{a['trades']:>6}{'yes' if a['holding'] else '-':>6}"
+              f"{a['bought']:>9.0f}{a['realised']:>9.2f}{a['unrealised']:>10.2f}"
+              f"{a['total']:>9.2f}{a['total_pct']:>6.1f}%  {len(a['managers'])}")
+    print(f"\n  every asset together: ${sum(a['total'] for a in rows):.2f}")
+    worst = rows[0] if rows else None
+    if worst and worst["trades"] >= 3 and worst["total"] < 0:
+        print(f"\n  {worst['asset']} is the biggest drag: {worst['trades']} separate trades across "
+              f"{len(worst['managers'])} manager(s) for ${worst['total']:.2f}.")
+        print("  Worth asking why it keeps being picked, not just why each trade went wrong.")
+
+
 def cmd_status(args, s):
     from .db import DB
 
@@ -348,6 +379,9 @@ def main(argv=None):
     wt.set_defaults(fn=cmd_weights)
     sub.add_parser("audit", help="did every hard rule actually fire on time?").set_defaults(fn=cmd_audit)
     sub.add_parser("rules", help="what each exit rule has made or lost, per manager").set_defaults(fn=cmd_rules)
+    asn = sub.add_parser("assets", help="what each asset has made or lost since day one of it")
+    asn.add_argument("--all", action="store_true", help="include assets with no completed trade yet")
+    asn.set_defaults(fn=cmd_assets)
     sub.add_parser("daily", help="the daily check: is anything broken, what happened").set_defaults(fn=cmd_daily)
     rd = sub.add_parser("radar", help="show what the buckets are flagging")
     rd.add_argument("--rebuild", action="store_true", help="rebuild the universe from the whole market")

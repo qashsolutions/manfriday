@@ -101,6 +101,7 @@ scripts/service.sh status | logs      # is it alive / tail the log
 .venv/bin/highway daily               # the daily review: is anything broken, what happened
 .venv/bin/highway audit               # did every hard rule fire, and on time?
 .venv/bin/highway rules               # what each exit rule has made or lost, per manager
+.venv/bin/highway assets [--all]      # what each asset has made or lost since day one of it
 .venv/bin/python scripts/measure/rule_sweep.py   # re-derive a rule change; see scripts/measure/README.md
 .venv/bin/highway scout [--claude]    # re-pick lanes now
 .venv/bin/highway weights [--apply]   # backtest the ranking weights
@@ -187,6 +188,7 @@ money) waits for the owner.
 | `skill.py` | Alpha vs the benchmark, contribution beyond the others, probabilistic/deflated Sharpe. |
 | `audit.py` | Replays history and asks whether every hard rule actually fired, and on time. |
 | `attribution.py` | Which rule closed each trade, and what it made or lost. `audit` asks if it fired; this asks if it was worth firing. |
+| `metrics.by_asset` / `assets` | What each asset has made or lost since the first buy, across every re-entry and every manager. The trade list cannot answer this: NEAR-USD is 15 separate trades. |
 | `strategies.py` / `sim.py` / `tournament.py` | Strategies, the shared lane simulator, and the per-lane contest. |
 | `scout.py` / `backtest.py` / `weights.py` | Asset selection, walk-forward tests, weight backtests. |
 | `radar.py` / `universe.py` / `seasonality.py` | Buckets, the seven indicators, the ETF lane's fund list, the market clock. |

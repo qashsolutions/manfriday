@@ -188,6 +188,89 @@ def trades(db: DB, pid: str) -> list[dict]:
     } for t in sorted(closed, key=lambda x: -x["closed"])]
 
 
+def by_asset(db: DB, pid: str) -> list[dict]:
+    """Every asset this manager has ever held, and what it has made or lost since day one of it.
+
+    The trade list answers "how did that one trade go"; this answers "has this asset been worth
+    holding at all". They are different questions whenever a lane goes back into the same name,
+    which is common - NEAR-USD was bought and sold four separate times in the first week, and
+    nothing added those up.
+
+    `total` is realised profit from closed trades plus the unrealised move on anything still
+    held, so it is the whole story for that asset. A position part-sold and still open is not
+    double-counted: `holdings` already nets the money taken out against what is still in.
+    """
+    closed, _ = replay(db, pid)
+    held = holdings(db, pid)
+    rows: dict[str, dict] = {}
+
+    def row(asset: str, first: float) -> dict:
+        r = rows.setdefault(asset, {
+            "asset": asset, "first_bought": first, "last_activity": first, "trades": 0, "wins": 0,
+            "realised": 0.0, "unrealised": 0.0, "fees": 0.0, "bought": 0.0, "sold": 0.0,
+            "holding": False, "qty": 0.0, "value": 0.0})
+        r["first_bought"] = min(r["first_bought"], first)
+        return r
+
+    for t in closed:
+        r = row(t["asset"], t["opened"])
+        r["last_activity"] = max(r["last_activity"], t["closed"])
+        r["trades"] += 1
+        r["wins"] += 1 if t["pnl"] > 0 else 0
+        r["realised"] += t["pnl"]
+        r["fees"] += t["fees"]
+        r["bought"] += t["cost"]
+        r["sold"] += t["proceeds"]
+    for h in held:
+        r = row(h["asset"], h["since"])
+        r["unrealised"] += h["unrealised"]
+        r["fees"] += h["fees"]
+        r["bought"] += h["cost"]
+        r["holding"] = True
+        r["qty"] += h["qty"]
+        r["value"] += h["value"]
+
+    out = []
+    for r in rows.values():
+        r["total"] = round(r["realised"] + r["unrealised"], 2)
+        # against what the asset actually tied up, not against the whole fund
+        r["total_pct"] = round(r["total"] / r["bought"] * 100, 2) if r["bought"] else 0.0
+        for k in ("realised", "unrealised", "fees", "bought", "sold", "value"):
+            r[k] = round(r[k], 2)
+        out.append(r)
+    return sorted(out, key=lambda r: r["total"])
+
+
+def assets(db: DB, names: dict[str, str]) -> dict:
+    """The same question across the whole league: which assets have actually paid?
+
+    An asset several managers hold is the interesting case - it is one bet the league made more
+    than once, and the per-manager view cannot show that it lost money four times over.
+    """
+    per_manager, combined = {}, {}
+    for pid, name in names.items():
+        rows = by_asset(db, pid)
+        per_manager[pid] = {"id": pid, "name": name, "assets": rows}
+        for r in rows:
+            c = combined.setdefault(r["asset"], {
+                "asset": r["asset"], "first_bought": r["first_bought"], "managers": [],
+                "trades": 0, "wins": 0, "realised": 0.0, "unrealised": 0.0, "fees": 0.0,
+                "bought": 0.0, "holding": False})
+            c["first_bought"] = min(c["first_bought"], r["first_bought"])
+            c["managers"].append(name)
+            c["holding"] = c["holding"] or r["holding"]
+            for k in ("trades", "wins", "realised", "unrealised", "fees", "bought"):
+                c[k] += r[k]
+    league = []
+    for c in combined.values():
+        c["total"] = round(c["realised"] + c["unrealised"], 2)
+        c["total_pct"] = round(c["total"] / c["bought"] * 100, 2) if c["bought"] else 0.0
+        for k in ("realised", "unrealised", "fees", "bought"):
+            c[k] = round(c[k], 2)
+        league.append(c)
+    return {"league": sorted(league, key=lambda r: r["total"]), "managers": per_manager}
+
+
 def by_period(db: DB, pid: str) -> dict[str, list[dict]]:
     """Each calendar day, week, month, quarter and year: what the fund did and what was traded.
 

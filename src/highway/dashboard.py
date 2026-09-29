@@ -43,6 +43,7 @@ def data(db: DB) -> dict:
         "journal": db.query("SELECT ts, agent, content FROM journal ORDER BY ts DESC LIMIT 5"),
         "picks": {k: v for k, v in (db.get_state("scout_picks", {}) or {}).items() if k in ("ts", "lanes", "bench", "by", "scanned", "qualified", "candidates", "claude_notes", "claude_change", "momentum", "sleeve", "sleeve_considered")},
         "rules": _rule_attribution(db),
+        "assets_pnl": _asset_pnl(db),
         "build": BUILD,
         "started": db.get_state("fund_started"),
         "league_started": db.get_state("league_started"),
@@ -52,6 +53,16 @@ def data(db: DB) -> dict:
 from .mandate import names as _mandate_names
 
 MANAGER_NAMES = _mandate_names()
+
+
+def _asset_pnl(db: DB) -> list[dict]:
+    """What each asset has made or lost since day one. Never blank the page if it raises."""
+    try:
+        from .metrics import assets
+
+        return assets(db, MANAGER_NAMES)["league"]
+    except Exception:  # pragma: no cover - defensive, same reason as panel()
+        return []
 
 
 def _rule_attribution(db: DB) -> dict:
@@ -362,6 +373,15 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
     held. <b>Booked</b> is only the profit from trades actually closed in that period — a winner still
     being held shows up in the first and not the second.</div>
   </div>
+  <h2 style="margin-top:14px">Every asset we have owned <span class="sub">· what each one made or lost since the day we first bought it</span></h2>
+  <div class="card">
+    <div class="tablewrap" id="assets-league"></div>
+    <div class="note"><b>Booked</b> is profit from trades already closed; <b>On paper</b> is the
+    move on anything still held. <b>Total</b> adds the two, so it is the whole story for that
+    asset since day one — across every time we went back into it, and across every manager that
+    held it. An asset bought and sold four separate times shows here as one line, which the
+    trade list cannot do.</div>
+  </div>
   <h2 style="margin-top:14px">What ended each trade <span class="sub">· did the safety rules earn their keep?</span></h2>
   <div class="card">
     <div class="tablewrap" id="rules-league"></div>
@@ -556,6 +576,32 @@ async function loadActivity() {
   } catch (e) {
     $("activity-cards").innerHTML = `<div class="card"><p class="muted">Could not load the activity (${esc(String(e))}).</p></div>`;
   }
+}
+
+function renderAssetPnl(d) {
+  const rows = (d.assets_pnl || []).filter(a => a.holding || a.trades);
+  if (!rows.length) {
+    $("assets-league").innerHTML = `<p class="muted">Nothing has been bought yet.</p>`; return;
+  }
+  const total = rows.reduce((a, x) => a + x.total, 0);
+  $("assets-league").innerHTML = `<table>
+    <tr><th>Asset</th><th>First bought</th><th class="num">Times in</th><th class="num">Put in</th>
+    <th class="num">Booked</th><th class="num">On paper</th><th class="num">Total</th>
+    <th class="num">Managers</th><th>Still held</th></tr>` +
+    rows.map(a => `<tr>
+      <td><b>${esc(a.asset)}</b></td>
+      <td class="muted">${new Date(a.first_bought * 1000).toLocaleDateString([], {month: "short", day: "numeric"})}</td>
+      <td class="num">${a.trades || "–"}</td>
+      <td class="num">${money(a.bought)}</td>
+      <td class="num ${a.realised >= 0 ? "up" : "down"}">${money(a.realised)}</td>
+      <td class="num ${a.unrealised >= 0 ? "up" : "down"}">${money(a.unrealised)}</td>
+      <td class="num ${a.total >= 0 ? "up" : "down"}"><b>${money(a.total)}</b> <span class="muted">${signed(a.total_pct)}</span></td>
+      <td class="num" title="${esc(a.managers.join(", "))}">${a.managers.length}</td>
+      <td>${a.holding ? "yes" : ""}</td></tr>`).join("") +
+    `<tr><td><b>Everything together</b></td><td></td><td class="num"></td><td class="num"></td>
+      <td class="num"></td><td class="num"></td>
+      <td class="num ${total >= 0 ? "up" : "down"}"><b>${money(total)}</b></td>
+      <td class="num"></td><td></td></tr></table>`;
 }
 
 function renderRules(d) {
@@ -1224,6 +1270,7 @@ function render(d) {
   const s = d.snapshot || {}, now = d.now;
   setExitWhy(s.capital);   // exit labels quote the live thresholds, not a stale copy
   panel("rules", () => renderRules(d));
+  panel("assets-pnl", () => renderAssetPnl(d));
   if (!s.league) { $("status").textContent = "waiting for the engine…"; return; }
   const stale = now - s.ts > 120;
   const frozen = !!window.HIGHWAY_SNAPSHOT;
