@@ -91,6 +91,9 @@ class Portfolio:
         self.blocks: dict[int, str] = {}
         self.targets: dict[int, Target] = {}
         self._triggers: dict[int, tuple[str, float]] = {}  # day-rule hits waiting for a confirming tick
+        # Lanes holding something the exit rules could not check, and since when. Never silent:
+        # the engine raises a health alarm off this and `highway daily` fails on it.
+        self.protection: dict[int, dict] = {}
         self.dirty = self.new
 
     @property
@@ -177,11 +180,28 @@ class Portfolio:
         self.orders = keep
 
     def hard_rules(self, ctx: Engine, lane: Lane, now: float) -> None:
-        if not lane.has_position or not ctx.market_open(lane, now):
+        """The owner's exit rules. These run on every position, on every price check, always.
+
+        The two early exits below are the only ways a held position goes unchecked, and neither
+        may ever be silent: `self.protection` records why, the engine turns that into a health
+        alarm, and `highway daily` fails on it. A position we cannot price is a position these
+        rules are not protecting, and that must be visible within minutes, not found later in
+        an audit.
+        """
+        if not lane.has_position:
+            self.protection.pop(lane.lane_id, None)
+            self._triggers.pop(lane.lane_id, None)
+            return
+        if not ctx.market_open(lane, now):
+            # Expected, not a fault: we cannot sell a stock at 3am. Recorded so the gap is
+            # visible, and excluded from the alarm by the engine.
+            self._note_unprotected(lane, "market closed", now)
             return
         q = ctx.fresh(lane, now)
         if not q:
+            self._note_unprotected(lane, "no fresh price", now)
             return
+        self.protection.pop(lane.lane_id, None)
         if q.bid > lane.peak_price:  # high-water mark for the give-back stop
             lane.peak_price = q.bid
             self.dirty = True
@@ -191,8 +211,15 @@ class Portfolio:
             return
         kind, pct = sig
         seen = self._triggers.get(lane.lane_id)
-        if seen and seen[0] == kind and now - seen[1] <= 60:
-            # Confirmed on a second price check, so one bad print cannot trigger an exit.
+        if seen and seen[0] == kind:
+            # Confirmed on a second consecutive price check, so one bad print cannot trigger an
+            # exit. There is deliberately NO time limit on the pair. There used to be a 60-second
+            # one, and it could cancel the rule outright: a stale feed makes this method return
+            # early without clearing the trigger, so when a price finally arrived the breach was
+            # more than 60s old and simply re-armed instead of firing. A position could stay in
+            # breach indefinitely, losing money, while the stop re-armed forever. The trigger is
+            # cleared the moment a real price shows no breach, so a surviving one always means
+            # the previous evaluated check breached too - which is what "consecutive" means.
             self._triggers.pop(lane.lane_id, None)
             detail = (f"gave back {abs(pct):.1f}% from its high of ${lane.peak_price:,.4f}".rstrip("0").rstrip(".")
                       if kind == "giveback" else
@@ -200,6 +227,30 @@ class Portfolio:
             self.exit(ctx, lane, q, now, kind, detail)
         else:
             self._triggers[lane.lane_id] = (kind, now)
+
+    def _note_unprotected(self, lane: Lane, why: str, now: float) -> None:
+        """Record that the exit rules could not be checked on a live position, and since when."""
+        seen = self.protection.get(lane.lane_id)
+        if seen and seen["why"] == why:
+            seen["seen"] = now
+        else:
+            self.protection[lane.lane_id] = {"why": why, "since": now, "seen": now,
+                                             "asset": lane.asset}
+
+    def unprotected(self, now: float, grace_seconds: float = 300.0) -> list[dict]:
+        """Positions the exit rules have not been able to check for longer than the grace period.
+
+        A market being closed is excluded: it is expected, and we could not sell anyway. Anything
+        else here means a position is carrying risk the owner's rules are not currently watching.
+        """
+        out = []
+        for lane_id, p in self.protection.items():
+            if p["why"] == "market closed" or now - p["since"] < grace_seconds:
+                continue
+            out.append({"manager": self.id, "name": self.name, "lane": lane_id,
+                        "asset": p.get("asset"), "why": p["why"],
+                        "minutes": round((now - p["since"]) / 60, 1)})
+        return out
 
     def skim_and_floor(self, ctx: Engine, lane: Lane, now: float) -> str | None:
         q = ctx.fresh(lane, now) if lane.asset else None

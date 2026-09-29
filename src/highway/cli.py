@@ -71,6 +71,9 @@ def cmd_daily(args, s):
     line(not quiet, "activity: every manager traded in the last 24h",
          "activity: no trades in 24h from " + ", ".join(q["name"] for q in quiet)
          + " (fine if they are holding; suspect if they are in cash)")
+    blind = [c for c in r["health_failing"] if c["name"] == "Exit rules watching"]
+    line(not blind, "exit rules: every open position is being checked on every price tick",
+         "exit rules: A POSITION IS NOT BEING CHECKED - " + "; ".join(c["detail"] for c in blind))
     f = r["fills"]
     if f["unfilled_pct"] is None:
         line(True, "fills: no resting buys have been worked yet", "")

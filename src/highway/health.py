@@ -100,6 +100,19 @@ def run(e: Engine, now: float) -> list[dict]:
                     problems.append(f"{pf.name} lane {lane.lane_id} down {ch * 100:.1f}% today but not sold")
     checks.append(_c("Rules obeyed", "ok" if not problems else "fail", "$50 buys, day exits, $150 cap all respected" if not problems else "; ".join(problems)))
 
+    # 6a. The owner's rule is that a stop or take-profit fires on every position, every time.
+    # That can only be true if every position is actually being checked, so this asks the
+    # question the "Rules obeyed" check cannot: is anything held that we currently cannot price?
+    # Such a lane is skipped by every rule above and would otherwise fail completely silently.
+    blind = [b for pf in e.portfolios.values() for b in pf.unprotected(now)]
+    if blind:
+        detail = "; ".join(f"{b['name']} lane {b['lane']} {b['asset']}: {b['why']} for {b['minutes']:.0f} min"
+                           for b in blind[:4])
+    else:
+        watched = sum(1 for pf in e.portfolios.values() for l in pf.fund.lanes if l.has_position)
+        detail = f"all {watched} open position{'' if watched == 1 else 's'} checked on every price tick"
+    checks.append(_c("Exit rules watching", "ok" if not blind else "fail", detail))
+
     # 6b. the same question asked of the record, not just of right now. A breach that came and
     # went leaves no trace in a snapshot, so this replays every position the league has held.
     try:

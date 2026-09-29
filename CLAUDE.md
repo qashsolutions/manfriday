@@ -128,6 +128,19 @@ They are the owner's own rules, enforced in code, and every manager obeys them:
   less drawdown** than −10/+15/12 — better on both axes. A symmetric −5/+5 band was tested at
   the same time and was the only setting with clearly negative returns: tightening the stop
   helps, capping the winners does not. Do not re-propose ±5% without new evidence.
+- **The exit rules must run on every position, on every price check, without exception.**
+  The owner restated this on Sept 29 as the rule that can never be broken. Three layers enforce
+  it, and none may be removed: `portfolio.hard_rules` checks every held lane each tick;
+  `self.protection` records the only two cases where it cannot (market closed, no fresh price)
+  and the **"Exit rules watching"** health check fails on anything but a closed market after a
+  5-minute grace; `highway daily` fails on the same. A position that cannot be priced is a
+  position these rules are not protecting, and that must never be silent.
+  **Never put a time limit on the confirming tick.** There was a 60-second one, and it could
+  cancel the rule outright: a stale feed makes `hard_rules` return early *without* clearing the
+  trigger, so a price arriving later than 60s re-armed the stop instead of firing it - a
+  position could sit in breach indefinitely while the stop re-armed forever. The trigger is
+  cleared the moment a real price shows no breach, so a surviving trigger already means the
+  previous evaluated check breached. See `tests/test_protection.py`.
 - **Give-back stop: exit everything 20% below the best price since the position opened**
   (`rules.giveback_pct`, `risk.giveback_pct`, same two-tick confirmation). It never caps a
   winner - only its retreat - and it closes the gap the day rules leave, which is a slow bleed
