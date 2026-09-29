@@ -245,6 +245,15 @@ money) waits for the owner.
   quietly stopped updating.
 - **`if value` treats a genuine 0.0 as missing.** The radar stored `edge: 0.0` as null and rendered
   "passed +null". Use `if value is not None`.
+- **Resting every buy at the bid is deliberate, and it has been measured.** It looks like textbook
+  adverse selection - we fill when the price falls *toward* us and miss the entries that run away,
+  and about **20% of wanted buys never fill**. It is still the right trade: crossing the spread
+  after one unfilled bar lost on both windows (−3.2 full history, −0.2 recent) and paid more in
+  fees (`scripts/measure/maker_vs_taker.py`, `taker_after_bars`, shipped at 0). The entries we
+  miss are the ones that ran away, and chasing them loses. Waiting 2-3 bars before crossing
+  almost never fires, because the signal stops asking first. `highway daily` now reports the live
+  unfilled rate; far from ~20% means the quotes or the bar clock have changed, not that the
+  design is wrong.
 
 ## Status (Sept 2026)
 
@@ -307,10 +316,31 @@ Leaderboard's "who is actually adding something":
 - **Contribution beyond the consensus**, in the spirit of Numerai's MMC: a manager that tracks
   the others scores ~0 however well it is doing. This is what exposed Quant contributing 0.003.
 - **Probabilistic and deflated Sharpe**: a short record with fat tails is worth far less than its
-  raw Sharpe, and the per-lane tournament picks the best of 42 variants, which needs deflating.
+  raw Sharpe, and the per-lane tournament picks the best of 42 variants, which needs deflating
+  **when reporting skill**. Deflating the *selection* was tried and rejected - see below.
 - **Score on paired differences, not standalone Sharpe.** Ranking two managers on standalone
   Sharpe needs years; scoring the daily difference against a common benchmark collapses that to
   weeks. Measured: removing the shared market move cuts the noise 21-74%.
+
+**Making the tournament's leader clear the best-of-N luck bar was measured and rejected.**
+`tournament_hurdle` gates a lane's leader on what the luckiest of 42 coin flips would score
+(`skill.expected_max_sharpe` over the spread of contender scores). It is shipped at **0, off**:
+every level lost on both windows and got monotonically worse - 10% of the bar −1.7/−0.0 points,
+25% −6.8/−3.6, 50% −10.0/−7.5 - and the full bar left 2 of 8 lanes permanently in cash at 8%
+time in market. The exposure it targets is real; the gate is the wrong fix, for two reasons
+worth remembering before anyone re-proposes it:
+
+1. **The 42 variants are not 42 independent trials.** They are grid variants of six strategy
+   families and move together, so the effective N is far smaller and the Gumbel threshold
+   over-corrects by a wide margin.
+2. **The tournament already deflates, structurally.** Walk-forward survival, `switch_margin_pct`,
+   `min_leader_hold_h` and an eligibility rule that demands a positive live record are four
+   filters on the same selection. Adding a fifth removed good entries, not noise.
+
+`scripts/measure/tournament_hurdle.py` is the harness, and it is the **first one that replays a
+real tournament** over history - priors trained on the first two thirds, then bar by bar with a
+lane following whatever the tournament leads. Use it for any future tournament change; nothing
+else in `scripts/measure/` tests the tournament rather than a single strategy.
 
 **Statistical reality check, so nobody over-reads a six-week result:** simulated 20,000 times at
 the managers' measured volatility and correlation, a manager with a genuine 5%/month edge wins a

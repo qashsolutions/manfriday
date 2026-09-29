@@ -51,6 +51,25 @@ def quiet_managers(db: DB, names: dict[str, str], hours: float = 24.0) -> list[d
     return out
 
 
+def fill_rate(db: DB, names: dict[str, str]) -> dict:
+    """How often a resting buy actually fills.
+
+    Every buy rests at the bid, so it fills only when the price comes back down to us. Measured
+    over two years of bars that is the right trade - crossing the spread instead lost on both
+    the full history and the recent third - but the backtest works off bar lows, so this is the
+    live check on it. Roughly a fifth of attempts going unfilled is normal; far from that means
+    the quotes or the bar clock have changed under us.
+    """
+    filled = unfilled = 0
+    for pid in names:
+        st = db.get_state(f"fillstats:{pid}", {}) or {}
+        filled += int(st.get("filled", 0))
+        unfilled += int(st.get("unfilled", 0))
+    tried = filled + unfilled
+    return {"filled": filled, "unfilled": unfilled,
+            "unfilled_pct": round(100 * unfilled / tried, 1) if tried else None}
+
+
 def report(db: DB, s: Settings, names: dict[str, str], log_path) -> dict:
     from . import audit, summaries
 
@@ -73,5 +92,6 @@ def report(db: DB, s: Settings, names: dict[str, str], log_path) -> dict:
         "late_rules": [b for b in guard["breaches"]],
         "quiet": [q for q in quiet if q["quiet"]],
         "no_candidates": [q for q in quiet if not q["has_candidates"]],
+        "fills": fill_rate(db, names),
         "rows": rows,
     }

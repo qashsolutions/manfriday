@@ -54,6 +54,7 @@ class LaneSim:
         self.bars = 0
         self.entries = 0
         self.last_expected = 0.0  # expected move of the latest entry signal
+        self.unfilled_streak = 0  # consecutive bars a wanted buy has rested without filling
 
     # ---- helpers -------------------------------------------------------------------------
 
@@ -139,6 +140,7 @@ class LaneSim:
                 self.risk.start_cooldown(lane, "signal", ts)
             return
         if d.target_clips <= clips:
+            self.unfilled_streak = 0  # the signal stopped asking; the next entry starts fresh
             return
         w = self.params["news_weight"]
         if w > 0 and news.get("count", 0) >= 3 and news.get("score", 0.0) < -0.3:
@@ -149,11 +151,19 @@ class LaneSim:
                          self.params["no_buy_drop_pct"]):
             self.counts["falling_knife"] += 1
             return
-        if row["low"] > limit:
+        liquidity = "maker"
+        if row["low"] > limit:  # the price ran away; it never came back to our bid
             self.counts["unfilled"] += 1
-            if not lane.has_position:
-                self.state.clear()
-            return
+            self.unfilled_streak += 1
+            after = self.params["taker_after_bars"]
+            if not after or self.unfilled_streak < after:
+                if not lane.has_position:
+                    self.state.clear()
+                return
+            limit = row["close"] * (1 + self.half_spread)  # stop waiting and pay the spread
+            liquidity = "taker"
+            self.counts["crossed"] += 1
+        self.unfilled_streak = 0
         expected = (d.expected_move_pct or self.last_expected) * (1 + w * news.get("score", 0.0))
         was_flat = not lane.has_position
         for _ in range(1):  # scale in: at most one $50 clip per bar
@@ -164,7 +174,7 @@ class LaneSim:
                 if not lane.has_position:
                     self.state.clear()
                 return
-            self.fund.buy(lane, notional, limit, ts, reason="signal", strategy=self.strategy.name, liquidity="maker")
+            self.fund.buy(lane, notional, limit, ts, reason="signal", strategy=self.strategy.name, liquidity=liquidity)
             if was_flat:
                 self.entries += 1
                 was_flat = False

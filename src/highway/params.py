@@ -24,9 +24,14 @@ SPECS: dict[str, Spec] = {
     "min_hold_hours": Spec(0.0, 0.0, 24.0, "a strategy may not sell a position younger than this; hard rules always can"),
     "no_buy_drop_pct": Spec(0.0, 0.0, 20.0, "refuse a buy if the asset already fell this much recently (0 = off)"),
     "no_buy_drop_hours": Spec(4.0, 1.0, 24.0, "how far back the falling-knife check looks"),
+    "taker_after_bars": Spec(0.0, 0.0, 5.0, "cross the spread to enter after this many bars of an unfilled limit buy (0 = never)"),
     "fee_edge_multiple": Spec(1.5, 1.0, 3.0, "expected move must be this many times the round-trip fee"),
     "tournament_window_days": Spec(5.0, 2.0, 14.0, "how far back the strategy tournament looks"),
     "switch_margin_pct": Spec(1.0, 0.25, 5.0, "a challenger must beat the leader by this much to take over"),
+    # Measured and rejected (scripts/measure/tournament_hurdle.py): every level lost on both
+    # windows. Kept as a knob because the harness behind it is worth re-running, not because
+    # it should be raised. Do not turn this on without new evidence.
+    "tournament_hurdle": Spec(0.0, 0.0, 1.5, "how much of the best-of-N luck threshold a lane's leader must clear (0 = off)"),
     "min_leader_hold_h": Spec(12.0, 4.0, 48.0, "minimum hours before the lead strategy can change"),
     "prior_weight_days": Spec(3.0, 0.0, 10.0, "days of live evidence before backtest results stop dominating"),
     "news_weight": Spec(0.5, 0.0, 1.0, "how much news scores tilt strategy entries"),

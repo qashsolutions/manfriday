@@ -109,3 +109,65 @@ def test_the_simulator_models_the_give_back_stop():
     src = inspect.getsource(sim.LaneSim._hard_rules)
     assert "peak_price" in src, "the high-water mark is not kept up to date"
     assert "giveback" in src, "the give-back stop is not modelled"
+
+
+def test_tournament_hurdle_off_by_default_keeps_a_positive_leader():
+    bts = [{"strategy": "trend", "params": {"fast": 20, "slow": 96}, "survived": 1,
+            "test": {"monthly_pct": 6.0, "max_dd_pct": 8.0}}]
+    t = LaneTournament.create(1, "BTC-USD", S, Params(), bts, now=T0)
+    assert t.leader is not None
+
+
+def test_tournament_hurdle_sends_a_lucky_looking_leader_to_cash():
+    """Best-of-N selection: a leader that only looks good against a wide spread of rivals is
+    what the luckiest coin flip would produce, so the lane should sit in cash instead."""
+    bts = [{"strategy": "trend", "params": {"fast": f, "slow": 96}, "survived": 1,
+            "test": {"monthly_pct": m, "max_dd_pct": 8.0}}
+           for f, m in zip(range(8, 40, 2), range(-30, 34, 4))]
+    assert len(bts) >= 16
+    lax = LaneTournament.create(1, "BTC-USD", S, Params({"tournament_hurdle": 0.0}), bts, now=T0)
+    strict = LaneTournament.create(1, "BTC-USD", S, Params({"tournament_hurdle": 1.0}), bts, now=T0)
+    assert lax.leader is not None       # today: the best score wins however wide the search
+    assert strict.leader is None        # deflated: it never clears what luck alone would give
+    assert strict.target().target_clips == 0
+
+
+def test_hurdle_needs_enough_contenders_to_mean_anything():
+    t = LaneTournament(1, "BTC-USD", T0)
+    assert t.hurdle([5.0, 1.0], 1.0) == 0.0   # too few trials to deflate
+    assert t.hurdle([0.0] * 20, 1.0) == 0.0   # no spread: nothing to deflate
+    assert t.hurdle([float(i) for i in range(20)], 1.0) > 0.0
+
+
+class AlwaysIn(Strategy):
+    name = "AlwaysIn"
+
+    def warmup_bars(self, bars_per_day):
+        return 0
+
+    def decide(self, row, clips, state, news):
+        return Decision(1, 10.0, "in")
+
+
+def _rising(sim, bars=6):
+    """Prices that gap up every bar, so a limit resting at the last close never fills."""
+    px = 100.0
+    for i in range(bars):
+        px *= 1.05
+        sim.on_bar(T0 + i * BAR, row(px, low=px * 0.999), lambda _t: None, NEUTRAL_NEWS, BAR)
+
+
+def test_a_buy_that_the_price_runs_away_from_is_left_unfilled():
+    sim = LaneSim(AlwaysIn(), S, Params({"taker_after_bars": 0}), "BTC-USD")
+    _rising(sim)
+    assert sim.counts["unfilled"] > 0
+    assert sim.counts["crossed"] == 0
+    assert sim.clips == 0  # never chased it
+
+
+def test_crossing_the_spread_enters_after_the_configured_wait():
+    sim = LaneSim(AlwaysIn(), S, Params({"taker_after_bars": 2}), "BTC-USD")
+    _rising(sim)
+    assert sim.counts["crossed"] > 0
+    assert sim.entries > 0  # it stopped waiting and took the position
+    assert sim.fund.fees_paid > 0  # paying the taker fee, not the maker one

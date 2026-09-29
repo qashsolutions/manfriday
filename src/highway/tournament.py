@@ -10,6 +10,7 @@ the lane does not chase noise. If nothing is working, the lane sits in cash.
 
 from __future__ import annotations
 
+import statistics
 import time
 from dataclasses import dataclass, field
 
@@ -18,6 +19,7 @@ import pandas as pd
 from .config import Settings, bar_minutes_for
 from .params import Params
 from .sim import LaneSim, recent_score, score
+from .skill import expected_max_sharpe
 from .strategies import Decision, Hold, NewsMomentum, Strategy, base_features, build
 
 
@@ -86,6 +88,23 @@ class LaneTournament:
         live = score(c.sim.metrics()) if c.sim.bars >= 4 else 0.0
         return w * live + (1 - w) * c.prior
 
+    def hurdle(self, scores: list[float], k: float) -> float:
+        """What the best of N worthless strategies would score here, by luck alone.
+
+        A lane picks its leader as the best of ~42 variants on a handful of days. Bailey &
+        Lopez de Prado's Minimum Backtest Length says a search that wide needs years of history
+        before the winner's edge is distinguishable from the search itself, and we have months.
+        So "beat zero" is the wrong bar: the bar is what the luckiest of N coin flips would
+        score, which is the expected maximum of N draws at the spread we actually observe.
+
+        Scaled by `tournament_hurdle` so it can be measured rather than asserted; 0 is the old
+        behaviour. Fractional values are the honest setting - the contenders are not independent
+        (many are variants of one strategy), so the full Gumbel threshold over-corrects.
+        """
+        if k <= 0 or len(scores) < 4:
+            return 0.0
+        return k * expected_max_sharpe(len(scores), statistics.pvariance(scores))
+
     def eligible(self, c: Contender) -> bool:
         if not c.strategy.eligible:
             return False
@@ -100,8 +119,12 @@ class LaneTournament:
             reverse=True,
         )
         best_score, best = ranked[0] if ranked else (0.0, None)
-        if best is not None and best_score <= 0:
-            best = None  # nothing is working: sit in cash
+        # The search width is every contender the lane evaluated, not just the ones that came
+        # out eligible - the eligibility filter is itself part of the search.
+        bar = self.hurdle([self.blended(c, params, now) for c in self.contenders.values()],
+                          params["tournament_hurdle"])
+        if best is not None and best_score <= bar:
+            best = None  # nothing is beating luck at this search width: sit in cash
         if best == self.leader:
             return
         held_h = (now - self.leader_since) / 3600

@@ -71,6 +71,16 @@ def cmd_daily(args, s):
     line(not quiet, "activity: every manager traded in the last 24h",
          "activity: no trades in 24h from " + ", ".join(q["name"] for q in quiet)
          + " (fine if they are holding; suspect if they are in cash)")
+    f = r["fills"]
+    if f["unfilled_pct"] is None:
+        line(True, "fills: no resting buys have been worked yet", "")
+    else:
+        # Buys rest at the bid, so ~1 in 5 never fills. That is the design working, not a fault:
+        # crossing the spread instead lost money on both test windows.
+        line(f["unfilled_pct"] <= 45,
+             f"fills: {f['unfilled_pct']:.0f}% of resting buys went unfilled ({f['filled']} filled)",
+             f"fills: {f['unfilled_pct']:.0f}% of resting buys went unfilled - far above the ~20% "
+             f"the backtest expects; check quotes and the bar clock")
 
     print()
     print("  nothing needs you today" if not problems else f"  {len(problems)} thing(s) to look at")

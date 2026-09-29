@@ -74,6 +74,7 @@ class Portfolio:
         # the Sept 23 rebuild migrated those to "fund:bluechip" and friends.
         self.fund_key = f"fund:{pid}"
         self.orders_key = f"orders:{pid}"
+        self.fills_key = f"fillstats:{pid}"
         fund = db.load_fund(s, self.fund_key)
         self.new = fund is None
         if fund is None:
@@ -82,6 +83,11 @@ class Portfolio:
             db.event("info", "start", f"{name}: new paper fund, 4 lanes x $100 plus $100 reserve", portfolio=pid)
         self.fund = fund
         self.orders = [RestingOrder(**o) for o in db.get_state(self.orders_key, [])]
+        # Buys rest at the bid, so they fill only when the price comes back down to us. Measured
+        # on two years of bars that is the right trade (crossing the spread lost on both windows,
+        # scripts/measure/maker_vs_taker.py), but the sim works off bar lows - this is the live
+        # check on that, and an unfilled rate far from ~20% means something has changed.
+        self.fill_stats: dict = db.get_state(self.fills_key, {"filled": 0, "unfilled": 0})
         self.blocks: dict[int, str] = {}
         self.targets: dict[int, Target] = {}
         self._triggers: dict[int, tuple[str, float]] = {}  # day-rule hits waiting for a confirming tick
@@ -103,6 +109,7 @@ class Portfolio:
     def save(self) -> None:
         self.db.save_fund(self.fund, self.s.mode, portfolio=self.id, key=self.fund_key)
         self.db.set_state(self.orders_key, [asdict(o) for o in self.orders])
+        self.db.set_state(self.fills_key, self.fill_stats)
         self.dirty = False
 
     def needs_save(self) -> bool:
@@ -144,6 +151,7 @@ class Portfolio:
                     if o.side == "buy" and (q.ask <= o.limit or q.last < o.limit):  # traded through our bid
                         if lane.cash + EPS >= o.notional and now >= lane.cooldown_until:
                             self.fund.buy(lane, o.notional, o.limit, now, o.reason, o.strategy, liquidity="maker")
+                            self.fill_stats["filled"] = self.fill_stats.get("filled", 0) + 1
                         filled = True
                     elif o.side == "sell" and (q.bid >= o.limit or q.last > o.limit):
                         if lane.has_position:
@@ -157,6 +165,8 @@ class Portfolio:
                 continue
             if now >= o.expires:
                 self.dirty = True
+                if o.side == "buy":  # the price never came back to our bid; the lane re-prices next bar
+                    self.fill_stats["unfilled"] = self.fill_stats.get("unfilled", 0) + 1
                 if o.side == "sell" and lane.has_position:
                     if q and ctx.market_open(lane, now):
                         self.fund.sell(lane, min(o.qty, lane.qty), q.bid, now, o.reason + "_market", o.strategy)
