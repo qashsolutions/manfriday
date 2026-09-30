@@ -301,6 +301,12 @@ money) waits for the owner.
   at startup whenever the thresholds change (`audit.record_rules`) and `audit.rules_at` picks
   the entry in force at each sampled moment. Seeded by hand for the three known eras. Any
   future hard-rule change needs no action - just do not remove the `record_rules` call.
+- **A missing element id used to blank every section after it.** `render()` is not wrapped in
+  `panel()` end to end, so one `$("board-sub").textContent = ...` against an id deleted with its
+  heading threw and **the whole Managers page went blank** - the failure was three pages away
+  from the edit. `$` now returns a null-safe stub instead of `null`. To catch the next one before
+  it ships, diff the ids: every `$("x")` in the served JS must have a matching `id="x"` in the
+  markup (one line of Python over `dashboard.PAGE`; see the commit for Sept 29).
 - **Never name a script `*_test.py` or `test_*.py` outside `tests/`.** `scripts/measure/edge_test.py`
   matched pytest's default patterns, so bare `pytest` *imported* it during collection and ran a
   year of bars and twelve tournament replays **on every test run** - 0.4s became 280s, and the

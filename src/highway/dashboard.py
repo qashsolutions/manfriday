@@ -195,6 +195,11 @@ h2 .sub { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(
 .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
 .up { color: var(--good-text); } .down { color: var(--critical); }
 /* Money first: the three numbers anyone opens the page for, before any strategy talk. */
+details.lane-more { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; }
+details.lane-more > summary { cursor: pointer; font-size: 12px; color: var(--text-muted); list-style: none; }
+details.lane-more > summary::-webkit-details-marker { display: none; }
+details.lane-more > summary::before { content: "\25b8 "; }
+details.lane-more[open] > summary::before { content: "\25be "; }
 .money-hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 34px; }
 .money-hero .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
   color: var(--text-muted); display: block; margin-bottom: 2px; }
@@ -315,7 +320,7 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
   <h2 style="margin-top:14px">What we own right now</h2>
   <div class="card tablewrap"><table id="money-positions"></table></div>
   <details class="sect" data-sect="board" style="margin-top:14px">
-    <summary>The detail behind it <span class="sub">· how each manager is run, pace against target, fees and trades</span></summary>
+    <summary>The detail behind it <span class="sub" id="board-sub"></span></summary>
     <div class="body">
   <div class="card tablewrap"><table class="board" id="board"></table></div>
   <div id="manager-detail"></div>
@@ -336,7 +341,7 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
     so some of a lead is just lower exposure. <b>Alpha</b> is what is left after that, per day. <b>Adds</b> is
     what it contributes beyond what the other three already do between them: a manager that tracks the others
     scores ~0 here however well it is doing, because the league learns nothing from a duplicate. <b>Worth
-    keeping</b> is how much the four of them together would get worse without it.
+    keeping</b> is how much the rest of them together would get worse without it.
     <b>t</b> above 2 means a figure is bigger than the noise — until then it is not evidence, and early in a
     run nothing will be.</div>
   </div>
@@ -401,11 +406,11 @@ details.manager > summary { font-size: 14px; color: var(--text-primary); font-we
     </section>
     <section class="page" data-page="activity">
   <details class="sect" data-sect="money-made-and-lost" open>
-    <summary>Money made and lost <span class="sub">· all four managers together</span></summary>
+    <summary>Money made and lost <span class="sub">· every manager together</span></summary>
     <div class="body">  <div class="card">
     <div class="filters" id="activity-periods"></div>
     <div class="tablewrap" id="activity-league"></div>
-    <div class="note"><b>Fund moved</b> is the real change in all four funds, including everything still
+    <div class="note"><b>Fund moved</b> is the real change across every fund, including everything still
     held. <b>Booked</b> is only the profit from trades actually closed in that period — a winner still
     being held shows up in the first and not the second.</div>
   </div>
@@ -720,6 +725,14 @@ function renderAssetPnl(d) {
       <td class="num"></td><td class="num"></td>
       <td class="num ${total >= 0 ? "up" : "down"}"><b>${money(total)}</b></td>
       <td class="num"></td><td></td></tr></table>`;
+}
+
+// The same three numbers the leaderboard leads with, for a manager card anywhere else.
+function money2(pid) {
+  const m = ((lastData?.money || {}).managers || []).find(x => x.id === pid);
+  if (!m) return "";
+  return `<span class="muted" style="font-weight:400">worth</span> <b>${money(m.value)}</b>
+          <span class="muted" style="font-weight:400">· today</span> ${gl(m.day, m.day_pct)}`;
 }
 
 function renderRules(d) {
@@ -1233,8 +1246,9 @@ function renderActivity() {
       </table></div>` : `<p class="muted">Nothing logged yet.</p>`;
     return `<details class="card mcard" data-card="${id}" ${openCards.has(id) ? "open" : ""}>
       <summary>${swatch(id)}<b>${esc(m.name)}</b>
-        <span class="grow muted">${m.buys} bought · ${m.sells} sold · ${money(m.fees)} in fees</span>
-        <span class="${m.booked >= 0 ? "up" : "down"}"><b>${money(m.booked)}</b> booked</span></summary>
+        ${money2(id)}
+        <span class="${m.booked >= 0 ? "up" : "down"}"><span class="muted" style="font-weight:400">· banked</span> <b>${money(m.booked)}</b></span>
+        <span class="grow muted" style="text-align:right">${m.buys} bought · ${m.sells} sold · ${money(m.fees)} in fees</span></summary>
       <h4 style="margin:12px 0 6px">By ${activityPeriod}</h4>
       <div class="tablewrap">${periodTable(mine, false)}</div>
       <h4 style="margin:14px 0 6px">Trades</h4>${trades}
@@ -1272,7 +1286,10 @@ function showPage(id) {
   if (lastData) render(lastData);  // charts need a visible box to size themselves
   if (id === "activity") loadActivity();
 }
-const $ = (id) => document.getElementById(id);
+// Never returns null. A single removed element used to throw out of render() and blank every
+// section after it: the Managers page went dark because one <span id="board-sub"> was deleted
+// along with a heading, and nothing downstream of that line ever ran.
+const $ = (id) => document.getElementById(id) || NULL_EL;
 // The minus belongs in front of the currency, the way a statement prints it: -$0.67, not $-0.67.
 const money = (v) => v == null ? "–"
   : (Number(v) < 0 ? "-$" : "$") + Math.abs(Number(v)).toFixed(2);
@@ -1356,6 +1373,12 @@ function spark(el, points, color, base, asset) {
   svg.addEventListener("mouseleave", () => { tip.style.display = "none"; dot.setAttribute("visibility", "hidden"); });
 }
 
+function exitBand() {
+  const c = (lastData?.snapshot || {}).capital || {};
+  const n = (v, d) => (v == null ? d : Number(v).toFixed(0).replace("-", "\u2212"));
+  return `${n(c.stop, "\u22126")}% or +${n(c.take, "18")}% in a day, or ${n(c.giveback, "20")}% off its best`;
+}
+
 function laneCard(pid, l) {
   const c = MANAGERS[pid].c;
   const clips = [0, 1].map(i => `<i class="${i < l.clips ? "on" : ""}"></i>`).join("");
@@ -1368,18 +1391,26 @@ function laneCard(pid, l) {
     <div class="big">${money(l.equity)}</div><div>${delta(l.equity, 100)} vs $100${l.status !== "active" ? ' · <span class="down">closed</span>' : ""}</div>
     <div class="chart" id="spark-${pid}-${l.id}" style="margin-top:8px"></div>
     <dl>
-      <dt>Position</dt><dd><span class="clips">${clips}</span> ${l.clips}×$50 ${want}</dd>
-      <dt>Cash</dt><dd>${money(l.cash)}${l.pending > 0 ? " + " + money(l.pending) + " settling" : ""}</dd>
-      ${l.venue ? `<dt>Trades on</dt><dd>${esc(l.venue)}</dd>` : ""}
-      <dt>Last 24h</dt><dd>${signed(l.day_change_pct)} <span class="muted">(exit −10 / +15)</span></dd>
-      ${leader ? `<dt>Leader</dt><dd>${esc(leader)}</dd>` : ""}
-      <dt>News</dt><dd>${news}</dd>
-      ${l.cooldown_h > 0 ? `<dt>Cooldown</dt><dd>${l.cooldown_h}h after ${esc(l.last_exit)}</dd>` : ""}
-      ${orders ? `<dt>Orders</dt><dd>${esc(orders)}</dd>` : ""}
+      <dt>Last 24 hours</dt><dd>${signed(l.day_change_pct)}</dd>
+      <dt>Held as cash</dt><dd>${money(l.cash)}${l.pending > 0 ? " + " + money(l.pending) + " settling" : ""}</dd>
+      <dt>Bought so far</dt><dd><span class="clips">${clips}</span> ${l.clips} of 2 ${want}</dd>
     </dl>
     <div class="note">${esc(l.target_reason || "–")}${l.blocked_by && l.target_clips > l.clips ? " · waiting: " + esc(l.blocked_by) : ""}</div>
+    <details class="lane-more"><summary>How this lane is being run</summary>
+    <dl>
+      ${l.venue ? `<dt>Trades on</dt><dd>${esc(l.venue)}</dd>` : ""}
+      <dt>Sells at</dt><dd>${exitBand()}</dd>
+      ${leader ? `<dt>Strategy in charge</dt><dd>${esc(leader)}</dd>` : ""}
+      <dt>News</dt><dd>${news}</dd>
+      ${l.cooldown_h > 0 ? `<dt>Cooldown</dt><dd>${l.cooldown_h}h after ${esc(l.last_exit)}</dd>` : ""}
+      ${orders ? `<dt>Orders resting</dt><dd>${esc(orders)}</dd>` : ""}
+    </dl></details>
   </article>`;
 }
+
+// A missing element used to throw out of render() and blank every section after it - the
+// Managers page went blank because one <span id="board-sub"> was removed with a heading.
+const NULL_EL = {textContent: "", innerHTML: "", className: "", style: {}, classList: {add(){}, remove(){}, contains(){return false}}, querySelectorAll: () => [], onclick: null};
 
 function panel(name, fn) {  // a broken panel should never blank the rest of the page
   try { fn(); } catch (e) { console.error("panel " + name + " failed", e); }
@@ -1474,7 +1505,10 @@ function render(d) {
   $("managers").innerHTML = s.league.map(m => {
     const extra = m.id === "laser" && s.laser_brain && s.laser_brain.notes ? `<p class="muted" style="margin:0 0 8px">Laser's plan (${when(s.laser_brain.ts)}): ${esc(s.laser_brain.notes)}</p>` : "";
     const open = openState[m.id] ?? (m.id === s.league[0].id);
-    return `<details class="manager" data-id="${m.id}" ${open ? "open" : ""}><summary>${swatch(m.id)}${esc(m.name)} · ${money(m.total)} · ${pct(m.since_league_pct)} <span class="muted" style="font-weight:400">· ${(m.assets || []).filter(Boolean).map(esc).join(", ")}</span></summary>
+    const mm = ((d.money || {}).managers || []).find(x => x.id === m.id) || {};
+    const today = mm.day == null ? "" : ` <span class="muted" style="font-weight:400">· today</span> ${gl(mm.day, mm.day_pct)}`;
+    const total = mm.total == null ? ` · ${pct(m.since_league_pct)}` : ` <span class="muted" style="font-weight:400">· since the start</span> ${gl(mm.total, mm.total_pct)}`;
+    return `<details class="manager" data-id="${m.id}" ${open ? "open" : ""}><summary>${swatch(m.id)}${esc(m.name)} · <b>${money(m.total)}</b>${today}${total}<span class="muted" style="font-weight:400"> · ${(m.assets || []).filter(Boolean).map(esc).join(", ")}</span></summary>
       ${extra}<section class="lanes">${(lanesBy[m.id] || []).map(l => laneCard(m.id, l)).join("")}</section></details>`;
   }).join("");
   for (const [pid, lanes] of Object.entries(lanesBy)) for (const l of lanes) {
