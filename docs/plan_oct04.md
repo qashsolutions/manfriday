@@ -15,8 +15,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
       *Accept: TikTok review shows "in review", not rejected.*
 - [ ] Confirm Railway plan (worker renders today; billing not visible from here) — **user action**
 - [x] Resend account + API key, with `ALERT_EMAIL` and `ALERT_FROM` set. Verified 4 Oct: alert delivered.
-- [ ] **Verify manfriday.app in Resend** — **user action**. The domain is currently in a Failed state, so we can only send from Resend's test sender, which reaches the account owner and nobody else. Tester emails (welcome, videos ready, post live) need the domain verified first.
-      *Accept: Resend shows manfriday.app verified; `ALERT_FROM` can then be removed.*
+- [x] **manfriday.app verified in Resend** (4 Oct). DKIM TXT plus the two sending CNAMEs added at Hostinger; MX left alone, so admin@manfriday.app still receives. `ALERT_FROM` removed — alerts now send from alerts@manfriday.app and were delivered. We can email testers, not just ourselves.
 
 ## Phase 1 — before anyone else is invited
 
@@ -61,7 +60,7 @@ Two honest options:
 - [x] **Failure alerting.** A failed render, a failed brief and a failed post each raise an alert, recorded in the database and visible at `/admin`. Emails go out through Resend as soon as `RESEND_API_KEY` is set; until then nothing is lost and `alerts:flush` sends the backlog.
       *Accepted 4 Oct: a live alert was delivered to the operator inbox through Resend; the failure wiring (render, brief, post → alert naming the user) is covered by tests.*
 - [ ] **Say the limits in the invite itself:** TikTok posts arrive as drafts until TikTok approves the app, and all users share roughly 6 YouTube uploads a day until the quota audit clears.
-- [ ] **Product email** (needs Resend): welcome, "your previews are ready", "your post went live", "a render failed", weekly numbers.
+- [ ] **Product email** (unblocked — Resend is live): welcome, "your previews are ready", "your post went live", "a render failed", weekly numbers.
       *Accept: each one fires against a real address in test, and every email has an unsubscribe link.*
 - [ ] **Timed fresh-user walkthrough** on an account without the team flag: paste URL → keep → schedule → posted.
       *Accept: written log of every step with timings and every moment of confusion.*
