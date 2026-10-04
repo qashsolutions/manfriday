@@ -14,8 +14,9 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 - [ ] Resubmit the TikTok app with `design/manfriday-icon-1024.png` — **user action**
       *Accept: TikTok review shows "in review", not rejected.*
 - [ ] Confirm Railway plan (worker renders today; billing not visible from here) — **user action**
-- [ ] Resend account + API key for product email — **user action**
-      *Accept: `RESEND_API_KEY` set in the Convex dashboard.*
+- [x] Resend account + API key, with `ALERT_EMAIL` and `ALERT_FROM` set. Verified 4 Oct: alert delivered.
+- [ ] **Verify manfriday.app in Resend** — **user action**. The domain is currently in a Failed state, so we can only send from Resend's test sender, which reaches the account owner and nobody else. Tester emails (welcome, videos ready, post live) need the domain verified first.
+      *Accept: Resend shows manfriday.app verified; `ALERT_FROM` can then be removed.*
 
 ## Phase 1 — before anyone else is invited
 
@@ -58,7 +59,7 @@ Two honest options:
 - [x] **Tester allowance: 25 videos.** `admin:setVideoGrant` replaces the 3 free videos for a named account; the meter and the at-zero sheet both respect it. Set to 25 for the founder account on 4 Oct.
 - [x] **In-app feedback.** A "Something wrong?" button on every app screen; the message is stored, tagged with the screen they were on, and raised as an alert.
 - [x] **Failure alerting.** A failed render, a failed brief and a failed post each raise an alert, recorded in the database and visible at `/admin`. Emails go out through Resend as soon as `RESEND_API_KEY` is set; until then nothing is lost and `alerts:flush` sends the backlog.
-      *Accept (pending the key): a deliberately failed render emails us within a minute.*
+      *Accepted 4 Oct: a live alert was delivered to the operator inbox through Resend; the failure wiring (render, brief, post → alert naming the user) is covered by tests.*
 - [ ] **Say the limits in the invite itself:** TikTok posts arrive as drafts until TikTok approves the app, and all users share roughly 6 YouTube uploads a day until the quota audit clears.
 - [ ] **Product email** (needs Resend): welcome, "your previews are ready", "your post went live", "a render failed", weekly numbers.
       *Accept: each one fires against a real address in test, and every email has an unsubscribe link.*
