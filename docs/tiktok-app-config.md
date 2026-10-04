@@ -15,7 +15,7 @@ values below. The Sandbox has no such rule (Apply changes works) and is already 
 
 | Field | Value |
 |---|---|
-| App icon | `scratchpad/manfriday-icon-1024.png` (regenerate: 1024×1024 PNG, graphite `#0C0B10` → panel gradient, accent `#FF4D6D` bolt) |
+| App icon | `design/manfriday-icon-1024.png` — the SAME artwork as the site favicon (`app/favicon.ico`, `app/icon.png`, `app/apple-icon.png`, generated from this file). TikTok rejected the 4 Oct update because the site served no favicon; they check the app icon against the website and browser tab. Never let these drift. |
 | App name | Man Friday |
 | Category | Business |
 | Description | Man Friday turns your product's website into short videos you schedule and post to TikTok. You build. Friday posts. |
