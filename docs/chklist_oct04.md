@@ -36,6 +36,20 @@ founder's. Every "works" above is a single-user result.
 4. **A timed fresh-user walkthrough** on an account without the team flag:
    paste URL → keep → schedule → posted, measuring where it stalls.
 
+## Repo + hosting incident, 4 Oct (resolved)
+
+The GitHub repo `qashsolutions/manfriday` had been force-pushed on 29 Sep with a
+different project (a friend's "Highway" trading league) that was never meant to
+leave their machine. Man Friday's history was gone from GitHub, and Vercel's Git
+connection broke as a result — the site kept serving the old build and no push
+deployed.
+
+Fixed: Highway's 20 commits bundled to `~/backups/highway-20261004.bundle`
+(verified complete) so nothing of the friend's is lost; Man Friday's 104 commits
+force-pushed back to `main`; repo description restored; the Vercel connection
+re-made and a build triggered. Verified after: icons live, worker renders,
+Convex crons unaffected throughout.
+
 ## Pending on someone else
 
 - **TikTok app review** — update rejected 4 Oct over the icon; resubmit after the favicon deploy. Posting stays draft-to-inbox until approval.
