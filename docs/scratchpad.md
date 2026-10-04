@@ -14,6 +14,7 @@ what is being worked on, what was decided, what is open.
 |---|---|---|
 | 4 Oct | Browsing the trend library is free; turning one into a video costs a video | Looking costs us nothing and is the best reason to sign up; making already has a price |
 | 4 Oct | No account farms, bought/"warmed" accounts, or bot engagement, ever | Violates platform rules; we hold YouTube API approval under attestation and a TikTok review is open |
+| 4 Oct | Phase 1 cannot start until the Clerk instance question is settled | Dev instances brand emails as development, use shared OAuth credentials, cap at 100 users, and do not transfer users — tester data would be lost at launch |
 | 4 Oct | Creator pilots start at $100/video with creators under 5,000 followers, sourced by our own outlier search | Nano rates are $20–$100 on TikTok; niche fit beats follower count; we own the better sourcing tool |
 | 4 Oct | Scale comes from languages × platforms × genuine accounts, plus paid creators | What the data on breakout posts actually shows working |
 | 4 Oct | Screen-recording b-roll ranks above the discovery features | 14 of 16 breakout posts show a face next to moving software; we can produce neither |
@@ -21,6 +22,8 @@ what is being worked on, what was decided, what is open.
 | 16 Sep | Every feature must answer "what does the user get" | Standing product rule |
 
 ## Open questions
+
+- **Blocking Phase 1: Clerk development or production instance for the pilot?** Production costs ~$25/mo plus DNS work but makes tester accounts permanent; development is free but their accounts and content die at launch (Clerk does not transfer users between instances).
 
 - Creator pilot budget confirmed at $1,000 (10 × $100). Open: who signs off on raising winners to $200–$300?
 - Which market after English: Brazil, Indonesia or Spanish Latin America?

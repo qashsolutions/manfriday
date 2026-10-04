@@ -19,8 +19,46 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Phase 1 — before anyone else is invited
 
-- [ ] **Beta invites.** Clerk restricted sign-up + Clerk invitations, so Clerk sends the email and no extra provider is needed. An admin-only screen to send and revoke.
+### 1a. Decide the auth instance FIRST (added 4 Oct — this was missed)
+
+Inviting outsiders is not a pure code task. We are still on a Clerk
+**development** instance, and that carries consequences for real testers:
+
+- Clerk's emails carry a "development" prefix, and sign-in pages sit on an
+  `accounts.dev` domain — it looks untrustworthy to someone you just invited.
+- Google and GitHub sign-in use Clerk's **shared** OAuth credentials in
+  development, so the consent screen is not ours.
+- Development instances are capped at 100 users and lower rate limits.
+- **User data does not transfer between instances.** Everyone who signs up on
+  development has to register again at launch, and their Clerk ID changes — which
+  orphans their Convex rows (brand, concepts, posts, Stripe customer) unless we
+  write an email-to-ID remap.
+- Passkeys and MFA are paid features in production (~$25/mo). Our own rule (D4)
+  requires a passkey or 2FA **before** any social account can be connected, so
+  without the paid plan the connect step — and therefore publishing — is blocked.
+
+Two honest options:
+
+- [ ] **Option A — move to a Clerk production instance now.** Paid plan, our own
+      Google and GitHub credentials, DNS records for the Clerk domain, new keys in
+      Vercel, `CLERK_JWT_ISSUER_DOMAIN` updated in Convex, the `convex` JWT
+      template recreated, and the self-serve deletion switch turned on again.
+      *Cost: ~$25/mo and an hour or two, most of it DNS and dashboard work.*
+- [ ] **Option B — pilot on development, knowingly.** Fine for a handful of
+      friendly testers who are told their account is temporary. Everything they
+      make is lost at launch unless we build the remap.
+
+### 1b. Build
+
+- [ ] **Beta invites.** Clerk restricted (invite-only) sign-up + Clerk invitations, so Clerk sends the email and no extra provider is needed. An admin-only screen to send and revoke.
       *Accept: an invited address can sign up; an uninvited one cannot.*
+      *Verified 4 Oct: invite-only mode and invitations are available on all Clerk plans; allowlist/blocklist is the paid one, which we do not need.*
+- [ ] **Tester allowance.** Today a user is either Free (3 videos) or a team account (unlimited). Testers need something in between, e.g. 25 videos, so they can use the product without hitting the wall on day one — and so we still see the at-zero screen when they do.
+      *Accept: an internal setting grants a named account N videos; the meter shows it.*
+- [ ] **A way for testers to report problems** — at minimum a visible link that opens an email with their account and the current screen.
+- [ ] **Failure alerting.** Nothing tells us when a tester's render or post fails; we would find out by polling. Needs the Resend key at least, so a failure emails us.
+      *Accept: a deliberately failed render sends us an email within a minute.*
+- [ ] **Say the limits in the invite itself:** TikTok posts arrive as drafts until TikTok approves the app, and all users share roughly 6 YouTube uploads a day until the quota audit clears.
 - [ ] **Product email** (needs Resend): welcome, "your previews are ready", "your post went live", "a render failed", weekly numbers.
       *Accept: each one fires against a real address in test, and every email has an unsubscribe link.*
 - [ ] **Timed fresh-user walkthrough** on an account without the team flag: paste URL → keep → schedule → posted.
