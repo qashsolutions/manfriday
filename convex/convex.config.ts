@@ -21,6 +21,10 @@ const app = defineApp({
     STRIPE_WEBHOOK_SECRET: v.optional(v.string()),
     // Where Checkout and the portal send people back to (default https://manfriday.app).
     APP_URL: v.optional(v.string()),
+    // Alerting + product email (Resend). Alerts are recorded even without this.
+    RESEND_API_KEY: v.optional(v.string()),
+    ALERT_EMAIL: v.optional(v.string()),
+    ALERT_FROM: v.optional(v.string()),
   },
 });
 

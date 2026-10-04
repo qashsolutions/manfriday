@@ -7,6 +7,7 @@ const isAppRoute = createRouteMatcher([
   "/analytics(.*)",
   "/onboarding(.*)",
   "/settings(.*)",
+  "/admin(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

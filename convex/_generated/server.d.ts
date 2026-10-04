@@ -30,10 +30,13 @@ import type { DataModel } from "./dataModel.js";
 type Env = {
   readonly CONVEX_CLOUD_URL: string;
   readonly CONVEX_SITE_URL: string;
+  readonly ALERT_EMAIL: string | undefined;
+  readonly ALERT_FROM: string | undefined;
   readonly ANTHROPIC_API_KEY: string | undefined;
   readonly APP_URL: string | undefined;
   readonly GOOGLE_CLIENT_ID: string | undefined;
   readonly GOOGLE_CLIENT_SECRET: string | undefined;
+  readonly RESEND_API_KEY: string | undefined;
   readonly STRIPE_SECRET_KEY: string | undefined;
   readonly STRIPE_WEBHOOK_SECRET: string | undefined;
   readonly TIKTOK_CLIENT_KEY: string | undefined;

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { refundVideo } from "./allowance";
+import { internal } from "./_generated/api";
 import { mutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { env } from "./_generated/server";
@@ -129,6 +130,14 @@ export const failJob = mutation({
       await ctx.db.patch("concepts", job.conceptId, { status: "failed", billedFrom: undefined, billedPeriodStartsAt: undefined });
       // A video that never rendered doesn't count against the allowance.
       if (concept && job.kind === "final") await refundVideo(ctx, concept.userId, concept.billedFrom, concept.billedPeriodStartsAt);
+      if (concept) {
+        await ctx.scheduler.runAfter(0, internal.alerts.raise, {
+          kind: "render_failed",
+          message: `${job.kind} render gave up after ${job.attempts} attempts: ${args.error}`.slice(0, 900),
+          userId: concept.userId,
+          refId: job.conceptId,
+        });
+      }
     } else {
       // back to the queue for another worker/attempt
       await ctx.db.patch("renderJobs", args.jobId, {
@@ -225,7 +234,15 @@ export const failPipelineRequest = mutation({
     requireWorker(args.token);
     const req = await ctx.db.get("pipelineRequests", args.requestId);
     await ctx.db.patch("pipelineRequests", args.requestId, { status: "failed", error: args.error, billedFrom: undefined, billedPeriodStartsAt: undefined });
-    if (req) await refundVideo(ctx, req.userId, req.billedFrom, req.billedPeriodStartsAt);
+    if (req) {
+      await refundVideo(ctx, req.userId, req.billedFrom, req.billedPeriodStartsAt);
+      await ctx.scheduler.runAfter(0, internal.alerts.raise, {
+        kind: "brief_failed",
+        message: `${req.kind ?? "generate"} request failed for ${req.url}: ${args.error}`.slice(0, 900),
+        userId: req.userId,
+        refId: args.requestId,
+      });
+    }
     return null;
   },
 });

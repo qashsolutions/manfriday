@@ -340,3 +340,61 @@ describe("super user", () => {
     expect(Object.keys((api as any).admin ?? {})).toHaveLength(0);
   });
 });
+
+describe("pilot: tester grants, feedback and alerts", () => {
+  test("a grant replaces the 3 free videos and the meter reflects it", async () => {
+    const t = harness();
+    const s = await seedPicks(t);
+    await t.mutation(internal.admin.setVideoGrant, { email: "owner@example.com", videos: 25 });
+    const me = t.withIdentity({ subject: CLERK_ID });
+    const before = await me.query(api.billing.myBilling, {});
+    expect(before?.limit).toBe(25);
+    expect(before?.remaining).toBe(25);
+    await me.mutation(api.feed.swipe, { conceptId: s.conceptId, keep: true });
+    const after = await me.query(api.billing.myBilling, {});
+    expect(after?.remaining).toBe(24);
+    // Clearing the grant returns the account to the standard free allowance.
+    await t.mutation(internal.admin.setVideoGrant, { email: "owner@example.com", videos: 0 });
+    expect((await me.query(api.billing.myBilling, {}))?.limit).toBe(3);
+  });
+
+  test("a render that fails for good raises an alert naming the user", async () => {
+    const t = harness();
+    const s = await seedPicks(t);
+    process.env.WORKER_TOKEN = "wt";
+    await t.withIdentity({ subject: CLERK_ID }).mutation(api.feed.swipe, { conceptId: s.conceptId, keep: true });
+    const job = (await t.run(async (ctx) => await ctx.db.query("renderJobs").collect())).find((j) => j.kind === "final")!;
+    await t.run(async (ctx) => { await ctx.db.patch("renderJobs", job._id, { attempts: 99 }); });
+    await t.mutation(api.worker.failJob, { token: "wt", jobId: job._id, error: "ffmpeg died" });
+    await t.finishAllScheduledFunctions(() => {});
+    const alerts = await t.run(async (ctx) => await ctx.db.query("alerts").collect());
+    const render = alerts.find((a) => a.kind === "render_failed");
+    expect(render?.userEmail).toBe("owner@example.com");
+    expect(render?.message).toMatch(/ffmpeg died/);
+  });
+
+  test("feedback is stored, raises an alert, and refuses empty messages", async () => {
+    const t = harness();
+    await seed(t);
+    const me = t.withIdentity({ subject: CLERK_ID, email: "owner@example.com" });
+    await expect(me.mutation(api.feedback.submit, { message: " ", page: "/picks" })).rejects.toThrow(/empty/);
+    await me.mutation(api.feedback.submit, { message: "The Telugu video had no sound", page: "/picks" });
+    await t.finishAllScheduledFunctions(() => {});
+    const rows = await t.run(async (ctx) => await ctx.db.query("feedback").collect());
+    expect(rows).toHaveLength(1);
+    expect(rows[0].page).toBe("/picks");
+    const alerts = await t.run(async (ctx) => await ctx.db.query("alerts").collect());
+    expect(alerts.some((a) => a.kind === "feedback" && a.message.includes("no sound"))).toBe(true);
+  });
+
+  test("the operator screen is refused to a normal account", async () => {
+    const t = harness();
+    await seed(t);
+    const me = t.withIdentity({ subject: CLERK_ID });
+    expect(await me.query(api.admin.amIAdmin, {})).toBe(false);
+    expect(await me.query(api.admin.operatorView, {})).toBeNull();
+    await t.mutation(internal.admin.setSuperUser, { email: "owner@example.com", on: true });
+    expect(await me.query(api.admin.amIAdmin, {})).toBe(true);
+    expect((await me.query(api.admin.operatorView, {}))?.testers.length).toBe(1);
+  });
+});

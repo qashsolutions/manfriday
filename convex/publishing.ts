@@ -262,6 +262,15 @@ export const finishPublish = internalMutation({
       });
     } else {
       await ctx.db.patch("publications", args.publicationId, { status: "failed", lastError: args.error });
+      const post = await ctx.db.get("posts", pub.postId);
+      if (post) {
+        await ctx.scheduler.runAfter(0, internal.alerts.raise, {
+          kind: "publish_failed",
+          message: `${pub.platform} post failed after ${pub.attempts} attempts: ${args.error ?? "unknown"}`.slice(0, 900),
+          userId: post.userId,
+          refId: args.publicationId,
+        });
+      }
     }
     return null;
   },

@@ -44,20 +44,21 @@ Two honest options:
       Vercel, `CLERK_JWT_ISSUER_DOMAIN` updated in Convex, the `convex` JWT
       template recreated, and the self-serve deletion switch turned on again.
       *Cost: ~$25/mo and an hour or two, most of it DNS and dashboard work.*
-- [ ] **Option B — pilot on development, knowingly.** Fine for a handful of
-      friendly testers who are told their account is temporary. Everything they
-      make is lost at launch unless we build the remap.
+- [x] **Option B — pilot on development, knowingly (chosen 4 Oct).** One or two
+      weeks with friendly testers who are told their account is temporary. If it
+      goes well we move to production (Option A) and build an email-to-ID remap
+      so nothing they made is lost.
 
 ### 1b. Build
 
-- [ ] **Beta invites.** Clerk restricted (invite-only) sign-up + Clerk invitations, so Clerk sends the email and no extra provider is needed. An admin-only screen to send and revoke.
+- [x] **Beta invites.** Operator screen at `/admin`: send an invite, see its status, revoke it. Clerk sends the email and owns the sign-up link; every call is gated on the team flag, so a normal account cannot invite anyone.
       *Accept: an invited address can sign up; an uninvited one cannot.*
+- [ ] **Turn on invite-only sign-up in the Clerk dashboard** — **user action**. Until this is set to Restricted, anyone who finds the site can still register.
       *Verified 4 Oct: invite-only mode and invitations are available on all Clerk plans; allowlist/blocklist is the paid one, which we do not need.*
-- [ ] **Tester allowance.** Today a user is either Free (3 videos) or a team account (unlimited). Testers need something in between, e.g. 25 videos, so they can use the product without hitting the wall on day one — and so we still see the at-zero screen when they do.
-      *Accept: an internal setting grants a named account N videos; the meter shows it.*
-- [ ] **A way for testers to report problems** — at minimum a visible link that opens an email with their account and the current screen.
-- [ ] **Failure alerting.** Nothing tells us when a tester's render or post fails; we would find out by polling. Needs the Resend key at least, so a failure emails us.
-      *Accept: a deliberately failed render sends us an email within a minute.*
+- [x] **Tester allowance: 25 videos.** `admin:setVideoGrant` replaces the 3 free videos for a named account; the meter and the at-zero sheet both respect it. Set to 25 for the founder account on 4 Oct.
+- [x] **In-app feedback.** A "Something wrong?" button on every app screen; the message is stored, tagged with the screen they were on, and raised as an alert.
+- [x] **Failure alerting.** A failed render, a failed brief and a failed post each raise an alert, recorded in the database and visible at `/admin`. Emails go out through Resend as soon as `RESEND_API_KEY` is set; until then nothing is lost and `alerts:flush` sends the backlog.
+      *Accept (pending the key): a deliberately failed render emails us within a minute.*
 - [ ] **Say the limits in the invite itself:** TikTok posts arrive as drafts until TikTok approves the app, and all users share roughly 6 YouTube uploads a day until the quota audit clears.
 - [ ] **Product email** (needs Resend): welcome, "your previews are ready", "your post went live", "a render failed", weekly numbers.
       *Accept: each one fires against a real address in test, and every email has an unsubscribe link.*

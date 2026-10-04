@@ -20,7 +20,7 @@ export const UNLIMITED_REMAINING = 9999;
 
 type UserBilling = Pick<
   Doc<"users">,
-  "plan" | "tier" | "term" | "videosUsedThisPeriod" | "periodAnchorAt" | "periodStartsAt" | "topupVideos" | "accessEndsAt" | "pausedUntil" | "superUser"
+  "plan" | "tier" | "term" | "videosUsedThisPeriod" | "periodAnchorAt" | "periodStartsAt" | "topupVideos" | "accessEndsAt" | "pausedUntil" | "superUser" | "videoGrant"
 >;
 
 /** Same wall-clock moment `n` months after `anchor`, clamped to the month's last day. */
@@ -74,8 +74,10 @@ export function meter(u: UserBilling, now: number): Meter {
 function plainMeter(u: UserBilling, now: number): Meter {
   const s = standing(u, now);
   if (s === "free") {
+    // A beta tester's grant replaces the standard free allowance.
+    const limit = u.videoGrant ?? FREE.videosTotal;
     const used = u.videosUsedThisPeriod;
-    return { standing: s, unlimited: false, limit: FREE.videosTotal, used, topup: 0, remaining: Math.max(0, FREE.videosTotal - used), resetsAt: null, periodStart: null };
+    return { standing: s, unlimited: false, limit, used, topup: 0, remaining: Math.max(0, limit - used), resetsAt: null, periodStart: null };
   }
   if (s === "lapsed") {
     return { standing: s, unlimited: false, limit: 0, used: 0, topup: u.topupVideos ?? 0, remaining: 0, resetsAt: null, periodStart: null };

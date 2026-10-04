@@ -47,6 +47,9 @@ export default defineSchema({
     // Team test account: unlimited videos, no allowance charge. Billing flows still
     // work so checkout can be tested. Set only via internal admin:setSuperUser.
     superUser: v.optional(v.boolean()),
+    // Beta testers: replaces the 3 free videos with a larger one-time allowance.
+    // Set only via internal admin:setVideoGrant.
+    videoGrant: v.optional(v.number()),
     credits: v.number(), // cached sum of creditLedger (internal metering)
     videosUsedThisPeriod: v.number(), // rendered videos this period (the visible unit); lifetime on Free
     avatarVideosUsedThisPeriod: v.optional(v.number()), // deprecated 15 Sep 2026 (sub-caps dropped); unused
@@ -259,6 +262,24 @@ export default defineSchema({
     reason: v.string(), // "final_render" | "avatar_render" | "monthly_grant" | "call_bonus" | "topup" | …
     refId: v.optional(v.string()),
   }).index("by_userId", ["userId"]),
+
+  feedback: defineTable({
+    // "Tell us what broke" from inside the app. Never auto-deleted; read by admin:listFeedback.
+    userId: v.optional(v.id("users")),
+    email: v.string(),
+    page: v.string(),
+    message: v.string(),
+    handled: v.optional(v.boolean()),
+  }).index("by_handled", ["handled"]),
+
+  alerts: defineTable({
+    // Something failed that a human should see: a render, a post, a brief.
+    kind: v.string(), // "render_failed" | "publish_failed" | "brief_failed" | "feedback"
+    message: v.string(),
+    userEmail: v.optional(v.string()),
+    refId: v.optional(v.string()),
+    notifiedAt: v.optional(v.number()), // set once the email is away
+  }).index("by_notifiedAt", ["notifiedAt"]),
 
   stripeEvents: defineTable({
     // Webhook idempotency: an event is applied and recorded in the same mutation.
