@@ -53,7 +53,7 @@ Two honest options:
 
 - [x] **Beta invites.** Operator screen at `/admin`: send an invite, see its status, revoke it. Clerk sends the email and owns the sign-up link; every call is gated on the team flag, so a normal account cannot invite anyone.
       *Accept: an invited address can sign up; an uninvited one cannot.*
-- [ ] **Turn on invite-only sign-up in the Clerk dashboard** — **user action**. Until this is set to Restricted, anyone who finds the site can still register.
+- [x] **Invite-only sign-up turned on** (Clerk → Configure → Access mode, Development instance), 4 Oct.
       *Verified 4 Oct: invite-only mode and invitations are available on all Clerk plans; allowlist/blocklist is the paid one, which we do not need.*
 - [x] **Tester allowance: 25 videos.** `admin:setVideoGrant` replaces the 3 free videos for a named account; the meter and the at-zero sheet both respect it. Set to 25 for the founder account on 4 Oct.
 - [x] **In-app feedback.** A "Something wrong?" button on every app screen; the message is stored, tagged with the screen they were on, and raised as an alert.
@@ -124,6 +124,18 @@ TikTok submission in review. Losing either stops publishing for every customer.
 - [ ] **Affiliate or referral.** Pricing note: 30% of a $20 plan is $6, too thin to interest a creator. The Founding 200 offer at $200 up front is the payout worth building on.
 - [ ] **Language markets first where the product already works:** Brazil, Indonesia, Spanish-speaking Latin America. India waits for Instagram, because TikTok is banned there.
 - [ ] **Blog + calculator pages** continue as the compounding channel.
+
+## Service limits under a 5-tester pilot (checked 4 Oct)
+
+| Service | What the pilot costs | Headroom |
+|---|---|---|
+| Convex | Worker polling was ~2.6M function calls/month against a **1M free allowance**; adaptive backoff cut it to ~260K. Video files count against 1 GB free storage — 5 testers × 25 videos is roughly half of it. | Fine now; watch file storage |
+| FAL | ~2–6¢ a video. 125 videos ≈ $5–8 for the whole pilot. | Fine |
+| Clerk | Development instance: 100-user cap, fine for 5. | Fine |
+| Railway | One worker container renders sequentially; a render takes ~20–30 s, so ~100/hour. | Fine |
+| YouTube | 6 uploads a day **shared by everyone** until the quota audit clears. | The binding limit — cap the pilot at 5–6 testers |
+
+- [ ] Watch Convex file storage during the pilot; old preview files are the first thing to prune if it gets close.
 
 ## Phase 6 — launch gates
 

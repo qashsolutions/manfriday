@@ -21,7 +21,7 @@ from pathlib import Path
 import requests
 
 import cvx
-from config import POLL_SECONDS
+from config import POLL_SECONDS, POLL_IDLE_SECONDS, POLL_BACKOFF_AFTER
 from render.dispatch import render_job
 from pipeline.generate import generate_for_user, generate_variant
 
@@ -75,10 +75,25 @@ def process_pipeline_request(req: dict) -> None:
         cvx.mutation("worker:failPipelineRequest", {"requestId": rid, "error": str(exc)[:500]})
 
 
+def next_delay(idle_passes: int) -> float:
+    """Seconds to wait before polling again.
+
+    Fast while work keeps arriving, then a linear ramp to POLL_IDLE_SECONDS once
+    the queue has been empty for POLL_BACKOFF_AFTER passes. A job queued during
+    the quiet period waits at most POLL_IDLE_SECONDS, which the UI already tells
+    the user to expect ("a few minutes").
+    """
+    if idle_passes <= POLL_BACKOFF_AFTER:
+        return POLL_SECONDS
+    ramp = min(1.0, (idle_passes - POLL_BACKOFF_AFTER) / 10.0)
+    return POLL_SECONDS + (POLL_IDLE_SECONDS - POLL_SECONDS) * ramp
+
+
 def main() -> None:
     once = "--once" in sys.argv
     drain = "--drain" in sys.argv
     print(f"[{WORKER_ID}] polling")
+    idle_passes = 0
     while True:
         did_work = False
         req = cvx.mutation("worker:claimPipelineRequest", {"workerId": WORKER_ID})
@@ -90,13 +105,15 @@ def main() -> None:
             process(job)
             did_work = True
         if did_work:
+            idle_passes = 0
             if once:
                 return
         else:
             if once or drain:
                 print(f"[{WORKER_ID}] queue empty")
                 return
-            time.sleep(POLL_SECONDS)
+            idle_passes += 1
+            time.sleep(next_delay(idle_passes))
 
 
 if __name__ == "__main__":

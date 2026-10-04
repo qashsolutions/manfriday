@@ -42,6 +42,8 @@ Run it any time with: `/agents` → eod-checkpoint, or ask for "an EOD checkpoin
 
 ## Running notes
 
+- 4 Oct: invite-only turned on in Clerk (Development). Worker polling backed off from ~2.6M to ~260K Convex calls a month — the free plan allows 1M, so the old rate would have billed or throttled during the pilot.
+
 - 4 Oct: repo had been overwritten by an unrelated project; Man Friday restored and the Vercel connection re-made.
 - 4 Oct: vidIQ credits 68, refresh to 150 on 8 Oct. Phase 4 study needs ~100.
 - 4 Oct: verified live — pipeline, worker, publishing, stats cron, billing, compliance, 63 + 18 tests green.

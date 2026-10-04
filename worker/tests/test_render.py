@@ -115,3 +115,21 @@ def test_fake_tts_scales_with_script(tmp_path):
     long = get_tts().synthesize("This is a much longer sentence that should take noticeably more time to say aloud.", "en", tmp_path / "b")
     assert long.duration > short.duration
     assert long.chunks[0][0] == 0.0 and long.chunks[-1][1] == pytest.approx(long.duration, abs=0.01)
+
+
+def test_poll_backoff_keeps_convex_calls_inside_the_free_allowance():
+    """Polling is the worker's only cost when idle; a flat 2s busts the plan."""
+    from main import next_delay
+    from config import POLL_SECONDS, POLL_IDLE_SECONDS
+
+    assert next_delay(1) == POLL_SECONDS          # work just happened: stay fast
+    assert next_delay(5) == POLL_SECONDS
+    assert next_delay(11) > POLL_SECONDS          # quiet: start backing off
+    assert next_delay(50) == POLL_IDLE_SECONDS    # fully idle: slowest
+
+    # A day of an idle worker must leave room inside 1M calls/month (2 calls per pass).
+    seconds, passes = 0.0, 0
+    while seconds < 86_400:
+        passes += 1
+        seconds += next_delay(passes)
+    assert passes * 2 * 30 < 1_000_000, f"{passes * 2 * 30} calls/month is over the free plan"
