@@ -14,6 +14,7 @@ what is being worked on, what was decided, what is open.
 |---|---|---|
 | 4 Oct | Browsing the trend library is free; turning one into a video costs a video | Looking costs us nothing and is the best reason to sign up; making already has a price |
 | 4 Oct | No account farms, bought/"warmed" accounts, or bot engagement, ever | Violates platform rules; we hold YouTube API approval under attestation and a TikTok review is open |
+| 4 Oct | Creator pilots start at $100/video with creators under 5,000 followers, sourced by our own outlier search | Nano rates are $20–$100 on TikTok; niche fit beats follower count; we own the better sourcing tool |
 | 4 Oct | Scale comes from languages × platforms × genuine accounts, plus paid creators | What the data on breakout posts actually shows working |
 | 4 Oct | Screen-recording b-roll ranks above the discovery features | 14 of 16 breakout posts show a face next to moving software; we can produce neither |
 | 4 Oct | Pricing unchanged at $20/$40 | We already undercut the category; creator payouts come from the Founding 200 offer instead |
@@ -21,12 +22,21 @@ what is being worked on, what was decided, what is open.
 
 ## Open questions
 
-- Budget for paid UGC creators? At market rates, 5 creators × 2 videos ≈ $1,500–$3,000.
+- Creator pilot budget confirmed at $1,000 (10 × $100). Open: who signs off on raising winners to $200–$300?
 - Which market after English: Brazil, Indonesia or Spanish Latin America?
-- Does the friend's Highway project need a home on GitHub, or is the local bundle enough?
+
+## How this file is kept up to date
+
+An `eod-checkpoint` agent (`.claude/agents/eod-checkpoint.md`) runs at the end of
+each weekday. It checks what shipped, whether the site, worker, tests and
+compliance are healthy, and which plan items genuinely moved, then appends a
+dated entry below and updates the status markers in `docs/plan_oct04.md`. It
+never marks an item done on code alone — the acceptance test decides.
+
+Run it any time with: `/agents` → eod-checkpoint, or ask for "an EOD checkpoint".
 
 ## Running notes
 
-- 4 Oct: repo had been overwritten by another project; Man Friday restored, Highway bundled to `~/backups/highway-20261004.bundle`, Vercel reconnected.
+- 4 Oct: repo had been overwritten by an unrelated project; Man Friday restored and the Vercel connection re-made.
 - 4 Oct: vidIQ credits 68, refresh to 150 on 8 Oct. Phase 4 study needs ~100.
 - 4 Oct: verified live — pipeline, worker, publishing, stats cron, billing, compliance, 63 + 18 tests green.

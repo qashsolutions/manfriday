@@ -38,17 +38,11 @@ founder's. Every "works" above is a single-user result.
 
 ## Repo + hosting incident, 4 Oct (resolved)
 
-The GitHub repo `qashsolutions/manfriday` had been force-pushed on 29 Sep with a
-different project (a friend's "Highway" trading league) that was never meant to
-leave their machine. Man Friday's history was gone from GitHub, and Vercel's Git
-connection broke as a result — the site kept serving the old build and no push
-deployed.
-
-Fixed: Highway's 20 commits bundled to `~/backups/highway-20261004.bundle`
-(verified complete) so nothing of the friend's is lost; Man Friday's 104 commits
-force-pushed back to `main`; repo description restored; the Vercel connection
-re-made and a build triggered. Verified after: icons live, worker renders,
-Convex crons unaffected throughout.
+The GitHub repo had been force-pushed with an unrelated project, so Man Friday's
+history was gone from GitHub and Vercel's Git connection broke — the site kept
+serving the old build and no push deployed. Fixed: Man Friday's 104 commits
+restored to `main`, repo description restored, Vercel reconnected and a build
+triggered. Verified after: icons live, worker renders, Convex crons unaffected.
 
 ## Pending on someone else
 

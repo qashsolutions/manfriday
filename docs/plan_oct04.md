@@ -78,8 +78,8 @@ TikTok submission in review. Losing either stops publishing for every customer.
       *Accept: TikTok, YouTube and (later) Instagram accounts for Man Friday, posting daily.*
 - [ ] **Dogfood: Man Friday posts about Man Friday, daily, run by Man Friday.** Marketing, demo and a daily product test in one.
       *Accept: 30 consecutive days posted with no manual editing.*
-- [ ] **Paid UGC creators.** Real people, filmed with their own faces, disclosed as paid. Market rate is roughly $150–$300 a video, beginners from $75.
-      *Accept: 5 creators, 2 videos each, posted from their accounts with disclosure.*
+- [ ] **Paid creator pilot — 10 creators × $100.** Sourced with our own outlier search filtered to under 5,000 followers in the solo-builder niche; each posts one honest video from their own account with the paid-partnership label, and we take the raw file plus Spark Ads rights. Full playbook, rates, screening, outreach template and payback maths: `docs/creator-pilots.md`.
+      *Accept: 10 posted videos, each with its own tracked link, judged at 14 days on clicks → signups → paid.*
 - [ ] **Spark Ads / whitelisting.** The creator grants a code; the ad runs from the creator's own account. Permission must be agreed before filming, and typically adds 20–50% to the rate.
       *Accept: one creator post running as a Spark Ad with tracked clicks.*
 - [ ] **Affiliate or referral.** Pricing note: 30% of a $20 plan is $6, too thin to interest a creator. The Founding 200 offer at $200 up front is the payout worth building on.
