@@ -47,6 +47,8 @@ export default function CalendarPage() {
   const accounts = useQuery(api.oauth.myAccounts);
   const schedule = useMutation(api.publishing.schedulePost);
   const discard = useMutation(api.feed.discard);
+  const approvePost = useMutation(api.publishing.approvePost);
+  const approveAll = useMutation(api.publishing.approveAllPending);
   const [confirmDiscard, setConfirmDiscard] = useState<string | null>(null);
   const [when, setWhen] = useState(fridaySuggests());
   const [error, setError] = useState<string | null>(null);
@@ -187,6 +189,23 @@ export default function CalendarPage() {
         </>
       )}
 
+      {(queue ?? []).some((p) => !p.approved) && (
+        <div className={styles.approvalBar}>
+          <div>
+            <p className={styles.approvalTitle}>
+              {(queue ?? []).filter((p) => !p.approved).length} waiting for your approval
+            </p>
+            <p className={styles.approvalSub}>
+              Friday schedules what you keep, but never posts it until you say so. Watch each one,
+              then approve it, change the time, or discard it.
+            </p>
+          </div>
+          <button type="button" className="btn btn--accent" style={{ whiteSpace: "nowrap" }} onClick={() => void approveAll({})}>
+            Approve all
+          </button>
+        </div>
+      )}
+
       <span className={styles.sectionTitle}>THE QUEUE</span>
       {(queue ?? []).some((p) => p.publications.some((x) => x.platform === "tiktok")) && (
         <p className={styles.queueNote}>{TIKTOK_INBOX_NOTE}</p>
@@ -219,7 +238,17 @@ export default function CalendarPage() {
                     {post.link && <span title="Tracked link in this post's caption — clicks show in Analytics"> · {post.link}</span>}
                   </p>
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                  {!post.approved && (
+                    <button
+                      type="button"
+                      className="btn btn--accent"
+                      style={{ padding: "7px 18px", fontSize: 13.5 }}
+                      onClick={() => void approvePost({ postId: post.id })}
+                    >
+                      Approve
+                    </button>
+                  )}
                   {post.publications.map((p) => (
                     <span
                       key={p.id}
@@ -235,7 +264,8 @@ export default function CalendarPage() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {p.platform.toUpperCase()} · {STATUS_LABEL[p.status] ?? p.status}
+                      {p.platform.toUpperCase()} ·{" "}
+                      {p.status === "queued" && !post.approved ? STATUS_LABEL.awaiting : (STATUS_LABEL[p.status] ?? p.status)}
                       {p.views !== null && p.status === "live" ? ` · ${p.views.toLocaleString()} VIEWS` : ""}
                     </span>
                   ))}

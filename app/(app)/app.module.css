@@ -324,3 +324,32 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Nothing posts without a yes: the approval bar above the queue. */
+.approvalBar {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--panel);
+  border: 1px solid var(--amber);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 6px;
+}
+.approvalTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.approvalSub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--dim);
+  max-width: 52ch;
+}

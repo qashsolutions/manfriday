@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../convex/_generated/api";
 import { addMonths, currentPeriod, meter, planCharge, planRefund } from "../../convex/allowance";
 import { signForTest, verifyStripeSignature, formEncode } from "../../convex/stripeApi";
-import { CLERK_ID, harness, seed } from "./setup";
+import { CLERK_ID, OTHER_CLERK_ID, harness, seed } from "./setup";
 import type { Id } from "../../convex/_generated/dataModel";
 
 const SECRET = "whsec_test_secret";
@@ -503,5 +503,67 @@ describe("keep it and it's on your calendar", () => {
     expect(posts).toHaveLength(2);
     const days = posts.map((p) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(p.publishAt)));
     expect(new Set(days).size).toBe(2); // one a day, not two at once
+  });
+});
+
+describe("nothing posts without a yes", () => {
+  test("an auto-scheduled post is NOT publishable until approved", async () => {
+    const t = harness();
+    const s = await seed(t);
+    await t.run(async (ctx) => { await ctx.db.patch("users", s.userId, { timezone: "UTC" }); });
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    const post = (await t.run(async (ctx) => await ctx.db.query("posts").collect()))[0];
+    expect(post.approvedAt).toBeUndefined();
+
+    // Even when its time arrives, the publisher refuses to pick it up.
+    await t.run(async (ctx) => {
+      await ctx.db.patch("posts", post._id, { publishAt: Date.now() - 1000 });
+      for (const p of await ctx.db.query("publications").collect()) await ctx.db.patch("publications", p._id, { publishAt: Date.now() - 1000 });
+    });
+    expect(await t.query(internal.publishing.duePublications, { now: Date.now() })).toEqual([]);
+
+    // And the per-publication path refuses too, even if something else queued it.
+    const pub = (await t.run(async (ctx) => await ctx.db.query("publications").collect()))[0];
+    expect(await t.mutation(internal.publishing.markPublishing, { publicationId: pub._id })).toBeNull();
+    expect((await t.run(async (ctx) => await ctx.db.get("publications", pub._id)))?.status).toBe("queued");
+  });
+
+  test("approving releases it, and only the owner can approve", async () => {
+    const t = harness();
+    const s = await seed(t);
+    await t.run(async (ctx) => {
+      await ctx.db.patch("users", s.userId, { timezone: "UTC" });
+      await ctx.db.insert("users", { clerkId: OTHER_CLERK_ID, email: "o@example.com", plan: "free", credits: 0, videosUsedThisPeriod: 0, timezone: "UTC" });
+    });
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    const post = (await t.run(async (ctx) => await ctx.db.query("posts").collect()))[0];
+
+    await expect(t.withIdentity({ subject: OTHER_CLERK_ID }).mutation(api.publishing.approvePost, { postId: post._id })).rejects.toThrow(/not your post/);
+    await t.withIdentity({ subject: CLERK_ID }).mutation(api.publishing.approvePost, { postId: post._id });
+    await t.run(async (ctx) => {
+      await ctx.db.patch("posts", post._id, { publishAt: Date.now() - 1000 });
+      for (const p of await ctx.db.query("publications").collect()) await ctx.db.patch("publications", p._id, { publishAt: Date.now() - 1000 });
+    });
+    expect((await t.query(internal.publishing.duePublications, { now: Date.now() })).length).toBe(1);
+  });
+
+  test("pressing Schedule yourself counts as the confirmation", async () => {
+    const t = harness();
+    const s = await seed(t);
+    await t.withIdentity({ subject: CLERK_ID }).mutation(api.publishing.schedulePost, { conceptId: s.conceptId, publishAt: Date.now() + 60_000 });
+    const post = (await t.run(async (ctx) => await ctx.db.query("posts").collect()))[0];
+    expect(post.approvedAt).toBeTypeOf("number");
+  });
+
+  test("approve all covers the pending ones, and an approval can be taken back", async () => {
+    const t = harness();
+    const s = await seed(t);
+    await t.run(async (ctx) => { await ctx.db.patch("users", s.userId, { timezone: "UTC" }); });
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    const me = t.withIdentity({ subject: CLERK_ID });
+    expect(await me.mutation(api.publishing.approveAllPending, {})).toEqual({ approved: 1 });
+    const post = (await t.run(async (ctx) => await ctx.db.query("posts").collect()))[0];
+    await me.mutation(api.publishing.unapprovePost, { postId: post._id });
+    expect((await t.run(async (ctx) => await ctx.db.get("posts", post._id)))?.approvedAt).toBeUndefined();
   });
 });

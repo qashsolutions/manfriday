@@ -12,10 +12,12 @@ export type QueueChip = {
   publishAt: number;
   deferred: boolean;
   held?: boolean;
+  approved?: boolean;
 };
 
 export const STATUS_LABEL: Record<string, string> = {
   queued: "SCHEDULED",
+  awaiting: "NEEDS YOUR OK",
   publishing: "POSTING…",
   live: "LIVE",
   draft_fallback: "DRAFT IN TIKTOK",
@@ -31,6 +33,10 @@ export function destination(p: QueueChip, now = Date.now()): string | null {
   const when = new Date(p.publishAt).toLocaleString();
   void now;
   if (p.held) return `Your plan is paused. Friday posts this when the pause ends, ${when}.`;
+  // The approval gate: nothing goes out until the user confirms this post.
+  if (p.approved === false && p.status === "queued") {
+    return `Waiting for your approval. Friday will post it at ${when} once you approve — nothing goes out before that.`;
+  }
   if (p.platform === "tiktok") {
     if (p.status === "draft_fallback") return "Waiting in your TikTok inbox — tap the draft to post it.";
     if (p.status === "queued") return `Friday sends this to your TikTok inbox at ${when}, then you tap post.`;

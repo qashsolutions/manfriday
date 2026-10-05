@@ -57,7 +57,7 @@ export const youtubeSlot = query({
 
 /** Create the post + one publication per eligible account. Shared by the user's
  *  own "Schedule" button and by the automatic scheduling of a kept video. */
-async function createPost(ctx: MutationCtx, userId: Id<"users">, conceptId: Id<"concepts">, publishAt: number) {
+async function createPost(ctx: MutationCtx, userId: Id<"users">, conceptId: Id<"concepts">, publishAt: number, approved: boolean) {
     const concept = await ctx.db.get("concepts", conceptId);
     if (!concept || concept.userId !== userId) throw new ConvexError("not your concept");
     if (concept.status !== "rendered" || !concept.videoId) {
@@ -92,6 +92,7 @@ async function createPost(ctx: MutationCtx, userId: Id<"users">, conceptId: Id<"
       conceptId: conceptId,
       publishAt: publishAt,
       captionByPlatform: { tiktok: caption, youtube: caption },
+      ...(approved ? { approvedAt: Date.now() } : {}),
     });
     // North star: every post carries a tracked link to the user's product.
     // TikTok shows caption URLs as plain text (only the bio link is clickable);
@@ -129,7 +130,8 @@ export const schedulePost = mutation({
   handler: async (ctx: MutationCtx, args) => {
     const userId = await currentUserId(ctx);
     if (!userId) throw new ConvexError("not signed in");
-    return await createPost(ctx, userId, args.conceptId, args.publishAt);
+    // Pressing Schedule is the confirmation; it still records one.
+    return await createPost(ctx, userId, args.conceptId, args.publishAt, true);
   },
 });
 
@@ -160,7 +162,10 @@ export const autoSchedule = internalMutation({
       at = open;
     }
     try {
-      return await createPost(ctx, concept.userId, args.conceptId, at);
+      // Scheduled, NOT approved: Friday books the slot, the user confirms before it posts.
+      const made = await createPost(ctx, concept.userId, args.conceptId, at, false);
+      await ctx.scheduler.runAfter(0, internal.email.approvalNeeded, { postId: made.postId });
+      return made;
     } catch {
       return null; // no connected account yet, or a race — the Calendar still shows it
     }
@@ -192,6 +197,7 @@ export const myQueue = query({
       out.push({
         id: post._id,
         publishAt: post.publishAt,
+        approved: !!post.approvedAt,
         link: link ? `manfriday.app/l/${link.slug}` : null,
         hook:
           ((concept?.slots as Record<string, string>) ?? {}).hook ??
@@ -224,14 +230,66 @@ export const myQueue = query({
   },
 });
 
+/** The confirmation. One tap on a video Friday scheduled, or on all of them. */
+export const approvePost = mutation({
+  args: { postId: v.id("posts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new ConvexError("not signed in");
+    const post = await ctx.db.get("posts", args.postId);
+    if (!post || post.userId !== userId) throw new ConvexError("not your post");
+    if (post.approvedAt) return null;
+    await ctx.db.patch("posts", args.postId, { approvedAt: Date.now() });
+    return null;
+  },
+});
+
+export const approveAllPending = mutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new ConvexError("not signed in");
+    const posts = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", userId)).take(200);
+    let approved = 0;
+    for (const post of posts) {
+      if (post.approvedAt || post.publishAt < Date.now() - 24 * 60 * 60 * 1000) continue;
+      await ctx.db.patch("posts", post._id, { approvedAt: Date.now() });
+      approved++;
+    }
+    return { approved };
+  },
+});
+
+/** Undo an approval while it is still waiting. */
+export const unapprovePost = mutation({
+  args: { postId: v.id("posts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new ConvexError("not signed in");
+    const post = await ctx.db.get("posts", args.postId);
+    if (!post || post.userId !== userId) throw new ConvexError("not your post");
+    const pubs = await ctx.db.query("publications").withIndex("by_postId", (q) => q.eq("postId", args.postId)).take(5);
+    if (pubs.some((p) => p.status !== "queued")) throw new ConvexError("that one has already gone out");
+    await ctx.db.patch("posts", args.postId, { approvedAt: undefined });
+    return null;
+  },
+});
+
 export const duePublications = internalQuery({
   args: { now: v.number() },
   handler: async (ctx: QueryCtx, args) => {
     const due = await ctx.db
       .query("publications")
       .withIndex("by_status_and_publishAt", (q) => q.eq("status", "queued").lte("publishAt", args.now))
-      .take(5);
-    return due.map((p) => p._id);
+      .take(20);
+    const ready = [];
+    for (const pub of due) {
+      // The approval gate: an unconfirmed post waits, however overdue it is.
+      const post = await ctx.db.get("posts", pub.postId);
+      if (post?.approvedAt) ready.push(pub._id);
+      if (ready.length >= 5) break;
+    }
+    return ready;
   },
 });
 
@@ -242,6 +300,9 @@ export const markPublishing = internalMutation({
     if (!pub || pub.status !== "queued") return null;
     // Paused plan: Friday holds the queue and posts when the pause ends.
     const heldPost = await ctx.db.get("posts", pub.postId);
+    // Defence in depth: never publish an unconfirmed post, even if something
+    // else queued it. This is the attestation we signed with Google.
+    if (!heldPost?.approvedAt) return null;
     const owner = heldPost ? await ctx.db.get("users", heldPost.userId) : null;
     if (owner?.pausedUntil && owner.pausedUntil > Date.now()) {
       await ctx.db.patch("publications", args.publicationId, { publishAt: owner.pausedUntil, lastError: "PAUSED_HELD" });

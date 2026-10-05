@@ -229,6 +229,11 @@ export default defineSchema({
     publishAt: v.number(),
     captionByPlatform: v.any(),
     liveEmailedAt: v.optional(v.number()), // "your post went out", sent once per post
+    // NOTHING publishes without this. Set when the user confirms the post —
+    // immediately when they press Schedule themselves, or by tapping Approve on
+    // a video Friday scheduled for them. (YouTube attestation: every upload is
+    // user-initiated.)
+    approvedAt: v.optional(v.number()),
   }).index("by_userId", ["userId"]),
 
   publications: defineTable({

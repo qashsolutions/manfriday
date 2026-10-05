@@ -134,6 +134,28 @@ export const previewsReady = internalMutation({
   },
 });
 
+/** Friday scheduled something; the user has to confirm before it goes out. */
+export const approvalNeeded = internalMutation({
+  args: { postId: v.id("posts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const post = await ctx.db.get("posts", args.postId);
+    if (!post || post.approvedAt) return null;
+    const concept = await ctx.db.get("concepts", post.conceptId);
+    const slots = ((concept?.slots ?? {}) as Record<string, string>);
+    const hook = slots.hook ?? slots.hook_text ?? slots.hook_overlay ?? "";
+    await ctx.scheduler.runAfter(0, internal.email.send, {
+      userId: post.userId,
+      subject: "Ready when you are — approve to post",
+      lines: [
+        `Friday rendered ${hook ? `"${hook}"` : "a video"} and booked it for ${new Date(post.publishAt).toUTCString().replace("GMT", "UTC")}.`,
+        "Nothing goes out until you approve it. Open the Calendar, watch it, then approve, change the time, or discard it.",
+        `${APP_URL()}/calendar`,
+      ],
+    });
+    return null;
+  },
+});
+
 export const postLive = internalMutation({
   args: { postId: v.id("posts"), platform: v.string(), draft: v.boolean() },
   handler: async (ctx: MutationCtx, args) => {

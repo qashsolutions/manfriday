@@ -127,6 +127,13 @@ const pub = readFileSync("convex/publishing.ts", "utf8");
 if (!/concept\.userId !== userId/.test(pub) || !/concept\.status !== "rendered"/.test(pub)) fail("publishing.ts: schedule gate (own concept + rendered) missing");
 else ok("schedule gate: own concept, fully rendered, user-initiated");
 
+// 5a. Rule 2: nothing is ever uploaded without the user confirming that post.
+// Friday may schedule a kept video, but publishing waits for approvedAt.
+if (!/approvedAt/.test(pub)) fail("publishing.ts: the approval gate (posts.approvedAt) is gone");
+else if (!/post\?\.approvedAt/.test(pub) || !/if \(!heldPost\?\.approvedAt\) return null/.test(pub))
+  fail("publishing.ts: approval is no longer checked both when selecting due posts and at publish time");
+else ok("approval gate: nothing publishes until the user confirms that post");
+
 // 5b. Rule 7: the daily quota is scheduled around, never overrun. schedulePost
 // must check capacity before creating a YouTube publication, uploads must count
 // their units, and a quota 403 must defer rather than burn retries.
