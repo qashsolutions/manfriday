@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Waitlist } from "@clerk/nextjs";
+import { SignUp, Waitlist } from "@clerk/nextjs";
 import { RememberUrl } from "@/components/marketing/RememberUrl";
 import { FoundingSpots } from "@/components/marketing/FoundingSpots";
 import { TIERS, FREE, FOUNDING } from "@/lib/site";
@@ -31,8 +31,17 @@ const PITCH = [
   },
 ] as const;
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const [solo] = TIERS;
+  // An invited tester arrives with a ticket. Only <SignUp/> can redeem it; the
+  // public still meets the waitlist, so this does not open registration. Who may
+  // actually register is Clerk's instance setting, not which component renders.
+  const raw = (await searchParams).__clerk_ticket;
+  const invited = typeof raw === "string" && raw.length > 0;
   return (
     <div className={styles.grid}>
       <Suspense fallback={null}>
@@ -62,16 +71,24 @@ export default function SignupPage() {
       <section className={styles.authCol}>
         <div className={`panel ${styles.card}`}>
           <div>
-            <h2 className={styles.cardTitle}>Create your account</h2>
+            <h2 className={styles.cardTitle}>
+              {invited ? "You\u2019re invited" : "Create your account"}
+            </h2>
             <p className={styles.cardSub}>
-              Start free · {FREE.videosTotal} videos on us · from ${solo.monthly}/mo when ready
+              {invited
+                ? `Finish your account and Friday gets to work \u00b7 no card`
+                : `Start free \u00b7 ${FREE.videosTotal} videos on us \u00b7 from $${solo.monthly}/mo when ready`}
             </p>
           </div>
-          {/* Waitlist mode until the beta opens; swap <Waitlist/> → <SignUp/> then. */}
-          <Waitlist />
+          {invited ? (
+            <SignUp routing="hash" signInUrl="/login" fallbackRedirectUrl="/onboarding" />
+          ) : (
+            <Waitlist />
+          )}
           <p className={styles.cardFine}>
-            Friday is onboarding the {FOUNDING.label} in small batches — join the list and
-            founding pricing is locked for the first {FOUNDING.cap}.
+            {invited
+              ? "Your beta place is held for this address. Pick any sign-in method \u2014 passkey, Google, GitHub, or a password."
+              : `Friday is onboarding the ${FOUNDING.label} in small batches \u2014 join the list and founding pricing is locked for the first ${FOUNDING.cap}.`}
           </p>
           <div className={`mono ${styles.steps}`}>
             <span className={styles.stepDone}>1 ACCOUNT</span>

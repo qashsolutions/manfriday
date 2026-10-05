@@ -39,7 +39,8 @@ export async function POST(req: Request) {
     const client = await clerkClient();
     const invitation = await client.invitations.createInvitation({
       emailAddress: email,
-      redirectUrl: `${APP_URL}/onboarding`,
+      // Must land on the page that renders <SignUp/> — that is what redeems the ticket.
+      redirectUrl: `${APP_URL}/signup`,
       notify: true,
       ignoreExisting: true,
     });
