@@ -48,11 +48,26 @@
   color: var(--ink);
 }
 
+.cta {
+  padding: 11px 22px;
+  font-size: 15px;
+}
+
 @media (max-width: 640px) {
   .nav {
-    gap: 18px;
+    gap: 14px;
   }
-  .link:first-child {
+  /* Nav items cannot shrink or wrap, so at phone width the row has to carry
+     less, not squeeze. Blog and Pricing live in the footer; the header keeps
+     the theme switch, sign-in, and the one call to action. */
+  .navOnly {
     display: none;
+  }
+  .link {
+    font-size: 14px;
+  }
+  .cta {
+    padding: 10px 16px;
+    font-size: 14px;
   }
 }

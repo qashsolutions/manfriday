@@ -13,3 +13,8 @@ dist/
 client_secret*.json
 tsconfig.tsbuildinfo
 docs/*.mp4
+
+# Playwright
+test-results/
+playwright-report/
+.env.test.local

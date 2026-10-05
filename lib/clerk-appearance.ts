@@ -97,6 +97,15 @@ export function clerkAppearanceFor(mode: ClerkMode): Appearance {
   // overlapped and the labels clipped to "oogl" / "Co…".
   signIn: { elements: authCard(c) },
   signUp: { elements: authCard(c) },
+  // The waitlist sits inside our own panel on /signup. Left at its natural
+  // width it pushed the page 13px wider than a phone screen.
+  waitlist: {
+    elements: {
+      rootBox: { width: "100%" },
+      cardBox: { width: "100%", minWidth: 0, boxShadow: "none", border: "0" },
+      card: { minWidth: 0, padding: "0", background: "transparent", boxShadow: "none" },
+    },
+  },
   };
 }
 

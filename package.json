@@ -10,7 +10,9 @@
     "compliance": "node validation/compliance/youtube-compliance.mjs",
     "compliance:static": "node validation/compliance/youtube-compliance.mjs --static",
     "test:convex": "vitest run",
-    "test:worker": "cd worker && TTS_PROVIDER=fake python -m pytest -q"
+    "test:worker": "cd worker && TTS_PROVIDER=fake python -m pytest -q",
+    "test:e2e": "playwright test",
+    "test:e2e:live": "BASE_URL=https://manfriday.app playwright test"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.1",
@@ -23,8 +25,10 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.2.43",
     "@clerk/types": "^4.101.26",
     "@edge-runtime/vm": "^5.0.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

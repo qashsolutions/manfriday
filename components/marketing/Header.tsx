@@ -13,10 +13,10 @@ export function Header() {
           <Wordmark />
         </Link>
         <nav className={styles.nav} aria-label="Main">
-          <Link href="/blog" className={styles.link}>
+          <Link href="/blog" className={`${styles.link} ${styles.navOnly}`}>
             Blog
           </Link>
-          <Link href="/pricing" className={styles.link}>
+          <Link href="/pricing" className={`${styles.link} ${styles.navOnly}`}>
             Pricing
           </Link>
           <ModeToggle />
@@ -24,12 +24,12 @@ export function Header() {
             <Link href="/login" className={styles.link}>
               Log in
             </Link>
-            <Link href="/signup" className="btn btn--accent" style={{ padding: "11px 22px", fontSize: 15 }}>
+            <Link href="/signup" className={`btn btn--accent ${styles.cta}`}>
               Start free
             </Link>
           </Show>
           <Show when="signed-in">
-            <Link href="/picks" className="btn btn--accent" style={{ padding: "11px 22px", fontSize: 15 }}>
+            <Link href="/picks" className={`btn btn--accent ${styles.cta}`}>
               Open Friday →
             </Link>
           </Show>

@@ -4,6 +4,13 @@
   min-height: calc(100vh - 61px);
 }
 
+/* A grid item defaults to min-width:auto, so a fixed-width child widens its
+   track and the page scrolls sideways. The sign-up card's 460px did exactly
+   that on a phone. Let the tracks shrink. */
+.grid > * {
+  min-width: 0;
+}
+
 .pitch {
   display: flex;
   flex-direction: column;
@@ -211,5 +218,15 @@
   }
   .authCol {
     padding: 40px 20px;
+  }
+  .card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Give the form back the width the card padding was taking. */
+  .card {
+    padding: 22px 16px;
   }
 }
