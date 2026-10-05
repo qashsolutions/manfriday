@@ -80,3 +80,23 @@ Next: Stripe billing (item 5 of the first-session list: the video meter and what
 Built: allowance metering (Free 3 once; monthly per tier; top-ups after), at-zero sheet in Picks, nav meter, Settings checkout/portal/top-up/pause, live Founding 200 counter (landing placeholder removed), signed idempotent webhooks, pause holding the queue, deletion cancelling the subscription, terms + privacy updated. 60 tests. Runbook: docs/billing.md.
 
 Verified 17 Sep in the sandbox: a real Checkout purchase (Solo monthly, test card) activated the plan via webhook within seconds; the billing portal opened with the subscription, card and paid invoice. Open before launch: the Stripe account's public name and branding still say Denali Health (account-wide setting); live mode.
+
+## 4 Oct 2026 — pilot plumbing complete
+
+Shipped today (11 commits):
+
+- **Icons.** The site served no favicon at all, which is why TikTok rejected the app update. `app/favicon.ico`, `icon.png` and `apple-icon.png` now come from the same bolt artwork as the TikTok app icon. Resubmission is with the user.
+- **Beta invites.** Operator screen at `/admin`, team accounts only: invite, see status, revoke, plus a table of testers with allowance/videos/posts, their feedback, and everything that broke. Invite-only sign-up is on (Clerk, Development).
+- **Tester grants.** 25 videos in place of the 3 free ones (`admin:setVideoGrant`), so two weeks of real use still ends at the at-zero screen rather than on day one.
+- **In-app feedback.** "Something wrong?" on every app screen; stored with the screen it came from and raised as an alert.
+- **Failure alerting.** Failed renders, briefs and posts raise alerts, recorded first and emailed through Resend. Verified live.
+- **Product email.** Welcome, previews ready, post live or waiting-in-TikTok, render failed, and a Monday digest. Each sent once, each with one-click unsubscribe. Verified live from friday@manfriday.app on the now-verified domain.
+- **Worker polling.** Was ~2.6M Convex calls a month against a 1M free allowance; adaptive backoff brings it to ~260K.
+
+Verified live today: pipeline and worker (renders in ~30 s), publishing, daily stats cron, Stripe billing, compliance guard, 71 Convex tests, 19 worker tests.
+
+Also recovered: the GitHub repo had been overwritten on 29 Sep by an unrelated project, which also broke Vercel's Git connection. Man Friday's history is restored and deploys work again.
+
+Known and unchanged: nobody outside the team has used the product; TikTok posts are drafts until approval; all users share ~6 YouTube uploads a day until the quota audit clears.
+
+Next: the timed fresh-user walkthrough (needs a sign-in), then 5 testers.

@@ -7,7 +7,7 @@ Short-form video content engine for solo builders, modeled on the category leade
 ## Working process (mandated)
 
 **Plan → Design → Build, with hard gates.** Build starts only after the design gate clears.
-Current status (16 Sep 2026): **M0–M3 built and live; M4 partly done** (YouTube stats, tracked links). Worker on Railway; OAuth verified by Google; TikTok audit + YouTube quota audit pending. Live scope tracker: **docs/status.md** (keep it current). Next: Stripe billing. Artboard pricing copy (Founding 500 / $34/mo) predates the 4 Sep pricing amendment below — code is source of truth; refresh artboards opportunistically.
+Current status (4 Oct 2026): **M0–M3 live; M4 mostly done** — YouTube stats, tracked links and Stripe billing (test mode) all shipped and verified. The product has never been used by anyone outside the team; closing that is the current work. **Pilot runs on the Clerk development instance** for 1–2 weeks (tester accounts are temporary by design), invite-only, 25 videos per tester. Live plan and daily log: **docs/plan_oct04.md** + **docs/scratchpad.md**; verified state: **docs/chklist_oct04.md**. Next: the timed fresh-user walkthrough, then invite 5 testers. Artboard pricing copy (Founding 500 / $34/mo) predates the 4 Sep pricing amendment below — code is source of truth; refresh artboards opportunistically.
 
 Source files live in-repo: `docs/project-viral-plan.html` (plan), `docs/friday-internals.html` (technical design), `design/*.dc.html` + `design/canvas.json` (the 9 design-canvas artboards; edit these and re-publish to the screens artifact via the design skill — never hand-edit the published artifact). Published versions:
 - Plan: https://claude.ai/code/artifact/57f0657b-a3b7-4da5-9c4f-e4c581c7afc9
