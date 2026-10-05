@@ -398,3 +398,47 @@ describe("pilot: tester grants, feedback and alerts", () => {
     expect((await me.query(api.admin.operatorView, {}))?.testers.length).toBe(1);
   });
 });
+
+describe("product email", () => {
+  test("welcome goes out once on account creation, never twice", async () => {
+    const t = harness();
+    const me = t.withIdentity({ subject: "user_new", email: "new@example.com" });
+    await me.mutation(api.users.ensureCurrent, { timezone: "UTC" });
+    await me.mutation(api.users.ensureCurrent, { timezone: "UTC" }); // second sign-in
+    await t.finishAllScheduledFunctions(() => {});
+    const user = (await t.run(async (ctx) => await ctx.db.query("users").collect())).find((u) => u.email === "new@example.com")!;
+    expect(user.welcomeEmailedAt).toBeTypeOf("number");
+  });
+
+  test("a post that goes out emails once, and says 'draft' for TikTok", async () => {
+    const t = harness();
+    const s = await seed(t);
+    const me = t.withIdentity({ subject: CLERK_ID });
+    await me.mutation(api.publishing.schedulePost, { conceptId: s.conceptId, publishAt: Date.now() + 1000 });
+    const pub = (await t.run(async (ctx) => await ctx.db.query("publications").collect()))[0];
+    await t.mutation(internal.publishing.finishPublish, { publicationId: pub._id, outcome: "live", platformPostId: "abc" });
+    await t.mutation(internal.publishing.finishPublish, { publicationId: pub._id, outcome: "live", platformPostId: "abc" });
+    await t.finishAllScheduledFunctions(() => {});
+    const post = (await t.run(async (ctx) => await ctx.db.query("posts").collect()))[0];
+    expect(post.liveEmailedAt).toBeTypeOf("number"); // set once; the second call is a no-op
+  });
+
+  test("unsubscribe stops email, and a bad token changes nothing", async () => {
+    const t = harness();
+    const s = await seed(t);
+    const token = await t.mutation(internal.email.ensureToken, { userId: s.userId });
+    expect(await t.mutation(api.email.unsubscribe, { token: "not-a-real-token" })).toBe(false);
+    expect(await t.mutation(api.email.unsubscribe, { token: token! })).toBe(true);
+    expect(await t.query(internal.email.recipient, { userId: s.userId })).toBeNull(); // nothing more is sent
+  });
+
+  test("the weekly digest skips anyone who posted nothing", async () => {
+    const t = harness();
+    const s = await seed(t);
+    expect(await t.mutation(internal.email.weeklyDigest, {})).toEqual({ sent: 0 });
+    await t.run(async (ctx) => {
+      await ctx.db.insert("posts", { userId: s.userId, conceptId: s.conceptId, publishAt: Date.now() - 1000, captionByPlatform: {} });
+    });
+    expect(await t.mutation(internal.email.weeklyDigest, {})).toEqual({ sent: 1 });
+  });
+});

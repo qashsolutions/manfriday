@@ -244,6 +244,11 @@ export const finishPublish = internalMutation({
         platformPostId: args.platformPostId,
         lastError: undefined,
       });
+      await ctx.scheduler.runAfter(0, internal.email.postLive, {
+        postId: pub.postId,
+        platform: pub.platform,
+        draft: args.outcome === "draft_fallback",
+      });
     } else if (args.outcome === "deferred" && args.retryAt !== undefined && pub.attempts <= MAX_QUOTA_DEFERRALS) {
       // YouTube's daily quota is spent; the same approved upload waits for the next quota day.
       await ctx.db.patch("publications", args.publicationId, {

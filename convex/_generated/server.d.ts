@@ -34,6 +34,7 @@ type Env = {
   readonly ALERT_FROM: string | undefined;
   readonly ANTHROPIC_API_KEY: string | undefined;
   readonly APP_URL: string | undefined;
+  readonly EMAIL_FROM: string | undefined;
   readonly GOOGLE_CLIENT_ID: string | undefined;
   readonly GOOGLE_CLIENT_SECRET: string | undefined;
   readonly RESEND_API_KEY: string | undefined;

@@ -16,6 +16,7 @@ import type * as billing from "../billing.js";
 import type * as brands from "../brands.js";
 import type * as crons from "../crons.js";
 import type * as dev from "../dev.js";
+import type * as email from "../email.js";
 import type * as feed from "../feed.js";
 import type * as feedback from "../feedback.js";
 import type * as google from "../google.js";
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   brands: typeof brands;
   crons: typeof crons;
   dev: typeof dev;
+  email: typeof email;
   feed: typeof feed;
   feedback: typeof feedback;
   google: typeof google;

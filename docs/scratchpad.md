@@ -42,6 +42,8 @@ Run it any time with: `/agents` → eod-checkpoint, or ask for "an EOD checkpoin
 
 ## Running notes
 
+- 4 Oct: product email built and verified live (welcome, previews ready, post live/draft, render failed, Monday digest). Unsubscribe is one click, no sign-in, token in the footer. 71 Convex tests.
+
 - 4 Oct: manfriday.app verified in Resend; alerts now send from alerts@manfriday.app and were delivered. Inbound mail untouched (Hostinger MX intact). Email to testers is unblocked. Free plan: 100/day, 3,000/month.
 
 - 4 Oct: alert email verified live through Resend (test sender → operator inbox). manfriday.app shows **Failed** in Resend's Domains — DNS records need adding before any email can reach a tester.

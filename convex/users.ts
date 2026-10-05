@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
@@ -25,7 +26,7 @@ export const ensureCurrent = mutation({
       .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
       .unique();
     if (existing) return existing._id;
-    return await ctx.db.insert("users", {
+    const userId = await ctx.db.insert("users", {
       clerkId: identity.subject,
       email: identity.email ?? "",
       plan: "free",
@@ -33,6 +34,9 @@ export const ensureCurrent = mutation({
       videosUsedThisPeriod: 0,
       timezone: args.timezone ?? "UTC",
     });
+    // First sign-in: say hello and tell them what to do next.
+    await ctx.scheduler.runAfter(0, internal.email.welcome, { userId });
+    return userId;
   },
 });
 

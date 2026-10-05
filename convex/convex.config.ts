@@ -25,6 +25,7 @@ const app = defineApp({
     RESEND_API_KEY: v.optional(v.string()),
     ALERT_EMAIL: v.optional(v.string()),
     ALERT_FROM: v.optional(v.string()),
+    EMAIL_FROM: v.optional(v.string()), // product email sender; defaults to Friday <friday@manfriday.app>
   },
 });
 

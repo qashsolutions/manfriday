@@ -42,4 +42,7 @@ crons.interval("publish due publications", { minutes: 1 }, internal.publishing.p
 // Declared to Google: view counts refreshed at most once per day. 06:15 UTC is a
 // quiet hour for both India and the Americas and well clear of the PT quota reset.
 crons.cron("refresh youtube stats", "15 6 * * *", internal.stats.refreshAll, {});
+// Monday 08:10 UTC: last week's clicks and views, for anyone who posted.
+crons.cron("weekly digest", "10 8 * * 1", internal.email.weeklyDigest, {});
+
 export default crons;

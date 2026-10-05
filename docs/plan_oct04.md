@@ -60,9 +60,10 @@ Two honest options:
 - [x] **Failure alerting.** A failed render, a failed brief and a failed post each raise an alert, recorded in the database and visible at `/admin`. Emails go out through Resend as soon as `RESEND_API_KEY` is set; until then nothing is lost and `alerts:flush` sends the backlog.
       *Accepted 4 Oct: a live alert was delivered to the operator inbox through Resend; the failure wiring (render, brief, post → alert naming the user) is covered by tests.*
 - [ ] **Say the limits in the invite itself:** TikTok posts arrive as drafts until TikTok approves the app, and all users share roughly 6 YouTube uploads a day until the quota audit clears.
-- [ ] **Product email** (unblocked — Resend is live): welcome, "your previews are ready", "your post went live", "a render failed", weekly numbers.
-      *Accept: each one fires against a real address in test, and every email has an unsubscribe link.*
-- [ ] **Timed fresh-user walkthrough** on an account without the team flag: paste URL → keep → schedule → posted.
+- [x] **Product email.** Five messages, each sent once, each with a one-click unsubscribe in the footer:
+      welcome (first sign-in), "your first videos are ready" (3+ previews of a batch), "your video is live / waiting in TikTok" (first platform to succeed), "one video didn't render" (permanent failure, says the allowance was given back), and a Monday digest of last week's clicks and views (skipped for anyone who posted nothing).
+      *Accepted 4 Oct: welcome, render-failed and post-draft each delivered live to a real inbox from friday@manfriday.app; unsubscribe, once-only sending and digest-skipping covered by tests.*
+- [ ] **Timed fresh-user walkthrough** — needs the user to sign in as a new account; everything else in Phase 1 is done. on an account without the team flag: paste URL → keep → schedule → posted.
       *Accept: written log of every step with timings and every moment of confusion.*
 - [ ] Fix whatever that walkthrough exposes before sending a single invite.
 

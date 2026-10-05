@@ -50,6 +50,10 @@ export default defineSchema({
     // Beta testers: replaces the 3 free videos with a larger one-time allowance.
     // Set only via internal admin:setVideoGrant.
     videoGrant: v.optional(v.number()),
+    // Product email: one welcome per account, an unsubscribe token, and the opt-out.
+    welcomeEmailedAt: v.optional(v.number()),
+    emailToken: v.optional(v.string()),
+    emailOptOut: v.optional(v.boolean()),
     credits: v.number(), // cached sum of creditLedger (internal metering)
     videosUsedThisPeriod: v.number(), // rendered videos this period (the visible unit); lifetime on Free
     avatarVideosUsedThisPeriod: v.optional(v.number()), // deprecated 15 Sep 2026 (sub-caps dropped); unused
@@ -167,6 +171,7 @@ export default defineSchema({
     // "also in" variants are charged when requested; refunded if the request fails.
     billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"), v.literal("unlimited"))),
     billedPeriodStartsAt: v.optional(v.number()),
+    previewsEmailedAt: v.optional(v.number()), // "your first videos are ready", sent once per batch
   })
     .index("by_status", ["status"])
     .index("by_userId", ["userId"]),
@@ -220,7 +225,8 @@ export default defineSchema({
     userId: v.id("users"),
     conceptId: v.id("concepts"),
     publishAt: v.number(),
-    captionByPlatform: v.any(), // adapter-built per-platform text
+    captionByPlatform: v.any(),
+    liveEmailedAt: v.optional(v.number()), // "your post went out", sent once per post
   }).index("by_userId", ["userId"]),
 
   publications: defineTable({

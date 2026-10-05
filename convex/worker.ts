@@ -106,6 +106,23 @@ export const completeJob = mutation({
 
     const concept = await ctx.db.get("concepts", job.conceptId);
     if (concept) {
+      // First previews of a batch are the moment the product becomes real: tell them.
+      if (job.kind === "preview") {
+        const batch = await ctx.db
+          .query("concepts")
+          .withIndex("by_userId_and_status", (q) => q.eq("userId", concept.userId))
+          .take(500);
+        const mine = batch.filter((c) => c.batchId === concept.batchId);
+        const ready = mine.filter((c) => c.status === "preview_ready").length + 1;
+        if (ready >= 3) {
+          const reqs = await ctx.db
+            .query("pipelineRequests")
+            .withIndex("by_userId", (q) => q.eq("userId", concept.userId))
+            .take(50);
+          const req = reqs.find((r) => r.batchId === concept.batchId && !r.previewsEmailedAt);
+          if (req) await ctx.scheduler.runAfter(0, internal.email.previewsReady, { requestId: req._id, ready });
+        }
+      }
       await ctx.db.patch("concepts", job.conceptId, {
         status: job.kind === "final" ? "rendered" : "preview_ready",
         ...(args.videoId ? { videoId: args.videoId } : {}),
@@ -131,6 +148,13 @@ export const failJob = mutation({
       // A video that never rendered doesn't count against the allowance.
       if (concept && job.kind === "final") await refundVideo(ctx, concept.userId, concept.billedFrom, concept.billedPeriodStartsAt);
       if (concept) {
+        if (job.kind === "final") {
+          const slots = (concept.slots ?? {}) as Record<string, string>;
+          await ctx.scheduler.runAfter(0, internal.email.renderFailed, {
+            userId: concept.userId,
+            hook: (slots.hook ?? slots.hook_text ?? slots.hook_overlay ?? "").slice(0, 80),
+          });
+        }
         await ctx.scheduler.runAfter(0, internal.alerts.raise, {
           kind: "render_failed",
           message: `${job.kind} render gave up after ${job.attempts} attempts: ${args.error}`.slice(0, 900),
