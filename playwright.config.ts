@@ -1,4 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import { config as loadEnv } from "dotenv";
+
+// Loaded here, in the parent process, so every worker inherits it. Loading in a
+// setup project only reaches that project's worker.
+loadEnv({ path: ".env.local", quiet: true });
+loadEnv({ path: ".env.test.local", override: true, quiet: true });
 
 /** Browser coverage for the surfaces unit tests cannot reach: every screen,
  *  link and button, including the ones behind Clerk sign-in.
