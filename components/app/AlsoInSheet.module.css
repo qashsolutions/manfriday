@@ -20,6 +20,13 @@
   flex-direction: column;
   gap: 16px;
   box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.45);
+  /* The sheet is anchored to the bottom of the scrim, so content taller than
+     the viewport ran off the TOP, out of reach, with nothing to scroll. Cap it
+     and let it scroll — the language list is long once search is open. */
+  max-height: 88vh;
+  max-height: min(88dvh, 760px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .grip {
@@ -147,6 +154,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-content: flex-start;
 }
 
 .result {
@@ -175,6 +183,11 @@
 .actions {
   display: flex;
   gap: 10px;
+  /* Stays reachable however long the list gets. */
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+  padding-top: 10px;
 }
 
 .actions > * {

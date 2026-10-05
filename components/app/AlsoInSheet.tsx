@@ -22,7 +22,15 @@ export function AlsoInSheet({ primary, primaryStyle, markets, hook, onAdd, onClo
   const [busy, setBusy] = useState(false);
   const suggestions = suggestMarkets(primary, markets);
   const primaryMeta = languageMeta(primary);
-  const results: LanguageMeta[] = searching ? searchLanguages(query).filter((l) => l.code !== primary).slice(0, 6) : [];
+  // Every match, not the first handful: the cap of 6 hid 7 of the 14 languages
+  // with no way to reach them. With nothing typed this is the full list, minus
+  // the primary and minus the three already offered as tiles right above.
+  const suggestedCodes = new Set(suggestions.map((l) => l.code));
+  const results: LanguageMeta[] = searching
+    ? searchLanguages(query).filter(
+        (l) => l.code !== primary && (query.trim() !== "" || !suggestedCodes.has(l.code)),
+      )
+    : [];
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
