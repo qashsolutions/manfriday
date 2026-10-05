@@ -13,6 +13,25 @@ import type { Doc, Id } from "./_generated/dataModel";
 const APP_URL = () => env.APP_URL ?? "https://manfriday.app";
 const FROM = () => env.EMAIL_FROM ?? "Friday <friday@manfriday.app>";
 
+/** Times in email are the user's own clock, never UTC — "22:30 UTC" means
+ *  nothing to someone who scheduled 17:30. */
+function localTime(at: number, timeZone: string | undefined): string {
+  try {
+    return new Intl.DateTimeFormat("en-GB", {
+      timeZone: timeZone || "UTC",
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZoneName: "short",
+    }).format(new Date(at));
+  } catch {
+    return new Date(at).toUTCString().replace("GMT", "UTC");
+  }
+}
+
 /** Unguessable per-user token for the unsubscribe link. */
 function newToken(): string {
   const bytes = new Uint8Array(16);
@@ -140,6 +159,7 @@ export const approvalNeeded = internalMutation({
   handler: async (ctx: MutationCtx, args) => {
     const post = await ctx.db.get("posts", args.postId);
     if (!post || post.approvedAt) return null;
+    const user = await ctx.db.get("users", post.userId);
     const concept = await ctx.db.get("concepts", post.conceptId);
     const slots = ((concept?.slots ?? {}) as Record<string, string>);
     const hook = slots.hook ?? slots.hook_text ?? slots.hook_overlay ?? "";
@@ -147,7 +167,7 @@ export const approvalNeeded = internalMutation({
       userId: post.userId,
       subject: "Ready when you are — approve to post",
       lines: [
-        `Friday rendered ${hook ? `"${hook}"` : "a video"} and booked it for ${new Date(post.publishAt).toUTCString().replace("GMT", "UTC")}.`,
+        `Friday rendered ${hook ? `"${hook}"` : "a video"} and booked it for ${localTime(post.publishAt, user?.timezone)}.`,
         "Nothing goes out until you approve it. Open the Calendar, watch it, then approve, change the time, or discard it.",
         `${APP_URL()}/calendar`,
       ],

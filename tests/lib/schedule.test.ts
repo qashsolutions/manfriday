@@ -50,3 +50,16 @@ describe("scheduling a kept video", () => {
     expect(addLocalDays("Asia/Kolkata", "2026-10-31", 1)).toBe("2026-11-01");
   });
 });
+
+describe("times shown to the user", () => {
+  test("a scheduled slot reads as their local clock, not UTC", () => {
+    // 17:30 in Chicago is 22:30 UTC — the email must say the former.
+    const at = zonedTimeToUtc("America/Chicago", "2026-10-05", 17, 30);
+    const shown = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "America/Chicago", weekday: "short", day: "numeric", month: "short",
+      hour: "2-digit", minute: "2-digit", hour12: false, timeZoneName: "short",
+    }).format(new Date(at));
+    expect(shown).toMatch(/17:30/);
+    expect(shown).not.toMatch(/22:30/);
+  });
+});
