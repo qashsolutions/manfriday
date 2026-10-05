@@ -4,6 +4,7 @@ import { SignIn } from "@clerk/nextjs";
 import { AuthVisual } from "@/components/marketing/AuthVisual";
 import { FoundingSpots } from "@/components/marketing/FoundingSpots";
 import { FREE, FOUNDING, LANGUAGES, TIERS } from "@/lib/site";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import styles from "../auth.module.css";
 
 export const metadata: Metadata = {
@@ -19,8 +20,10 @@ const PROOF = [
   ["10", "hook patterns"],
 ] as const;
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [solo] = TIERS;
+  // Came here from a protected page? Go back to it, not to the default.
+  const wanted = safeRedirectPath((await searchParams).redirect_url);
   return (
     <div className={styles.grid}>
       <section className={styles.pitch}>
@@ -48,7 +51,7 @@ export default function LoginPage() {
       </section>
 
       <section className={styles.authCol}>
-        <SignIn routing="hash" signUpUrl="/signup" fallbackRedirectUrl="/picks" />
+        <SignIn routing="hash" signUpUrl="/signup" fallbackRedirectUrl="/picks" {...(wanted ? { forceRedirectUrl: wanted } : {})} />
         <p className={styles.signin}>
           New here? <Link href="/signup">Hire Friday</Link> — free, no card, {FREE.videosTotal} videos on us.
         </p>

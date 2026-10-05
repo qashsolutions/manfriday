@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { UserButton, useAuth } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Bolt, Wordmark } from "@/components/ui/Logo";
 import { PlanMeter } from "./PlanMeter";
@@ -20,6 +20,10 @@ export function AppNav() {
   const pathname = usePathname();
   const { isSignedIn } = useAuth();
   const ensure = useMutation(api.users.ensureCurrent);
+  // Operator screen: the only way in used to be typing the URL, which bounced
+  // through sign-in and lost you. Team accounts get a tab; nobody else sees it.
+  const isAdmin = useQuery(api.admin.amIAdmin);
+  const tabs = isAdmin ? [...TABS, { href: "/admin", label: "ADMIN" }] : TABS;
 
   useEffect(() => {
     if (isSignedIn) {
@@ -42,7 +46,7 @@ export function AppNav() {
         <Wordmark size={15} />
       </Link>
       <nav className="mono" style={{ display: "flex", gap: 24, fontSize: 12, letterSpacing: "0.08em", alignItems: "center" }} aria-label="App">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <Link
             key={t.href}
             href={t.href}

@@ -32,6 +32,18 @@ const PALETTE = {
 
 export type ClerkMode = keyof typeof PALETTE;
 
+/** Card chrome for the full-page auth screens: this card is the only thing on
+ *  the right half of /login, so it is deliberately large. Scoped, never global. */
+function authCard(c: (typeof PALETTE)[ClerkMode]) {
+  return {
+    rootBox: { width: "100%" },
+    cardBox: { width: "100%", maxWidth: "520px", border: `1px solid ${c.border}`, boxShadow: c.shadow },
+    card: { padding: "38px 36px 30px", gap: "20px" },
+    headerTitle: { fontFamily: "var(--font-display), sans-serif", fontSize: "26px", fontWeight: 700 },
+    headerSubtitle: { fontSize: "15px" },
+  };
+}
+
 export function clerkAppearanceFor(mode: ClerkMode): Appearance {
   const c = PALETTE[mode];
   return {
@@ -53,12 +65,6 @@ export function clerkAppearanceFor(mode: ClerkMode): Appearance {
     fontSize: "15.5px",
   },
   elements: {
-    // Bigger card: this is the only thing on the right half of the page.
-    rootBox: { width: "100%" },
-    cardBox: { width: "100%", maxWidth: "520px", border: `1px solid ${c.border}`, boxShadow: c.shadow },
-    card: { padding: "38px 36px 30px", gap: "20px" },
-    headerTitle: { fontFamily: "var(--font-display), sans-serif", fontSize: "26px", fontWeight: 700 },
-    headerSubtitle: { fontSize: "15px" },
     socialButtonsBlockButton: { height: "48px", fontSize: "15px", border: `1px solid ${c.border}` },
     formFieldLabel: { fontSize: "14px" },
     formFieldInput: { height: "48px", fontSize: "15.5px", border: `1px solid ${c.border}` },
@@ -85,6 +91,12 @@ export function clerkAppearanceFor(mode: ClerkMode): Appearance {
     },
     otpCodeFieldInputs: { gap: "10px" },
   },
+  // The wide card belongs to the sign-in and sign-up screens ONLY. Applied
+  // globally it also hit <UserProfile/>, whose modal is a two-column layout
+  // (nav rail + detail panel) that needs ~850px — capped at 520px the columns
+  // overlapped and the labels clipped to "oogl" / "Co…".
+  signIn: { elements: authCard(c) },
+  signUp: { elements: authCard(c) },
   };
 }
 
