@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
-import { PipelineFlow } from "@/components/blog/illustrations";
+import { AuthVisual } from "@/components/marketing/AuthVisual";
 import { FoundingSpots } from "@/components/marketing/FoundingSpots";
 import { FREE, FOUNDING, LANGUAGES, TIERS } from "@/lib/site";
 import styles from "../auth.module.css";
@@ -11,19 +11,12 @@ export const metadata: Metadata = {
   description: `Sign in to Man Friday — short-form video for your product, posted while you build. Start free: ${FREE.videosTotal} videos, no card.`,
 };
 
-const POINTS = [
-  {
-    title: "You approve, Friday posts",
-    body: "Paste your product's URL. Friday writes ten short videos for it and posts the ones you keep to TikTok and YouTube Shorts.",
-  },
-  {
-    title: "Modeled on what already worked",
-    body: "Every draft is shaped by a real post that broke out in your niche — the reference sits beside it.",
-  },
-  {
-    title: "Clicks, not vanity views",
-    body: "Every post carries a tracked link, so you see which one actually sent people to your product.",
-  },
+/** Facts we can actually stand behind: the curated library, not borrowed logos. */
+const PROOF = [
+  ["252", "breakout posts studied"],
+  ["134", "templates built from them"],
+  [String(LANGUAGES.length), "languages"],
+  ["10", "hook patterns"],
 ] as const;
 
 export default function LoginPage() {
@@ -32,27 +25,20 @@ export default function LoginPage() {
     <div className={styles.grid}>
       <section className={styles.pitch}>
         <p className="eyebrow">You build. Friday posts.</p>
-        <h1 className={`display ${styles.title}`}>Short-form video for your product, without filming.</h1>
-        <p className={styles.sub}>
-          A camera-free content engine for solo builders. {LANGUAGES.length} languages, three formats,
-          and one number that matters: clicks to your product.
-        </p>
+        <h1 className={`display ${styles.title}`}>One paste. A month of video.</h1>
 
-        <figure className={styles.visual}>
-          <PipelineFlow />
-          <figcaption className={`mono ${styles.visualCaption}`}>
-            YOUR URL → FRIDAY&apos;S BRIEF → TEN PICKS → YOUR SWIPE → POSTED
-          </figcaption>
-        </figure>
-
-        <div className={styles.points}>
-          {POINTS.map((p) => (
-            <div key={p.title} className={styles.point}>
-              <h2 className={styles.pointTitle}>{p.title}</h2>
-              <p className={styles.pointBody}>{p.body}</p>
-            </div>
-          ))}
+        <div className={styles.visual}>
+          <AuthVisual />
         </div>
+
+        <ul className={styles.proof}>
+          {PROOF.map(([n, label]) => (
+            <li key={label}>
+              <span className={`display ${styles.proofNum}`}>{n}</span>
+              <span className={styles.proofLabel}>{label}</span>
+            </li>
+          ))}
+        </ul>
 
         <p className={`mono ${styles.founding}`}>
           <span className={styles.dot} />

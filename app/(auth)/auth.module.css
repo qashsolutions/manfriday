@@ -14,8 +14,10 @@
 }
 
 .title {
-  font-size: clamp(34px, 4vw, 44px);
+  font-size: clamp(38px, 4.6vw, 54px);
+  line-height: 1.04;
   margin: 0;
+  text-wrap: balance;
 }
 
 .sub {
@@ -26,12 +28,9 @@
 }
 
 .visual {
-  margin: 4px 0;
-  border: 1px solid var(--edge);
-  border-radius: 18px;
-  padding: 18px 18px 12px;
-  background: var(--panel);
-  max-width: 560px;
+  width: 100%;
+  max-width: 620px;
+  margin: 8px 0 4px;
 }
 
 .visual svg {
@@ -40,11 +39,31 @@
   display: block;
 }
 
-.visualCaption {
-  font-size: 10px;
-  letter-spacing: 0.1em;
+.proof {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 44px;
+}
+
+.proof li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.proofNum {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.proofLabel {
+  font-size: 13.5px;
   color: var(--faint);
-  margin-top: 10px;
 }
 
 .points {
@@ -95,8 +114,9 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  padding: 56px 40px;
+  gap: 18px;
+  padding: 56px 44px;
+  background: var(--graphite);
 }
 
 .card {

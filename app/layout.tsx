@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkTheme } from "@/components/app/ClerkTheme";
 import { Archivo, Instrument_Sans, Spline_Sans_Mono } from "next/font/google";
 import { SITE } from "@/lib/site";
-import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
 
 const display = Archivo({
@@ -48,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `try{if(localStorage.getItem("mf-mode")==="light")document.documentElement.dataset.mode="light"}catch(e){}`,
           }}
         />
-        <ClerkProvider appearance={clerkAppearance}>{children}</ClerkProvider>
+        <ClerkTheme>{children}</ClerkTheme>
       </body>
     </html>
   );
