@@ -6,6 +6,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { currentUserId } from "./users";
 import { ensureGoogleAccessToken } from "./google";
 import { createTrackedLink, withUtm } from "./links";
+import { localDayKey, nextSlot } from "../lib/schedule";
 import { UPLOAD_UNITS, dailyLimit, nextQuotaDayStart, quotaDay, quotaDayBounds, quotaKey, shiftDays } from "./youtubeQuota";
 
 // Contract 3 spine: posts → publications; a minute-cron scans by_due and runs
@@ -54,16 +55,13 @@ export const youtubeSlot = query({
   },
 });
 
-/** Schedule a rendered concept. Slideshows are TikTok-only (D1). */
-export const schedulePost = mutation({
-  args: { conceptId: v.id("concepts"), publishAt: v.number() },
-  handler: async (ctx: MutationCtx, args) => {
-    const userId = await currentUserId(ctx);
-    if (!userId) throw new Error("not signed in");
-    const concept = await ctx.db.get("concepts", args.conceptId);
-    if (!concept || concept.userId !== userId) throw new Error("not your concept");
+/** Create the post + one publication per eligible account. Shared by the user's
+ *  own "Schedule" button and by the automatic scheduling of a kept video. */
+async function createPost(ctx: MutationCtx, userId: Id<"users">, conceptId: Id<"concepts">, publishAt: number) {
+    const concept = await ctx.db.get("concepts", conceptId);
+    if (!concept || concept.userId !== userId) throw new ConvexError("not your concept");
     if (concept.status !== "rendered" || !concept.videoId) {
-      throw new Error("concept isn't fully rendered yet");
+      throw new ConvexError("concept isn't fully rendered yet");
     }
     const accounts = await ctx.db
       .query("socialAccounts")
@@ -75,15 +73,15 @@ export const schedulePost = mutation({
     const targets = accounts.filter(
       (a) => a.platform === "tiktok" || (a.platform === "youtube" && template?.format !== "slideshow"),
     );
-    if (targets.length === 0) throw new Error("connect a TikTok or YouTube account first");
+    if (targets.length === 0) throw new ConvexError("connect a TikTok or YouTube account first");
 
     // Compliance rule 7: never schedule past the day's YouTube quota. The limit is
     // shared by every user until the audit clears, so the Calendar offers the
     // next open day instead of letting the upload fail at publish time.
     if (targets.some((a) => a.platform === "youtube")) {
-      const cap = await youtubeCapacity(ctx, args.publishAt);
+      const cap = await youtubeCapacity(ctx, publishAt);
       if (!cap.ok) {
-        const next = await nextOpenYoutubeSlot(ctx, args.publishAt);
+        const next = await nextOpenYoutubeSlot(ctx, publishAt);
         throw new ConvexError(`QUOTA_FULL|${next ?? ""}|YouTube's upload limit for that day is already spoken for.`);
       }
     }
@@ -91,8 +89,8 @@ export const schedulePost = mutation({
     const caption: string = (concept.slots as Record<string, string>).caption ?? "";
     const postId = await ctx.db.insert("posts", {
       userId,
-      conceptId: args.conceptId,
-      publishAt: args.publishAt,
+      conceptId: conceptId,
+      publishAt: publishAt,
       captionByPlatform: { tiktok: caption, youtube: caption },
     });
     // North star: every post carries a tracked link to the user's product.
@@ -115,7 +113,7 @@ export const schedulePost = mutation({
         accountId: account._id,
         platform: account.platform,
         status: "queued",
-        publishAt: args.publishAt,
+        publishAt: publishAt,
         attempts: 0,
         idempotencyKey: "",
       });
@@ -123,6 +121,49 @@ export const schedulePost = mutation({
       publicationIds.push(publicationId);
     }
     return { postId, publicationIds };
+}
+
+/** Schedule a rendered concept at a time the user picked. Slideshows are TikTok-only (D1). */
+export const schedulePost = mutation({
+  args: { conceptId: v.id("concepts"), publishAt: v.number() },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) throw new ConvexError("not signed in");
+    return await createPost(ctx, userId, args.conceptId, args.publishAt);
+  },
+});
+
+/** The automatic half of "keep it and it's on your calendar": called when a
+ *  final render lands. Silent by design — a missing account or a full quota
+ *  leaves the video in "ready to schedule" rather than failing in the user's face. */
+export const autoSchedule = internalMutation({
+  args: { conceptId: v.id("concepts") },
+  handler: async (ctx: MutationCtx, args) => {
+    const concept = await ctx.db.get("concepts", args.conceptId);
+    if (!concept || concept.status !== "rendered" || !concept.videoId) return null;
+    const user = await ctx.db.get("users", concept.userId);
+    if (!user || user.autoSchedule === false) return null;
+
+    // Already scheduled? Never double-book.
+    const posts = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", concept.userId)).take(200);
+    if (posts.some((p) => p.conceptId === args.conceptId)) return null;
+
+    const timezone = user.timezone || "UTC";
+    const taken = posts.filter((p) => p.publishAt > Date.now() - 24 * 60 * 60 * 1000).map((p) => localDayKey(timezone, p.publishAt));
+    let at = nextSlot(timezone, Date.now(), taken);
+
+    // Respect the shared YouTube ceiling: move to the first day with room.
+    const template = await ctx.db.get("trendTemplates", concept.templateId);
+    if (template?.format !== "slideshow" && !(await youtubeCapacity(ctx, at)).ok) {
+      const open = await nextOpenYoutubeSlot(ctx, at);
+      if (!open) return null; // nothing free for a fortnight; leave it for the user
+      at = open;
+    }
+    try {
+      return await createPost(ctx, concept.userId, args.conceptId, at);
+    } catch {
+      return null; // no connected account yet, or a race — the Calendar still shows it
+    }
   },
 });
 

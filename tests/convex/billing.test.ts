@@ -442,3 +442,66 @@ describe("product email", () => {
     expect(await t.mutation(internal.email.weeklyDigest, {})).toEqual({ sent: 1 });
   });
 });
+
+describe("keep it and it's on your calendar", () => {
+  /** Rendered concept + a connected account, as if the worker had just finished. */
+  async function readyToSchedule(t: ReturnType<typeof harness>, patch: Record<string, unknown> = {}) {
+    const s = await seed(t);
+    await t.run(async (ctx) => { await ctx.db.patch("users", s.userId, { timezone: "Asia/Kolkata", ...(patch as any) }); });
+    return s;
+  }
+
+  test("a finished final render books its own slot at 17:30 local", async () => {
+    const t = harness();
+    const s = await readyToSchedule(t);
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    const posts = await t.run(async (ctx) => await ctx.db.query("posts").collect());
+    expect(posts).toHaveLength(1);
+    const local = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour12: false, timeStyle: "short" }).format(new Date(posts[0].publishAt));
+    expect(local).toBe("17:30");
+    expect(posts[0].publishAt).toBeGreaterThan(Date.now());
+  });
+
+  test("it never double-books the same video", async () => {
+    const t = harness();
+    const s = await readyToSchedule(t);
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    expect((await t.run(async (ctx) => await ctx.db.query("posts").collect()))).toHaveLength(1);
+  });
+
+  test("turning the preference off leaves the video for the user to schedule", async () => {
+    const t = harness();
+    const s = await readyToSchedule(t, { autoSchedule: false });
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    expect((await t.run(async (ctx) => await ctx.db.query("posts").collect()))).toHaveLength(0);
+  });
+
+  test("no connected account means nothing is scheduled, and nothing throws", async () => {
+    const t = harness();
+    const s = await readyToSchedule(t);
+    await t.run(async (ctx) => { await ctx.db.delete("socialAccounts", s.youtube); });
+    await expect(t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId })).resolves.toBeNull();
+    expect((await t.run(async (ctx) => await ctx.db.query("posts").collect()))).toHaveLength(0);
+  });
+
+  test("a second video that day goes to the next day, not the same minute", async () => {
+    const t = harness();
+    const s = await readyToSchedule(t);
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: s.conceptId });
+    const secondId = await t.run(async (ctx) => {
+      const first = (await ctx.db.get("concepts", s.conceptId))!;
+      const videoId = await ctx.storage.store(new Blob(["mp4"], { type: "video/mp4" }));
+      return await ctx.db.insert("concepts", {
+        userId: first.userId, brandId: first.brandId, templateId: first.templateId,
+        briefVersion: 1, specVersion: 1, language: "en", status: "rendered",
+        slots: { hook: "second video" }, videoId, batchId: "b1", costCents: 6,
+      });
+    });
+    await t.mutation(internal.publishing.autoSchedule, { conceptId: secondId });
+    const posts = await t.run(async (ctx) => await ctx.db.query("posts").collect());
+    expect(posts).toHaveLength(2);
+    const days = posts.map((p) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(p.publishAt)));
+    expect(new Set(days).size).toBe(2); // one a day, not two at once
+  });
+});

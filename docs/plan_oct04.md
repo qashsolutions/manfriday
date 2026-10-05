@@ -105,6 +105,18 @@ not after launch.
 Everything in Track B is measured with our own product's attribution. If we
 can't see which post earned a signup, we are selling something we don't use.
 
+## Phase A1 — keep it and it's on your calendar (done 4 Oct)
+
+- [x] A kept video books its own slot when its render finishes: **17:30 in the
+      user's own time zone, one video a day**, never within 15 minutes of now,
+      and moved to the next open day when the shared YouTube ceiling is full.
+      Silent by design — no connected account, or nothing free for a fortnight,
+      leaves the video in "ready to schedule" instead of failing at the user.
+      Settings → Posting turns it off; the Calendar still changes or cancels
+      anything. Time-zone arithmetic (DST, India's half-hour offset, month ends)
+      lives in `lib/schedule.ts` with its own tests.
+      *Accepted: 83 Convex tests including a two-video spacing case.*
+
 ## Phase 2 — the format gap the research exposed
 
 A live scan of 16 breakout posts in the solo-builder niche (4 Oct): 14 of 16 show a

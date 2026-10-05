@@ -23,6 +23,8 @@ export function SettingsPanel() {
   const brand = useQuery(api.brands.myBrand);
   const setBrandLanguage = useMutation(api.brands.setLanguage);
   const purgeMine = useMutation(api.account.purgeMine);
+  const me = useQuery(api.users.current);
+  const setAutoSchedule = useMutation(api.users.setAutoSchedule);
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "working" | "error">("idle");
 
   // Privacy policy › Deletion. Convex data (tokens, briefs, concepts, posts) is
@@ -178,6 +180,42 @@ export function SettingsPanel() {
                   onClick={() => pick("light")}
                 >
                   Light
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Posting */}
+        <section className={styles.section} aria-labelledby="s-posting">
+          <h2 id="s-posting" className={`mono ${styles.sectionTitle}`}>POSTING</h2>
+          <div className={styles.panel}>
+            <div className={styles.row}>
+              <div>
+                <p className={styles.rowTitle}>Schedule what I keep</p>
+                <p className={styles.rowSub}>
+                  A kept video books the next free slot at 17:30 your time, one a day. Change or
+                  cancel any of them in the Calendar. Off means Friday renders it and waits.
+                </p>
+              </div>
+              <div className={styles.toggleGroup} role="radiogroup" aria-label="Schedule kept videos">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={me?.autoSchedule !== false}
+                  className={`${styles.toggleBtn} ${me?.autoSchedule !== false ? styles.toggleOn : ""}`}
+                  onClick={() => void setAutoSchedule({ on: true })}
+                >
+                  On
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={me?.autoSchedule === false}
+                  className={`${styles.toggleBtn} ${me?.autoSchedule === false ? styles.toggleOn : ""}`}
+                  onClick={() => void setAutoSchedule({ on: false })}
+                >
+                  Off
                 </button>
               </div>
             </div>

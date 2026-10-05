@@ -36,6 +36,7 @@ export default function PicksPage() {
   const [alsoIn, setAlsoIn] = useState<{ id: (typeof feed extends undefined ? never : NonNullable<typeof feed>)["concepts"][number]["id"]; language: string; languageStyle: "code-mixed" | "native" | "roman" | null; hook: string } | null>(null);
 
   const billing = useQuery(api.billing.myBilling) as BillingView | null | undefined;
+  const me = useQuery(api.users.current);
   // D5: a keep costs one video. At zero the keep opens a choice instead; skipping stays free.
   const [outOf, setOutOf] = useState<string | null>(null);
 
@@ -102,10 +103,15 @@ export default function PicksPage() {
               ✕ Skip
             </button>
             <button type="button" className={styles.keepBtn} onClick={() => void keep(top)}>
-              {billing && billing.remaining === 0 ? "Keep → out of videos" : "Keep → Friday takes it from here"}
+              {billing && billing.remaining === 0
+                ? "Keep → out of videos"
+                : me?.autoSchedule === false
+                  ? "Keep → Friday renders it"
+                  : "Keep → Friday schedules it"}
             </button>
           </div>
           <span className={styles.counter}>
+            {me?.autoSchedule === false ? "Renders land in Calendar" : "Kept videos post at 17:30, one a day"} ·{" "}
             {feed.concepts.length} in the feed · {feed.kept} kept
             {billing ? ` · ${billing.remaining} ${billing.remaining === 1 ? "video" : "videos"} left` : ""} · ← → keys work too
           </span>

@@ -40,6 +40,19 @@ export const ensureCurrent = mutation({
   },
 });
 
+/** "Keep it and it's on your calendar" — on by default; this turns it off. */
+export const setAutoSchedule = mutation({
+  args: { on: v.boolean() },
+  handler: async (ctx: MutationCtx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("not signed in");
+    const row = await ctx.db.query("users").withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject)).unique();
+    if (!row) throw new Error("not signed in");
+    await ctx.db.patch("users", row._id, { autoSchedule: args.on });
+    return null;
+  },
+});
+
 export const current = query({
   args: {},
   handler: async (ctx: QueryCtx) => {
@@ -52,6 +65,7 @@ export const current = query({
     if (!row) return null;
     return {
       email: row.email,
+      autoSchedule: row.autoSchedule !== false,
       plan: row.plan,
       tier: row.tier ?? null,
       term: row.term ?? null,

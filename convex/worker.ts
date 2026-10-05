@@ -129,6 +129,10 @@ export const completeJob = mutation({
         ...(args.previewThumbId ? { previewThumbId: args.previewThumbId } : {}),
         costCents: concept.costCents + args.costCents,
       });
+      // "Keep it and it's on your calendar": the kept video books its own slot.
+      if (job.kind === "final") {
+        await ctx.scheduler.runAfter(0, internal.publishing.autoSchedule, { conceptId: job.conceptId });
+      }
     }
     return null;
   },

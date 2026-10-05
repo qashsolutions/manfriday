@@ -50,6 +50,8 @@ Run it any time with: `/agents` → eod-checkpoint, or ask for "an EOD checkpoin
 
 ## Running notes
 
+- 4 Oct: swipe-to-schedule shipped — a keep now books 17:30 local, one a day, respecting the YouTube ceiling. Matches the pitch: "swipe right to add it to your calendar." 83 Convex tests, 19 worker tests.
+
 - 4 Oct: product email built and verified live (welcome, previews ready, post live/draft, render failed, Monday digest). Unsubscribe is one click, no sign-in, token in the footer. 71 Convex tests.
 
 - 4 Oct: manfriday.app verified in Resend; alerts now send from alerts@manfriday.app and were delivered. Inbound mail untouched (Hostinger MX intact). Email to testers is unblocked. Free plan: 100/day, 3,000/month.

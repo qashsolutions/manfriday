@@ -50,6 +50,8 @@ export default defineSchema({
     // Beta testers: replaces the 3 free videos with a larger one-time allowance.
     // Set only via internal admin:setVideoGrant.
     videoGrant: v.optional(v.number()),
+    // "Keep it and it's on your calendar" — on unless the user turns it off.
+    autoSchedule: v.optional(v.boolean()),
     // Product email: one welcome per account, an unsubscribe token, and the opt-out.
     welcomeEmailedAt: v.optional(v.number()),
     emailToken: v.optional(v.string()),
