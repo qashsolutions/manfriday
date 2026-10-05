@@ -33,8 +33,16 @@ test.describe("signed in", () => {
       for (const label of ["PICKS", "CALENDAR", "ANALYTICS", "SETTINGS"]) {
         await expect(page.getByRole("link", { name: label, exact: true })).toBeVisible();
       }
-      // No screen should sit empty.
-      await expect(page.locator("h1, h2").first()).toBeVisible();
+      // No screen should sit blank. Not every screen has a heading — Picks
+      // shows a card when the feed has something in it — so check for real
+      // content below the header rather than for an <h1>.
+      // Convex queries resolve after first paint, so poll rather than read once.
+      await expect
+        .poll(
+          async () => (await page.locator("body").innerText()).replace(/\s+/g, " ").trim().length,
+          { timeout: 15_000, message: `${path} rendered almost nothing` },
+        )
+        .toBeGreaterThan(150);
     });
   }
 

@@ -3,6 +3,7 @@ import { createTrackedLink, withUtm } from "./links";
 import { internalQuery, internalMutation } from "./_generated/server";
 import { quotaKey } from "./youtubeQuota";
 import type { QueryCtx, MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 // Dev-only seeder: creates one user/brand/template/concept and a pending
 // preview render job so the worker loop can be exercised end to end.
@@ -403,3 +404,99 @@ export const billingState = internalQuery({
     };
   },
 });
+
+/** Deterministic fixture for the browser tests: one brand and a handful of
+ *  swipeable concepts for ONE account, so the Picks → keep → schedule → approve
+ *  path can be driven without running the pipeline (no Claude, no FAL, no
+ *  render worker, no cost). Idempotent: re-running clears what it made first. */
+export const seedE2E = internalMutation({
+  args: { email: v.string(), concepts: v.optional(v.number()) },
+  handler: async (ctx: MutationCtx, args) => {
+    const email = args.email.trim().toLowerCase();
+    const users = await ctx.db.query("users").take(1000);
+    const user = users.find((u) => u.email.toLowerCase() === email);
+    if (!user) throw new Error(`no user with email ${email}`);
+
+    await clearE2E(ctx, user._id);
+
+    const templateId = await ctx.db.insert("trendTemplates", {
+      slug: E2E_TAG, format: "slideshow", niches: ["solo-saas"], hookPattern: "pov",
+      refUrl: "https://example.com/e2e-reference",
+      refStats: { platform: "tiktok", views: 128000, capturedAt: Date.now() },
+      structure: { slots: [{ id: "hook", type: "text", maxChars: 90 }] },
+      specVersion: 1, engagementScore: 70, active: false,
+    });
+    const brandId = await ctx.db.insert("brands", {
+      userId: user._id, url: E2E_BRAND_URL, name: "E2E Fixture", oneLiner: "A fixture product",
+      audience: ["solo founders"], tone: ["direct"], niche: "solo-saas", language: "en",
+      screenshotIds: [], status: "ready", briefVersion: 1,
+    });
+
+    const howMany = Math.max(1, Math.min(10, Math.floor(args.concepts ?? 3)));
+    const ids = [];
+    for (let i = 1; i <= howMany; i++) {
+      ids.push(
+        await ctx.db.insert("concepts", {
+          userId: user._id, brandId, templateId, briefVersion: 1, specVersion: 1,
+          language: "en", status: "preview_ready",
+          slots: { hook: `E2E fixture concept ${i}`, caption: `E2E fixture concept ${i} #buildinpublic` },
+          batchId: E2E_TAG, costCents: 0,
+        }),
+      );
+    }
+    // One already-rendered concept with a post that has NOT been approved, so
+    // the Calendar's approval gate has something real to act on without a
+    // render worker having to run.
+    const renderedId = await ctx.db.insert("concepts", {
+      userId: user._id, brandId, templateId, briefVersion: 1, specVersion: 1,
+      language: "en", status: "rendered",
+      slots: { hook: "E2E fixture awaiting approval", caption: "E2E fixture awaiting approval" },
+      batchId: E2E_TAG, costCents: 0,
+    });
+    const postId = await ctx.db.insert("posts", {
+      userId: user._id, conceptId: renderedId,
+      publishAt: Date.now() + 2 * 24 * 60 * 60 * 1000,
+      captionByPlatform: { youtube: "E2E fixture awaiting approval" },
+    });
+
+    return { email, brandId, templateId, concepts: ids.length, awaitingApproval: postId };
+  },
+});
+
+/** Remove everything seedE2E made for this account. */
+export const clearE2EFor = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx: MutationCtx, args) => {
+    const email = args.email.trim().toLowerCase();
+    const users = await ctx.db.query("users").take(1000);
+    const user = users.find((u) => u.email.toLowerCase() === email);
+    if (!user) throw new Error(`no user with email ${email}`);
+    return await clearE2E(ctx, user._id);
+  },
+});
+
+const E2E_TAG = "e2e-fixture";
+const E2E_BRAND_URL = "https://e2e-fixture.example/app";
+
+async function clearE2E(ctx: MutationCtx, userId: Id<"users">) {
+  let removed = 0;
+  const concepts = await ctx.db.query("concepts").take(1000);
+  const mine = concepts.filter((c) => c.userId === userId && c.batchId === E2E_TAG);
+  const conceptIds = new Set(mine.map((c) => c._id));
+  const posts = await ctx.db.query("posts").take(500);
+  for (const p of posts) {
+    if (p.userId !== userId || !conceptIds.has(p.conceptId)) continue;
+    const pubs = await ctx.db.query("publications").withIndex("by_postId", (q) => q.eq("postId", p._id)).take(10);
+    for (const pub of pubs) { await ctx.db.delete("publications", pub._id); removed++; }
+    await ctx.db.delete("posts", p._id); removed++;
+  }
+  for (const c of mine) { await ctx.db.delete("concepts", c._id); removed++; }
+  const brands = await ctx.db.query("brands").take(500);
+  for (const b of brands) {
+    if (b.userId !== userId || b.url !== E2E_BRAND_URL) continue;
+    await ctx.db.delete("brands", b._id); removed++;
+  }
+  const templates = await ctx.db.query("trendTemplates").take(1000);
+  for (const t of templates) { if (t.slug === E2E_TAG) { await ctx.db.delete("trendTemplates", t._id); removed++; } }
+  return { removed };
+}
