@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Waitlist } from "@clerk/nextjs";
 import { RememberUrl } from "@/components/marketing/RememberUrl";
+import { FoundingSpots } from "@/components/marketing/FoundingSpots";
 import { TIERS, FREE, FOUNDING } from "@/lib/site";
 import styles from "../auth.module.css";
 
@@ -54,7 +55,7 @@ export default function SignupPage() {
         </div>
         <p className={`mono ${styles.founding}`}>
           <span className={styles.dot} />
-          {FOUNDING.label.toUpperCase()} · 3 YEARS FROM ${solo.threeYear} · [NN] OF {FOUNDING.cap} SPOTS LEFT
+          {FOUNDING.label.toUpperCase()} · 3 YEARS FROM ${solo.threeYear} <FoundingSpots separator />
         </p>
       </section>
 

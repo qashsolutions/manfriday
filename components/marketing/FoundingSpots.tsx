@@ -7,7 +7,7 @@ import { FOUNDING } from "@/lib/site";
 
 /** The live Founding 200 counter on static marketing pages. Renders nothing
  *  until the real number arrives — never a placeholder. */
-export function FoundingSpots({ className }: { className?: string }) {
+export function FoundingSpots({ className, separator = false }: { className?: string; separator?: boolean }) {
   const [left, setLeft] = useState<number | null>(null);
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_CONVEX_URL;
@@ -21,6 +21,13 @@ export function FoundingSpots({ className }: { className?: string }) {
       alive = false;
     };
   }, []);
+  // Renders nothing until the real number arrives, so the separator travels with
+  // it — no stranded "·" while it loads.
   if (left === null) return null;
-  return <span className={className}>{left === 0 ? "All spots taken" : `${left} of ${FOUNDING.cap} spots left`}</span>;
+  return (
+    <span className={className}>
+      {separator ? "· " : ""}
+      {left === 0 ? "All spots taken" : `${left} of ${FOUNDING.cap} spots left`}
+    </span>
+  );
 }
