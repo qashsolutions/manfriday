@@ -115,7 +115,14 @@ can't see which post earned a signup, we are selling something we don't use.
       Settings → Posting turns it off; the Calendar still changes or cancels
       anything. Time-zone arithmetic (DST, India's half-hour offset, month ends)
       lives in `lib/schedule.ts` with its own tests.
-      *Accepted: 83 Convex tests including a two-video spacing case.*
+      *Accepted: 87 Convex tests including a two-video spacing case.*
+- [x] **Nothing posts without a yes.** Friday schedules, the user confirms. Publishing
+      is blocked until that specific post is approved — checked when selecting due
+      publications and again at the moment of upload. Pressing Schedule yourself counts
+      as the confirmation; an auto-scheduled video shows an amber "NEEDS YOUR OK" chip,
+      a per-post Approve button and an Approve all bar, and an email asks for it.
+      Approval can be withdrawn while the post still waits. The compliance guard fails
+      the build if either check disappears (YouTube rule 2).
 
 ## Phase 2 — the format gap the research exposed
 

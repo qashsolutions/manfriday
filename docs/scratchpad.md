@@ -50,6 +50,8 @@ Run it any time with: `/agents` → eod-checkpoint, or ask for "an EOD checkpoin
 
 ## Running notes
 
+- 4 Oct: approval gate added — Friday schedules, the user confirms, and nothing uploads without that confirmation. Verified live: an auto-scheduled post stays unapproved and the publisher skips it.
+
 - 4 Oct: swipe-to-schedule shipped — a keep now books 17:30 local, one a day, respecting the YouTube ceiling. Matches the pitch: "swipe right to add it to your calendar." 83 Convex tests, 19 worker tests.
 
 - 4 Oct: product email built and verified live (welcome, previews ready, post live/draft, render failed, Monday digest). Unsubscribe is one click, no sign-in, token in the footer. 71 Convex tests.
