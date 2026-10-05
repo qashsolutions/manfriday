@@ -67,6 +67,44 @@ Two honest options:
       *Accept: written log of every step with timings and every moment of confusion.*
 - [ ] Fix whatever that walkthrough exposes before sending a single invite.
 
+## How the work runs from here — two tracks, in parallel
+
+Marketing is not a phase that starts when building stops. From 5 Oct the build
+track and the marketing track run at the same time, because the product *is* a
+marketing tool: everything we ship can be demonstrated by using it on ourselves
+and on prospects the same week.
+
+**Track A — build** (below, Phases 2–4, in that order). Ships continuously.
+
+**Track B — marketing** (Phase 5, reordered below). Runs every week from now,
+not after launch.
+
+**Track C — production gates** (Phase 6). Dated by when testers become customers.
+
+### The weekly rhythm
+
+| When | Build | Marketing |
+|---|---|---|
+| Monday | pick the week's build item | pick the week's 3–5 teardown targets (one language each) |
+| Daily | ship | Man Friday posts about Man Friday, from its own accounts |
+| Thursday | deploy + verify | send the teardowns the user asked for |
+| Friday | EOD checkpoint agent | update the scorecard below |
+
+### The scorecard (one table, updated Fridays in `docs/scratchpad.md`)
+
+| Metric | Why it is the one that matters |
+|---|---|
+| Posts we published | the only input we fully control |
+| Views on them | reach, not success |
+| **Clicks to manfriday.app** | our own north star, measured with our own tracked links |
+| Signups | conversion of that attention |
+| Activated (pasted a URL) | the first real product moment |
+| Kept ≥1 video / published ≥1 post | the moment the product worked for them |
+| Feedback + failures | what to fix before more people arrive |
+
+Everything in Track B is measured with our own product's attribution. If we
+can't see which post earned a signup, we are selling something we don't use.
+
 ## Phase 2 — the format gap the research exposed
 
 A live scan of 16 breakout posts in the solo-builder niche (4 Oct): 14 of 16 show a
@@ -101,7 +139,9 @@ representative sample.
 - [ ] Write the findings into the template library as negative rules (what Friday should stop drafting).
       *Budget: ~5 credits per account, so ~100 credits. 68 now, 150 on 8 Oct.*
 
-## Phase 5 — the marketing engine ("UGC at scale", done so we keep our API access)
+## Phase 5 — the marketing engine, running in parallel from 5 Oct
+
+Ordered by what we can do *this week* with what exists, not by ambition.
 
 ### What this is NOT
 
@@ -112,7 +152,19 @@ own. TikTok's rules permit multiple accounts but prohibit exactly these
 behaviours, and we hold YouTube API approval under a signed attestation plus a
 TikTok submission in review. Losing either stops publishing for every customer.
 
-### What it is
+### What it is, in order
+
+**B1. Man Friday posts about Man Friday, daily (starts first).** Our own accounts, run by the product. It is marketing, the most credible demo we have, a daily test of the product, and the only way we ever get a case study. Zero dependencies.
+
+**B2. Teardowns — the acquisition motion.** The user pings 3–5 people per language and asks them to share their URL. We return a one-page read of what works and what doesn't on their channel (done by hand with our research tooling until the in-product version is possible), plus videos made for their product in their language. No DMs, no blasts — personal notes only. Every result we're allowed to publish becomes proof.
+
+**B3. Content that compounds.** Weekly blog cadence, the trend library as public indexable pages (an SEO surface and a demo in one), and posts in Portuguese, Spanish and Bahasa where the product already works end to end.
+
+**B4. Proof capture.** Every tester number, with permission, goes on the landing page in place of the borrowed logo walls competitors use.
+
+**B5. Paid creators ($100 × 10).** Only after the teardowns show strangers rate the output. Playbook: `docs/creator-pilots.md`.
+
+**B6. Founding 200 as the affiliate payout.** 30% of a $20 plan is $6 and interests nobody; $200 up front does.
 
 - [ ] **Owned accounts, one per platform per market.** Distinct content per account, never the same video reposted across them.
       *Accept: TikTok, YouTube and (later) Instagram accounts for Man Friday, posting daily.*

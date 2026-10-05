@@ -14,6 +14,8 @@ what is being worked on, what was decided, what is open.
 |---|---|---|
 | 4 Oct | Browsing the trend library is free; turning one into a video costs a video | Looking costs us nothing and is the best reason to sign up; making already has a price |
 | 4 Oct | No account farms, bought/"warmed" accounts, or bot engagement, ever | Violates platform rules; we hold YouTube API approval under attestation and a TikTok review is open |
+| 4 Oct | Build and marketing run in parallel from 5 Oct, not sequentially | The product is a marketing tool; everything we ship can be demonstrated on ourselves and on prospects the same week |
+| 4 Oct | Acquisition motion = teardowns, not DMs: the user pings 3–5 people per language, we return a hand-written channel read plus videos in their language | Personal, legal, and it doubles as user research and content |
 | 4 Oct | Pilot runs on the Clerk **development** instance for 1–2 weeks; testers are told their account is temporary | Free and immediate; if it works we move to production and remap accounts by email |
 | 4 Oct | Beta testers get **25** videos, not 3 | Enough to use the product properly for two weeks while still reaching the at-zero screen |
 | 4 Oct | Phase 1 cannot start until the Clerk instance question is settled | Dev instances brand emails as development, use shared OAuth credentials, cap at 100 users, and do not transfer users — tester data would be lost at launch |
@@ -22,6 +24,12 @@ what is being worked on, what was decided, what is open.
 | 4 Oct | Screen-recording b-roll ranks above the discovery features | 14 of 16 breakout posts show a face next to moving software; we can produce neither |
 | 4 Oct | Pricing unchanged at $20/$40 | We already undercut the category; creator payouts come from the Founding 200 offer instead |
 | 16 Sep | Every feature must answer "what does the user get" | Standing product rule |
+
+## Weekly scorecard
+
+| Week ending | Posts | Views | Clicks to site | Signups | Activated | Kept ≥1 | Published ≥1 | Feedback | Failures |
+|---|---|---|---|---|---|---|---|---|---|
+| 10 Oct | — | — | — | — | — | — | — | — | — |
 
 ## Open questions
 
