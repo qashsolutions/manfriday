@@ -26,14 +26,24 @@ export const ensureCurrent = mutation({
       .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
       .unique();
     if (existing) return existing._id;
+    const email = identity.email ?? "";
+    // A grant set before this tester signed up (admin:setVideoGrant) applies now.
+    const parked = email
+      ? await ctx.db
+          .query("pendingGrants")
+          .withIndex("by_email", (q) => q.eq("email", email.toLowerCase()))
+          .unique()
+      : null;
     const userId = await ctx.db.insert("users", {
       clerkId: identity.subject,
-      email: identity.email ?? "",
+      email,
       plan: "free",
       credits: 0,
       videosUsedThisPeriod: 0,
       timezone: args.timezone ?? "UTC",
+      videoGrant: parked?.videos,
     });
+    if (parked) await ctx.db.delete("pendingGrants", parked._id);
     // First sign-in: say hello and tell them what to do next.
     await ctx.scheduler.runAfter(0, internal.email.welcome, { userId });
     return userId;

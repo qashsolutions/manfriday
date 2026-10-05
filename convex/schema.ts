@@ -285,6 +285,15 @@ export default defineSchema({
     handled: v.optional(v.boolean()),
   }).index("by_handled", ["handled"]),
 
+  pendingGrants: defineTable({
+    // A tester's allowance set BEFORE they sign up. admin:setVideoGrant writes
+    // one of these when no users row exists yet; users:ensureCurrent consumes it
+    // on the first sign-in, so the invite → sign-up → 25 videos path needs no
+    // hand-timed command. Consumed rows are deleted.
+    email: v.string(), // lower-cased
+    videos: v.number(),
+  }).index("by_email", ["email"]),
+
   alerts: defineTable({
     // Something failed that a human should see: a render, a post, a brief.
     kind: v.string(), // "render_failed" | "publish_failed" | "brief_failed" | "feedback"

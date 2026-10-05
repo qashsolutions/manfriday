@@ -18,17 +18,41 @@ export const setSuperUser = internalMutation({
   },
 });
 
-/** Give a beta tester a larger one-time allowance in place of the 3 free videos. */
+/** Give a beta tester a larger one-time allowance in place of the 3 free videos.
+ *  Works before they sign up: with no users row yet the grant is parked in
+ *  pendingGrants and users:ensureCurrent applies it on their first sign-in. */
 export const setVideoGrant = internalMutation({
   args: { email: v.string(), videos: v.number() },
   handler: async (ctx: MutationCtx, args) => {
     const email = args.email.trim().toLowerCase();
+    const videos = Math.max(0, Math.floor(args.videos));
     const rows = await ctx.db.query("users").take(1000);
     const matches = rows.filter((u) => u.email.toLowerCase() === email);
-    if (matches.length === 0) throw new Error(`no user with email ${email}`);
-    const videos = Math.max(0, Math.floor(args.videos));
-    for (const u of matches) await ctx.db.patch("users", u._id, { videoGrant: videos || undefined });
-    return { email, videos, accounts: matches.length };
+    if (matches.length > 0) {
+      for (const u of matches) await ctx.db.patch("users", u._id, { videoGrant: videos || undefined });
+      return { email, videos, accounts: matches.length, pending: false };
+    }
+    // Not signed up yet — park it. One row per email.
+    const parked = await ctx.db
+      .query("pendingGrants")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .unique();
+    if (videos === 0) {
+      if (parked) await ctx.db.delete("pendingGrants", parked._id);
+      return { email, videos, accounts: 0, pending: false };
+    }
+    if (parked) await ctx.db.patch("pendingGrants", parked._id, { videos });
+    else await ctx.db.insert("pendingGrants", { email, videos });
+    return { email, videos, accounts: 0, pending: true };
+  },
+});
+
+/** Grants waiting for their tester to sign up. */
+export const listPendingGrants = internalQuery({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const rows = await ctx.db.query("pendingGrants").take(200);
+    return rows.map((r) => ({ email: r.email, videos: r.videos, setAt: new Date(r._creationTime).toISOString() }));
   },
 });
 
