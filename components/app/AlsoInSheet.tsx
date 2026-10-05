@@ -57,6 +57,7 @@ export function AlsoInSheet({ primary, primaryStyle, markets, hook, onAdd, onClo
     <div className={styles.scrim} onClick={onClose} role="presentation">
       <div className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby="alsoin-title" onClick={(e) => e.stopPropagation()}>
         <div className={styles.grip} aria-hidden="true" />
+        <div className={styles.body}>
         <div className={styles.head}>
           <h2 id="alsoin-title" className={styles.title}>Post this one in another market too?</h2>
           <p className={styles.sub}>
@@ -122,6 +123,7 @@ export function AlsoInSheet({ primary, primaryStyle, markets, hook, onAdd, onClo
             </button>
           )}
           <span className={`mono ${styles.hint}`}>FRIDAY SUGGESTS FROM YOUR AUDIENCE</span>
+        </div>
         </div>
 
         <div className={styles.actions}>

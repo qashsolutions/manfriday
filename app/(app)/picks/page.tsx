@@ -89,7 +89,11 @@ export default function PicksPage() {
               <img src={top.thumbUrl} alt="" className={styles.cardImg} />
             )}
             <div className={styles.cardMeta}>
-              <span className={styles.cardHook}>{hookOf(top.slots)}</span>
+              {/* The thumbnail already carries the hook, burned in by the render
+                  worker. Repeating it here printed the line twice, the overlay
+                  ghosting over the baked-in text. Show it only when there is no
+                  thumbnail to read it from. */}
+              {!top.thumbUrl && <span className={styles.cardHook}>{hookOf(top.slots)}</span>}
               <span className={styles.cardSub}>
                 {FORMAT_LABEL[top.format]} · MADE FOR YOU ·{" "}
                 <span lang={top.language}>{languageMeta(top.language).native}</span>

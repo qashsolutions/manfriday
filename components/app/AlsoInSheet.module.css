@@ -21,12 +21,27 @@
   gap: 16px;
   box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.45);
   /* The sheet is anchored to the bottom of the scrim, so content taller than
-     the viewport ran off the TOP, out of reach, with nothing to scroll. Cap it
-     and let it scroll — the language list is long once search is open. */
+     the viewport ran off the TOP, out of reach, with nothing to scroll. Cap the
+     sheet, and scroll the body inside it — never the sheet itself, so the grip
+     and the confirm row stay put. */
   max-height: 88vh;
   max-height: min(88dvh, 760px);
+  overflow: hidden;
+}
+
+/* The one scrolling region. min-height:0 is load-bearing: without it a flex
+   child refuses to shrink below its content, and overflow never engages. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  flex: 1 1 auto;
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
+  /* Room so the last row never hides under the confirm bar's shadow. */
+  padding-bottom: 2px;
 }
 
 .grip {
@@ -183,11 +198,10 @@
 .actions {
   display: flex;
   gap: 10px;
-  /* Stays reachable however long the list gets. */
-  position: sticky;
-  bottom: 0;
-  background: var(--panel);
-  padding-top: 10px;
+  /* Pinned: outside the scrolling body, so it is always reachable. */
+  flex: 0 0 auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--edge-2);
 }
 
 .actions > * {
