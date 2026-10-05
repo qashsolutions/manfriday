@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Show, UserButton } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
 import { Bolt, Wordmark } from "@/components/ui/Logo";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 import styles from "./Header.module.css";
@@ -32,7 +32,6 @@ export function Header() {
             <Link href="/picks" className="btn btn--accent" style={{ padding: "11px 22px", fontSize: 15 }}>
               Open Friday →
             </Link>
-            <UserButton />
           </Show>
         </nav>
       </div>

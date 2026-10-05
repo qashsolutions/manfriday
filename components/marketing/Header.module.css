@@ -30,6 +30,14 @@
   align-items: center;
   gap: 30px;
 }
+/* Nav items keep their own width: left to shrink, "Open Friday" wrapped onto
+   three lines and the button collapsed into a blob. */
+.nav > * {
+  flex-shrink: 0;
+}
+.nav a {
+  white-space: nowrap;
+}
 
 .link {
   font-size: 15px;
