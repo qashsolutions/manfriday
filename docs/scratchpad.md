@@ -50,6 +50,15 @@ Run it any time with: `/agents` → eod-checkpoint, or ask for "an EOD checkpoin
 
 ## Running notes
 
+### EOD 2026-10-05
+- Shipped: ten commits. Invited sign-up now completes — it was broken, so no tester could ever have joined. Also fixed: the account modal, the missing ADMIN link, the markets sheet, a doubled hook on pick cards, sideways scroll on every public page. New: a 42-check browser suite with CI.
+- Live: a tester can accept an invite and reach onboarding. Verified against production with a disposable invite.
+- Health: tests 102 passed · compliance pass · worker ok · deploy in sync (01153f5).
+- Blocked: ceeveear@yahoo.com must click the invite link again (valid 30 days). CI browser job waits on six repository secrets.
+- Next: timed fresh-user walkthrough on an account without the team flag.
+- Note: `e2e+clerk_test@manfriday.app` is a fixture account with operator rights — exclude it from pilot numbers.
+
+
 - 4 Oct: approval gate added — Friday schedules, the user confirms, and nothing uploads without that confirmation. Verified live: an auto-scheduled post stays unapproved and the publisher skips it.
 
 - 4 Oct: swipe-to-schedule shipped — a keep now books 17:30 local, one a day, respecting the YouTube ceiling. Matches the pitch: "swipe right to add it to your calendar." 83 Convex tests, 19 worker tests.

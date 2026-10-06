@@ -63,9 +63,9 @@ Two honest options:
 - [x] **Product email.** Five messages, each sent once, each with a one-click unsubscribe in the footer:
       welcome (first sign-in), "your first videos are ready" (3+ previews of a batch), "your video is live / waiting in TikTok" (first platform to succeed), "one video didn't render" (permanent failure, says the allowance was given back), and a Monday digest of last week's clicks and views (skipped for anyone who posted nothing).
       *Accepted 4 Oct: welcome, render-failed and post-draft each delivered live to a real inbox from friday@manfriday.app; unsubscribe, once-only sending and digest-skipping covered by tests.*
-- [ ] **Timed fresh-user walkthrough** — needs the user to sign in as a new account; everything else in Phase 1 is done. on an account without the team flag: paste URL → keep → schedule → posted.
+- [~] **Timed fresh-user walkthrough** — needs the user to sign in as a new account; everything else in Phase 1 is done. on an account without the team flag: paste URL → keep → schedule → posted.
       *Accept: written log of every step with timings and every moment of confusion.*
-- [ ] Fix whatever that walkthrough exposes before sending a single invite.
+- [~] Fix whatever that walkthrough exposes before sending a single invite. (5 Oct: eight defects found and fixed — invited sign-up could never complete, the account modal's columns overlapped, /admin had no link, the sign-in redirect lost its destination, the markets sheet hid half the languages and would not scroll, the pick card printed its hook twice, every public page scrolled sideways on a phone, and the marketing header carried an avatar nobody asked for.)
 
 ## How the work runs from here — two tracks, in parallel
 
