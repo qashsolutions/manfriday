@@ -5,11 +5,9 @@ const app = defineApp({
   env: {
     // Self-minted; authenticates the Railway/local render worker's calls.
     WORKER_TOKEN: v.optional(v.string()),
-    // Claude call sites 1 + 2 (brand brief, slot-fill) run in the PYTHON WORKER
-    // on Railway, not here — see worker/pipeline/brief.py and slots.py. Nothing
-    // in convex/ calls Anthropic, so this key is unused by the deployment and
-    // can be removed from its environment.
-    ANTHROPIC_API_KEY: v.optional(v.string()),
+    // No ANTHROPIC_API_KEY here on purpose: both Claude call sites (brand brief,
+    // slot-fill) run in the Python worker on Railway — worker/pipeline/brief.py
+    // and slots.py — and read the key from that service's own environment.
     // M3 publishing (contract 3 adapters run as Convex actions)
     TIKTOK_CLIENT_KEY: v.optional(v.string()),
     TIKTOK_CLIENT_SECRET: v.optional(v.string()),
