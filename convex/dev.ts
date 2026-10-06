@@ -423,7 +423,22 @@ export const seedE2E = internalMutation({
       slug: E2E_TAG, format: "slideshow", niches: ["solo-saas"], hookPattern: "pov",
       refUrl: "https://example.com/e2e-reference",
       refStats: { platform: "tiktok", views: 128000, capturedAt: Date.now() },
-      structure: { slots: [{ id: "hook", type: "text", maxChars: 90 }] },
+      // A real, minimal renderPlan. Without one the worker crashed on a missing
+      // key, burned three attempts and emailed the operator a render_failed
+      // alert every time a fixture concept was kept. One gradient slide keeps
+      // the render cheap and the alert channel honest.
+      structure: {
+        slots: [{ id: "hook", type: "text", maxChars: 90 }],
+        renderPlan: {
+          kind: "slideshow",
+          slides: [
+            {
+              bg: { kind: "gradient", styleToken: "brand-dark-1" },
+              text: { slotRef: "hook", styleToken: "hook-xl", position: "center" },
+            },
+          ],
+        },
+      },
       specVersion: 1, engagementScore: 70, active: false,
     });
     const brandId = await ctx.db.insert("brands", {
@@ -490,6 +505,11 @@ async function clearE2E(ctx: MutationCtx, userId: Id<"users">) {
     for (const pub of pubs) { await ctx.db.delete("publications", pub._id); removed++; }
     await ctx.db.delete("posts", p._id); removed++;
   }
+  const jobs = await ctx.db.query("renderJobs").take(500);
+  for (const j of jobs) {
+    if (!conceptIds.has(j.conceptId)) continue;
+    await ctx.db.delete("renderJobs", j._id); removed++;
+  }
   for (const c of mine) { await ctx.db.delete("concepts", c._id); removed++; }
   const brands = await ctx.db.query("brands").take(500);
   for (const b of brands) {
@@ -500,3 +520,21 @@ async function clearE2E(ctx: MutationCtx, userId: Id<"users">) {
   for (const t of templates) { if (t.slug === E2E_TAG) { await ctx.db.delete("trendTemplates", t._id); removed++; } }
   return { removed };
 }
+
+/** Delete render jobs whose concept no longer exists. An orphan can never
+ *  succeed: the worker claims it, crashes, retries, and emails a render_failed
+ *  alert, which quietly poisons the signal the pilot depends on.
+ *  Run: npx convex run dev:purgeOrphanRenderJobs */
+export const purgeOrphanRenderJobs = internalMutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const jobs = await ctx.db.query("renderJobs").take(500);
+    let removed = 0;
+    for (const j of jobs) {
+      if (await ctx.db.get("concepts", j.conceptId)) continue;
+      await ctx.db.delete("renderJobs", j._id);
+      removed++;
+    }
+    return { removed, checked: jobs.length };
+  },
+});
