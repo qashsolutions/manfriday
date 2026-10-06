@@ -8,6 +8,13 @@
   gap: 22px;
 }
 
+/* Onboarding ends with the brief card, and the language picker drops out of it.
+   Without room underneath, the picker opened past the bottom of the window with
+   nothing left to scroll. */
+.wrapRoomy {
+  padding-bottom: 300px;
+}
+
 .title {
   font-size: clamp(28px, 4.5vw, 40px);
   margin: 8px 0 0;

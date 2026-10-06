@@ -135,8 +135,12 @@
   list-style: none;
   margin: 0;
   padding: 6px;
-  max-height: 300px;
+  /* Never taller than the screen. A flat 300px still pushed the panel past the
+     bottom of the window when the chip sat low on the page, and the list has
+     its own scrollbar, so the rows below were unreachable. */
+  max-height: min(300px, 42vh);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .item {

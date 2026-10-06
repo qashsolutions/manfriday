@@ -57,7 +57,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className={styles.wrap}>
+    <div className={`${styles.wrap} ${styles.wrapRoomy}`}>
       <p className="eyebrow">Friday&apos;s first day</p>
       <h1 className={`display ${styles.title}`}>Where does your product live?</h1>
       <p className={styles.sub}>
