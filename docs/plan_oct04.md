@@ -13,7 +13,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 - [x] Site favicon + app icons, same artwork as the TikTok app icon (TikTok rejected the update over this)
 - [ ] Resubmit the TikTok app with `design/manfriday-icon-1024.png` — **user action**
       *Accept: TikTok review shows "in review", not rejected.*
-- [ ] Confirm Railway plan (worker renders today; billing not visible from here) — **user action**
+- [!] **Railway credit runs out ~7 Oct** (dashboard showed "2 days or $4.40 left" on 5 Oct). When it does, the `manfriday` worker stops and every brief and render stops with it, mid-pilot. Hobby plan is ~$5/mo on project man-friday. — **user action, now time-critical**
 - [x] Resend account + API key, with `ALERT_EMAIL` and `ALERT_FROM` set. Verified 4 Oct: alert delivered.
 - [x] **manfriday.app verified in Resend** (4 Oct). DKIM TXT plus the two sending CNAMEs added at Hostinger; MX left alone, so admin@manfriday.app still receives. `ALERT_FROM` removed — alerts now send from alerts@manfriday.app and were delivered. We can email testers, not just ourselves.
 
