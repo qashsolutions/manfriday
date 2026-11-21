@@ -50,6 +50,14 @@ Run it any time with: `/agents` → eod-checkpoint, or ask for "an EOD checkpoin
 
 ## Running notes
 
+### EOD 2026-11-21
+- Gap: last entry 5 Oct; no commits between 50467cf and today (seven weeks). Nothing here records that period.
+- Shipped: guest accounts that end after 21 days; social logins cannot outlive a deleted account (race fixed); problem reports carry context; privacy policy and pricing page updated; worker CI fixed.
+- Live: first guest invited (1 of 10 slots, link expires 28 Nov; not yet signed up). Report-list and /admin guest panel not browser-checked.
+- Health: tests 125 passed · compliance pass · **worker DOWN** (no worker calls in ~5 h of Convex logs; an idle worker polls every 20 s; last render 5 Oct — Railway credit was due to run out ~7 Oct) · deploy in sync (40a356a).
+- Blocked: **worker down — the invited guest will get no brief or videos until Railway is paid/restarted (user action)**; git email privacy will reject the next default-config push; `npm run lint` broken (`next lint` gone).
+- Next: restore the Railway worker before the guest signs up; then watch their first session and feedback report.
+
 ### EOD 2026-10-05
 - Shipped: ten commits. Invited sign-up now completes — it was broken, so no tester could ever have joined. Also fixed: the account modal, the missing ADMIN link, the markets sheet, a doubled hook on pick cards, sideways scroll on every public page. New: a 42-check browser suite with CI.
 - Live: a tester can accept an invite and reach onboarding. Verified against production with a disposable invite.
