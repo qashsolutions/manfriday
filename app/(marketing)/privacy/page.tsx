@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { POLICY } from "@/lib/site";
+import { GUEST, POLICY } from "@/lib/site";
 import styles from "../legal.module.css";
 
 export const metadata: Metadata = { title: "Privacy Policy", robots: { index: false } };
@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   return (
     <div className={`wrap ${styles.legal}`}>
       <h1 className={`display ${styles.title}`}>Privacy Policy</h1>
-      <p className={`mono ${styles.status}`}>LAST UPDATED 15 SEPTEMBER 2026 · counsel review before beta launch</p>
+      <p className={`mono ${styles.status}`}>LAST UPDATED 21 NOVEMBER 2026 · counsel review before beta launch</p>
 
       <p>
         Man Friday collects the minimum needed to do the job:
@@ -34,6 +34,14 @@ export default function PrivacyPage() {
         servers. We keep only your Stripe customer and subscription IDs, your plan, and how many
         videos you have used. Deleting your account cancels any subscription immediately; Stripe
         keeps its own payment records as the law requires.
+      </p>
+      <p>
+        <strong>Problem reports</strong> — when you send a report with the &ldquo;Something
+        wrong?&rdquo; button, it includes the screen you were on, the video on that screen (if
+        any), the last error message the app showed you in the previous 30 minutes, and your
+        browser, screen size, timezone and language. The form lists exactly this before you send,
+        and nothing is collected until you press Send. We use reports only to find and fix the
+        problem you reported.
       </p>
       <p>
         <strong>Product analytics</strong> — which features get used and how posts perform, to
@@ -131,7 +139,14 @@ export default function PrivacyPage() {
       <p>
         <strong>Deletion.</strong> Settings → Your data → Delete removes your account, brand
         briefs, generated concepts, and disconnects social accounts. Posts already published
-        to your own channels remain yours, on those platforms.
+        to your own channels remain yours, on those platforms. Problem reports you sent are kept
+        so we can still fix what you reported, but your email, the link to your account and your
+        device details are removed from them.
+      </p>
+      <p>
+        <strong>Guest accounts.</strong> Accounts we create by invitation for people testing Man
+        Friday are deleted automatically, in the same way, {GUEST.days} days after their first
+        sign-in.
       </p>
       <p>
         <strong>Processors.</strong> Data is processed by Clerk (authentication), Stripe
