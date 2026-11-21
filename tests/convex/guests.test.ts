@@ -128,3 +128,46 @@ describe("guest expiry", () => {
     expect(await t.run((ctx) => ctx.db.get("users", s.userId))).not.toBeNull();
   });
 });
+
+describe("connecting a social account while the account is being deleted", () => {
+  test("starting a connect is refused once deletion has begun", async () => {
+    const t = harness();
+    const s = await seed(t);
+    process.env.TIKTOK_CLIENT_KEY = "ck";
+    process.env.GOOGLE_CLIENT_ID = "gid";
+    await t.run((ctx) => ctx.db.patch("users", s.userId, { deletingAt: Date.now() }));
+    const me = t.withIdentity({ subject: CLERK_ID });
+    await expect(me.mutation(api.oauth.startTikTok, {})).rejects.toThrow(/being deleted/);
+    await expect(me.mutation(api.oauth.startGoogle, {})).rejects.toThrow(/being deleted/);
+    delete process.env.TIKTOK_CLIENT_KEY;
+    delete process.env.GOOGLE_CLIENT_ID;
+  });
+
+  test("a connect that finishes mid-deletion is not stored, and its tokens are revoked", async () => {
+    const t = harness();
+    const s = await seed(t);
+    await t.run((ctx) => ctx.db.patch("users", s.userId, { deletingAt: Date.now() }));
+    const res = await t.mutation(internal.oauth.storeAccount, {
+      userId: s.userId, platform: "tiktok", handle: "@late", accessToken: "act.late", refreshToken: "rft.late", expiresAt: Date.now() + 3600_000,
+    });
+    expect(res).toBeNull();
+    const tiktok = await t.run((ctx) => ctx.db.query("socialAccounts").collect());
+    expect(tiktok.filter((a) => a.platform === "tiktok")).toHaveLength(0);
+    const scheduled = await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect());
+    expect(scheduled.some((f) => f.name.includes("revokeAtProvider") && (f.args[0] as { accessToken: string }).accessToken === "act.late")).toBe(true);
+  });
+
+  test("the last batch sweeps social accounts again before the account row goes", async () => {
+    const t = harness();
+    const s = await seed(t);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+    await t.withIdentity({ subject: CLERK_ID }).mutation(api.account.purgeMine, { confirm: "DELETE" });
+    // Slips in after startPurge (e.g. written before the deletingAt check existed).
+    await t.run((ctx) => ctx.db.insert("socialAccounts", {
+      userId: s.userId, platform: "tiktok", handle: "@late", accessToken: "act.late", refreshToken: "rft.late", expiresAt: 0, status: "connected",
+    }));
+    await t.finishAllScheduledFunctions(() => {});
+    expect(await t.run((ctx) => ctx.db.query("socialAccounts").collect())).toHaveLength(0);
+    expect(await t.run((ctx) => ctx.db.query("users").collect())).toHaveLength(0);
+  });
+});

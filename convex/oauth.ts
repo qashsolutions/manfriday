@@ -3,6 +3,7 @@ import { action, internalAction, internalMutation, internalQuery, mutation, quer
 import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
 import { env } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { currentUserId } from "./users";
 
 // TikTok OAuth (Login Kit) — contract 3 rules: tokens exist only inside Convex;
@@ -28,11 +29,18 @@ function randomState(): string {
 /** Signed-in user starts a connect: mints CSRF state, returns the authorize URL.
  *  NOTE (auth policy v2): the passkey-or-2FA gate is enforced in the UI at the
  *  connect button; server-side enforcement lands with a Clerk JWT claim check. */
+/** An account being deleted (account.ts) can't start a new connect. */
+async function refuseWhileDeleting(ctx: MutationCtx, userId: Id<"users">) {
+  const me = await ctx.db.get("users", userId);
+  if (!me || me.deletingAt) throw new Error("this account is being deleted");
+}
+
 export const startTikTok = mutation({
   args: {},
   handler: async (ctx: MutationCtx) => {
     const userId = await currentUserId(ctx);
     if (!userId) throw new Error("not signed in");
+    await refuseWhileDeleting(ctx, userId);
     const clientKey = env.TIKTOK_CLIENT_KEY;
     if (!clientKey) throw new Error("TikTok is not configured yet");
     const state = randomState();
@@ -53,6 +61,7 @@ export const startGoogle = mutation({
   handler: async (ctx: MutationCtx) => {
     const userId = await currentUserId(ctx);
     if (!userId) throw new Error("not signed in");
+    await refuseWhileDeleting(ctx, userId);
     const clientId = env.GOOGLE_CLIENT_ID;
     if (!clientId) throw new Error("YouTube is not configured yet");
     const state = randomState();
@@ -98,6 +107,17 @@ export const storeAccount = internalMutation({
     expiresAt: v.number(),
   },
   handler: async (ctx: MutationCtx, args) => {
+    // A connect that finishes after deletion started (or after the account is
+    // gone) must not leave tokens behind: revoke them at the provider instead.
+    const owner = await ctx.db.get("users", args.userId);
+    if (!owner || owner.deletingAt) {
+      await ctx.scheduler.runAfter(0, internal.oauth.revokeAtProvider, {
+        platform: args.platform,
+        accessToken: args.accessToken,
+        refreshToken: args.refreshToken,
+      });
+      return null;
+    }
     const existing = await ctx.db
       .query("socialAccounts")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))

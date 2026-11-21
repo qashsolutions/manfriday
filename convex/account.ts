@@ -21,19 +21,9 @@ import { currentUserId } from "./users";
  *  per-mutation limits even when every document is at its largest. */
 export const PURGE_BATCH = 400;
 
-export async function startPurge(ctx: MutationCtx, userId: Id<"users">, opts: { deleteIdentity: boolean }) {
-  const me = await ctx.db.get("users", userId);
-  if (!me) return;
-  if (me.deletingAt) return; // already under way
-
-  // Billing: a deleted account must never be charged again. Stripe keeps its
-  // own payment records, as the law requires.
-  if (me.stripeSubscriptionId) {
-    await ctx.scheduler.runAfter(0, internal.billing.cancelSubscriptionNow, { subscriptionId: me.stripeSubscriptionId });
-  }
-
-  // Social accounts: revoke at provider, wipe tokens, delete. A user has at most
-  // one per platform, so this is always small.
+/** Social accounts: revoke at provider, wipe tokens, delete. A user has at most
+ *  one per platform, so this is always small. */
+async function revokeAndDeleteSocial(ctx: MutationCtx, userId: Id<"users">) {
   const accounts = await ctx.db
     .query("socialAccounts")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
@@ -48,7 +38,20 @@ export async function startPurge(ctx: MutationCtx, userId: Id<"users">, opts: { 
     }
     await ctx.db.delete("socialAccounts", a._id);
   }
+}
 
+export async function startPurge(ctx: MutationCtx, userId: Id<"users">, opts: { deleteIdentity: boolean }) {
+  const me = await ctx.db.get("users", userId);
+  if (!me) return;
+  if (me.deletingAt) return; // already under way
+
+  // Billing: a deleted account must never be charged again. Stripe keeps its
+  // own payment records, as the law requires.
+  if (me.stripeSubscriptionId) {
+    await ctx.scheduler.runAfter(0, internal.billing.cancelSubscriptionNow, { subscriptionId: me.stripeSubscriptionId });
+  }
+
+  await revokeAndDeleteSocial(ctx, userId);
   await ctx.db.patch("users", userId, { deletingAt: Date.now() });
   await ctx.scheduler.runAfter(0, internal.account.purgeStep, {
     userId,
@@ -169,7 +172,11 @@ export const purgeStep = internalMutation({
     }
     if (reqs.length + ledger.length + states.length > 0) return await again();
 
-    // 5. Last: the user row, then (guests) the sign-in identity.
+    // 5. Social accounts again: one connected after startPurge ran would
+    //    otherwise outlive the account with live tokens.
+    await revokeAndDeleteSocial(ctx, userId);
+
+    // 6. Last: the user row, then (guests) the sign-in identity.
     const user = await ctx.db.get("users", userId);
     if (user) await ctx.db.delete("users", userId);
     if (args.clerkId) await ctx.scheduler.runAfter(0, internal.guests.deleteIdentity, { clerkId: args.clerkId });
