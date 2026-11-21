@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { FOUNDING, FREE, POLICY, TIERS, TOPUP } from "@/lib/site";
+import { FOUNDING, POLICY, TIERS, TOPUP } from "@/lib/site";
 import { parseBillingError } from "@/lib/billing-copy";
 import { useBilling } from "./useBilling";
 import styles from "./SettingsPanel.module.css";
@@ -38,16 +38,20 @@ export function BillingSection() {
 
   const chip = billing.unlimited
     ? `TEAM · UNLIMITED${billing.standing === "paid" ? ` · ${tier?.name.toUpperCase()}` : ""}`
-    : billing.standing === "free"
-      ? `FREE · ${billing.remaining} OF ${FREE.videosTotal} LEFT · NO CARD`
+    : billing.guestEndsAt
+      ? `GUEST · ${billing.remaining} OF ${billing.limit} LEFT · ENDS ${new Date(billing.guestEndsAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }).toUpperCase()}`
+      : billing.standing === "free"
+      ? `FREE · ${billing.remaining} OF ${billing.limit} LEFT · NO CARD`
       : billing.standing === "lapsed"
         ? "PLAN ENDED"
         : `${tier?.name.toUpperCase()} · ${billing.term ? TERM_LABEL[billing.term] : ""}${billing.foundingNumber ? ` #${billing.foundingNumber}` : ""}`;
 
   const summary = billing.unlimited
     ? "Team test account: unlimited videos, no allowance. Checkout, top-ups and pause still work here, so billing can be tested end to end with Stripe test cards."
-    : billing.standing === "free"
-      ? `Previews are always free. Each video you keep uses one of your ${FREE.videosTotal} free videos.`
+    : billing.guestEndsAt
+      ? `Guest account. Previews are always free; each video you keep uses one of your ${billing.limit}. On ${date(billing.guestEndsAt)} this account and everything in it is deleted, and you're signed out for good.`
+      : billing.standing === "free"
+      ? `Previews are always free. Each video you keep uses one of your ${billing.limit} free videos.`
       : billing.standing === "lapsed"
         ? "Your plan has ended. Your brand, drafts and schedule are still here. Pick a plan below to keep making videos."
         : [

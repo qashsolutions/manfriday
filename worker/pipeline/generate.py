@@ -11,7 +11,7 @@ from pathlib import Path
 import requests
 
 import cvx
-from pipeline.brief import synthesize_brief
+from pipeline.brief import Brief, synthesize_brief
 from pipeline.match import plan_batch
 from pipeline.scrape import scrape
 from pipeline.slots import fill_batch
@@ -33,31 +33,40 @@ def generate_for_user(user_id: str, url: str, count: int = 10, request_id: str |
             cvx.mutation("worker:updatePipelineRequest", args)
 
     progress("analyzing")
-    with tempfile.TemporaryDirectory() as tmp:
-        scraped = scrape(url, Path(tmp))
-        brief, brief_cost = synthesize_brief(scraped)
-        screenshot_ids = [_upload_image(p) for p in scraped.image_paths]
-
-    res = cvx.mutation(
-        "pipeline:upsertBrand",
-        {
-            "userId": user_id,
-            "url": url,
-            "name": brief.name,
-            "oneLiner": brief.one_liner,
-            "audience": brief.audience,
-            "tone": brief.tone,
-            "niche": brief.niche,
-            "language": brief.language,
-            "screenshotIds": screenshot_ids,
-        },
-    )
-    brand_id, brief_version = res["brandId"], res["briefVersion"]
+    # Determinism-first: one brief per URL. A URL this user already gave Friday
+    # reuses the stored brief (and any edits they made to it) — no scrape, no
+    # Claude call, no new screenshots.
+    cached = cvx.query("pipeline:cachedBrand", {"userId": user_id, "url": url})
+    if cached:
+        brief, brief_cost = Brief(**cached["brief"]), 0
+        brand_id, brief_version = cached["brandId"], cached["briefVersion"]
+    else:
+        with tempfile.TemporaryDirectory() as tmp:
+            scraped = scrape(url, Path(tmp))
+            brief, brief_cost = synthesize_brief(scraped)
+            screenshot_ids = [_upload_image(p) for p in scraped.image_paths]
+        res = cvx.mutation(
+            "pipeline:upsertBrand",
+            {
+                "userId": user_id,
+                "url": url,
+                "name": brief.name,
+                "oneLiner": brief.one_liner,
+                "audience": brief.audience,
+                "tone": brief.tone,
+                "niche": brief.niche,
+                "language": brief.language,
+                "screenshotIds": screenshot_ids,
+            },
+        )
+        brand_id, brief_version = res["brandId"], res["briefVersion"]
     progress("drafting", brand_id=brand_id)
 
     templates = cvx.query("pipeline:listActiveTemplates")
     has_presenter = bool(cvx.query("pipeline:brandHasPresenter", {"brandId": brand_id}))
-    batch = plan_batch(templates, brief.niche, count, allow_avatar=has_presenter)
+    # Fresh picks: trends this brand has used least come first.
+    used = cvx.query("pipeline:templateUseCounts", {"brandId": brand_id}) or {}
+    batch = plan_batch(templates, brief.niche, count, allow_avatar=has_presenter, used=used)
     if not batch:
         raise RuntimeError("no usable templates in the library")
 

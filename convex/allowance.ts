@@ -131,7 +131,7 @@ export function planRefund(u: UserBilling, from: BilledFrom, billedPeriodStart: 
 }
 
 export const EXHAUSTED_MESSAGE: Record<"free_used" | "month_used" | "no_plan", string> = {
-  free_used: `ALLOWANCE|free_used|You've used your ${FREE.videosTotal} free videos.`,
+  free_used: "ALLOWANCE|free_used|You've used your free videos.",
   month_used: "ALLOWANCE|month_used|You've used this month's videos.",
   no_plan: "ALLOWANCE|no_plan|Your plan has ended.",
 };

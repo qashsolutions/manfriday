@@ -141,7 +141,7 @@ export default function PicksPage() {
               <h1 className={`display ${styles.title}`}>The feed is empty — for now.</h1>
               <p className={styles.sub}>
                 {feed.kept > 0
-                  ? "You've swiped through everything. Friday drafts fresh concepts overnight — or point Friday at another product."
+                  ? "You've swiped through everything. Give Friday your URL again for ten fresh picks — previews are free."
                   : "Friday hasn't drafted anything for you yet. Hand over a URL and the first ten concepts arrive in minutes."}
               </p>
               <Link href="/onboarding" className="btn btn--accent">

@@ -8,6 +8,7 @@ import {
   FOUNDING,
   SHARED_FEATURES,
   LANGUAGES,
+  VIDEO_RULES,
 } from "@/lib/site";
 import styles from "./pricing.module.css";
 
@@ -42,12 +43,9 @@ export default function PricingPage() {
           </p>
           <ul className={styles.entitlements}>
             <li>
-              <strong>{FREE.videosTotal}</strong> videos to try — one-time
+              <strong>{FREE.videosTotal}</strong> videos, once — they don&apos;t refill
             </li>
-            <li>Browse the full Picks feed</li>
-            <li>
-              <strong>{FREE.workspaces}</strong> workspace
-            </li>
+            <li>Unlimited previews in Picks</li>
             <li>No card required</li>
           </ul>
           <div className={styles.spacer} />
@@ -66,13 +64,16 @@ export default function PricingPage() {
             </p>
             <ul className={styles.entitlements}>
               <li>
-                <strong>{t.videos}</strong> videos / month, any format
+                <strong>{t.videos}</strong> videos every month, any format
               </li>
+              <li>Unlimited previews in Picks</li>
               <li>
-                <strong>{t.workspaces}</strong> workspaces
+                Top-ups: <strong>+{TOPUP.videos}</strong> videos for ${TOPUP.price}
               </li>
-              <li>Publishes on schedule, hands-free</li>
             </ul>
+            <p className={styles.termNote}>
+              Same {t.videos} videos a month whichever way you pay.
+            </p>
             <div className={styles.terms}>
               <div className={styles.termRow}>
                 <span>Quarterly</span>
@@ -103,6 +104,38 @@ export default function PricingPage() {
         ))}
       </div>
 
+      <section className={`panel ${styles.included}`} aria-labelledby="what-counts">
+        <h2 id="what-counts" className={`mono ${styles.includedTitle}`}>WHAT COUNTS AS A VIDEO</h2>
+        <p className={styles.countsLead}>
+          Every time you give Friday your product&apos;s URL, it drafts{" "}
+          <strong>{VIDEO_RULES.picksPerBatch} picks</strong> as free previews. You only use a video
+          when you keep one.
+        </p>
+        <div className={styles.counts}>
+          <div>
+            <h3 className={`mono ${styles.countsHead}`}>USES 1 VIDEO</h3>
+            <ul className={styles.countsList} data-kind="uses">
+              {VIDEO_RULES.counts.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className={`mono ${styles.countsHead}`}>FREE</h3>
+            <ul className={styles.countsList} data-kind="free">
+              {VIDEO_RULES.free.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <p className={styles.fine}>
+          Example: on {TIERS[0].name} you keep {TIERS[0].videos - 4} picks in English and add 2 of
+          them in Spanish and 2 in Hindi — that&apos;s {TIERS[0].videos} videos, your whole month.{" "}
+          {VIDEO_RULES.note}
+        </p>
+      </section>
+
       <section className={`panel ${styles.included}`}>
         <h2 className={`mono ${styles.includedTitle}`}>EVERY PLAN INCLUDES</h2>
         <ul className={styles.features}>
@@ -112,12 +145,15 @@ export default function PricingPage() {
         </ul>
         <p className={styles.langs}>{LANGUAGES.map((l) => l.name).join(" · ")}</p>
         <p className={styles.fine}>
-          <strong>Start free, no card</strong> — a card only appears when you subscribe. Video
-          allowances reset monthly and don&apos;t roll over; need more, add{" "}
-          <strong>+{TOPUP.videos} videos for ${TOPUP.price}</strong> on any paid plan. The 3-year{" "}
-          {FOUNDING.label} plan is pay-today, no cancellation, first {FOUNDING.cap} customers
-          only. Pause any paid plan for up to {POLICY.pauseMaxDays} days, once a month — paused
-          days are added to your term.
+          <strong>Start free, no card</strong> — a card only appears when you subscribe. Paid
+          plans refill every month on the day you subscribed, whether you pay monthly, quarterly,
+          annually or for 3 years; unused videos don&apos;t roll over. Need more, add{" "}
+          <strong>+{TOPUP.videos} videos for ${TOPUP.price}</strong> on any paid plan — top-ups are
+          used after your monthly videos and don&apos;t expire while your plan is active. One
+          product per account. Slideshows post to TikTok only. The 3-year {FOUNDING.label} plan is
+          pay-today, no cancellation, first {FOUNDING.cap} customers only. Pause any paid plan
+          for up to {POLICY.pauseMaxDays} days, once every 30 days — Friday holds your posts and
+          the paused days are added to your term.
         </p>
       </section>
     </div>

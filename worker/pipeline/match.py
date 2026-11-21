@@ -7,13 +7,23 @@ def score(template: dict, niche: str) -> float:
     return template.get("engagementScore", 0) * (1.0 + overlap)
 
 
-def plan_batch(templates: list[dict], niche: str, count: int, allow_avatar: bool = True) -> list[tuple[dict, int]]:
+def plan_batch(
+    templates: list[dict],
+    niche: str,
+    count: int,
+    allow_avatar: bool = True,
+    used: dict[str, int] | None = None,
+) -> list[tuple[dict, int]]:
     """Pick (template, variant_index) pairs, guaranteeing all three formats
     appear, weighted toward slideshows (cheap) per the format mix.
     allow_avatar=False (no presenter photo on the brand, D2 amended 14 Sep 2026)
-    hands the avatar share to hook videos."""
+    hands the avatar share to hook videos.
+    used = {templateId: times already used for this brand}: least-used trends
+    come first, best score breaking ties, so a second batch for the same
+    product brings new trends instead of repeating the first. Still deterministic."""
+    used = used or {}
     by_format: dict[str, list[dict]] = {"slideshow": [], "hook_video": [], "avatar": []}
-    for t in sorted(templates, key=lambda t: -score(t, niche)):
+    for t in sorted(templates, key=lambda t: (used.get(t.get("id", ""), 0), -score(t, niche))):
         if isinstance(t.get("structure"), dict) and t["structure"].get("slots"):
             by_format.setdefault(t["format"], []).append(t)
 

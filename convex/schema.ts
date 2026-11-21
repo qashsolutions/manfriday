@@ -50,6 +50,11 @@ export default defineSchema({
     // Beta testers: replaces the 3 free videos with a larger one-time allowance.
     // Set only via internal admin:setVideoGrant.
     videoGrant: v.optional(v.number()),
+    // Guest (friend tester) account: deleted, data and sign-in both, at this time.
+    // Set on first sign-in from a guest invite (guests.ts); cleared if they pay.
+    guestExpiresAt: v.optional(v.number()),
+    // Deletion in progress (account.ts purge runs in batches until the row is gone).
+    deletingAt: v.optional(v.number()),
     // "Keep it and it's on your calendar" — on unless the user turns it off.
     autoSchedule: v.optional(v.boolean()),
     // Product email: one welcome per account, an unsubscribe token, and the opt-out.
@@ -62,6 +67,7 @@ export default defineSchema({
     timezone: v.string(), // IANA; publish slots resolve here
   })
     .index("by_clerkId", ["clerkId"])
+    .index("by_guestExpiresAt", ["guestExpiresAt"])
     .index("by_stripeCustomerId", ["stripeCustomerId"])
     .index("by_foundingNumber", ["foundingNumber"]),
 
@@ -144,7 +150,10 @@ export default defineSchema({
     billedFrom: v.optional(v.union(v.literal("free"), v.literal("plan"), v.literal("topup"), v.literal("unlimited"))),
     billedPeriodStartsAt: v.optional(v.number()),
     swipedAt: v.optional(v.number()),
-  }).index("by_userId_and_status", ["userId", "status"]),
+  })
+    .index("by_userId_and_status", ["userId", "status"])
+    .index("by_batchId", ["batchId"])
+    .index("by_brandId", ["brandId"]),
 
   pipelineRequests: defineTable({
     // "Friday's first day": user submits a URL; the Python worker runs
@@ -194,7 +203,9 @@ export default defineSchema({
     claimedAt: v.optional(v.number()), // stale-claim reaper uses this
     attempts: v.number(),
     error: v.optional(v.string()),
-  }).index("by_status_and_priority", ["status", "priority"]),
+  })
+    .index("by_status_and_priority", ["status", "priority"])
+    .index("by_conceptId", ["conceptId"]),
 
   oauthStates: defineTable({
     // CSRF state for platform OAuth; minted per attempt, single-use, short-lived
@@ -202,7 +213,9 @@ export default defineSchema({
     provider: v.union(v.literal("tiktok"), v.literal("youtube"), v.literal("google")),
     state: v.string(),
     used: v.boolean(),
-  }).index("by_state", ["state"]),
+  })
+    .index("by_state", ["state"])
+    .index("by_userId", ["userId"]),
 
   socialAccounts: defineTable({
     userId: v.id("users"),
@@ -234,7 +247,10 @@ export default defineSchema({
     // a video Friday scheduled for them. (YouTube attestation: every upload is
     // user-initiated.)
     approvedAt: v.optional(v.number()),
-  }).index("by_userId", ["userId"]),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_and_conceptId", ["userId", "conceptId"])
+    .index("by_userId_and_publishAt", ["userId", "publishAt"]),
 
   publications: defineTable({
     // one post × one platform (contract 3)
@@ -292,7 +308,14 @@ export default defineSchema({
     // hand-timed command. Consumed rows are deleted.
     email: v.string(), // lower-cased
     videos: v.number(),
-  }).index("by_email", ["email"]),
+    // Guest invite (guests.ts): the account becomes a 21-day guest on first
+    // sign-in. expiresAt = when the invite link lapses; an unused reservation
+    // stops counting toward the guest cap then.
+    guest: v.optional(v.boolean()),
+    expiresAt: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_guest", ["guest"]),
 
   alerts: defineTable({
     // Something failed that a human should see: a render, a post, a brief.
@@ -332,6 +355,9 @@ export default defineSchema({
     postId: v.id("posts"),
     slug: v.string(),
     targetUrl: v.string(),
+    // Running click total (humans only), kept by links.click. Absent on links
+    // created before 21 Nov 2026 until their first click after that.
+    clickCount: v.optional(v.number()),
   })
     .index("by_slug", ["slug"])
     .index("by_postId", ["postId"]),

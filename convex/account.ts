@@ -1,162 +1,178 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, type MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { internalMutation, mutation, type MutationCtx } from "./_generated/server";
 import { currentUserId } from "./users";
 
-/** Self-serve "delete account & data" (privacy policy › Deletion; YouTube API
- *  Services data-retention rule). Called by Settings BEFORE the Clerk user is
- *  deleted, so the Convex side never outlives the identity.
+/** Account deletion (privacy policy › Deletion; YouTube API Services
+ *  data-retention rule). Two callers:
+ *    - Settings › Delete account: purgeMine, then the browser deletes the Clerk user.
+ *    - Guest expiry (guests.ts): startPurge with deleteIdentity, so the Clerk user
+ *      is deleted by the server once the data is gone.
  *
- *  Order matters: revoke every social grant at the provider first (tokens are
- *  the crown jewels), then delete rows leaf-first so nothing dangles.
- *  Everything here is bounded by the user's own rows; nothing global is touched. */
+ *  The urgent part runs at once, in the caller's transaction: cancel billing,
+ *  revoke every social grant at the provider and delete the tokens (they are the
+ *  crown jewels). The rest — posts, clicks, videos, everything — is deleted in
+ *  batches by purgeStep, each a fresh transaction, so an account of any size
+ *  can be deleted without hitting Convex's per-transaction limits. The users row
+ *  goes last, so a half-finished purge is always visible and always resumable. */
+
+/** Documents (and stored files) deleted per transaction. Well under Convex's
+ *  per-mutation limits even when every document is at its largest. */
+export const PURGE_BATCH = 400;
+
+export async function startPurge(ctx: MutationCtx, userId: Id<"users">, opts: { deleteIdentity: boolean }) {
+  const me = await ctx.db.get("users", userId);
+  if (!me) return;
+  if (me.deletingAt) return; // already under way
+
+  // Billing: a deleted account must never be charged again. Stripe keeps its
+  // own payment records, as the law requires.
+  if (me.stripeSubscriptionId) {
+    await ctx.scheduler.runAfter(0, internal.billing.cancelSubscriptionNow, { subscriptionId: me.stripeSubscriptionId });
+  }
+
+  // Social accounts: revoke at provider, wipe tokens, delete. A user has at most
+  // one per platform, so this is always small.
+  const accounts = await ctx.db
+    .query("socialAccounts")
+    .withIndex("by_userId", (q) => q.eq("userId", userId))
+    .take(20);
+  for (const a of accounts) {
+    if (a.accessToken || a.refreshToken) {
+      await ctx.scheduler.runAfter(0, internal.oauth.revokeAtProvider, {
+        platform: a.platform,
+        accessToken: a.accessToken,
+        refreshToken: a.refreshToken,
+      });
+    }
+    await ctx.db.delete("socialAccounts", a._id);
+  }
+
+  await ctx.db.patch("users", userId, { deletingAt: Date.now() });
+  await ctx.scheduler.runAfter(0, internal.account.purgeStep, {
+    userId,
+    clerkId: opts.deleteIdentity ? me.clerkId : undefined,
+  });
+}
+
+/** Self-serve "delete account & data". Called by Settings BEFORE the Clerk user
+ *  is deleted. Returns at once; the rest of the data follows within seconds. */
 export const purgeMine = mutation({
   args: { confirm: v.literal("DELETE") },
   handler: async (ctx: MutationCtx, _args) => {
     const userId = await currentUserId(ctx);
     if (!userId) throw new Error("not signed in");
-    const counts: Record<string, number> = {};
-    const bump = (k: string) => (counts[k] = (counts[k] ?? 0) + 1);
+    await startPurge(ctx, userId, { deleteIdentity: false });
+    return { started: true };
+  },
+});
 
-    // 0. Billing: a deleted account must never be charged again. Cancel the
-    //    subscription at Stripe right away (runs once this mutation commits).
-    //    Stripe keeps its own payment records, as the law requires.
-    const me = await ctx.db.get("users", userId);
-    if (me?.stripeSubscriptionId) {
-      await ctx.scheduler.runAfter(0, internal.billing.cancelSubscriptionNow, { subscriptionId: me.stripeSubscriptionId });
-      bump("stripeSubscriptionsCanceled");
-    }
+/** Delete up to PURGE_BATCH of the user's documents, leaf-first, then schedule
+ *  itself again. The users row is deleted only when nothing else is left. */
+export const purgeStep = internalMutation({
+  args: { userId: v.id("users"), clerkId: v.optional(v.string()) },
+  handler: async (ctx: MutationCtx, args) => {
+    const { userId } = args;
+    let budget = PURGE_BATCH;
+    const spend = () => --budget <= 0;
+    const again = async () => {
+      await ctx.scheduler.runAfter(0, internal.account.purgeStep, args);
+      return { done: false };
+    };
 
-    // 1. Social accounts: revoke at provider, wipe tokens, delete.
-    const accounts: Doc<"socialAccounts">[] = await ctx.db
-      .query("socialAccounts")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .collect();
-    for (const a of accounts) {
-      if (a.accessToken || a.refreshToken) {
-        await ctx.scheduler.runAfter(0, internal.oauth.revokeAtProvider, {
-          platform: a.platform,
-          accessToken: a.accessToken,
-          refreshToken: a.refreshToken,
-        });
-      }
-      await ctx.db.delete("socialAccounts", a._id);
-      bump("socialAccounts");
-    }
-
-    // 2. Posts → publications → metrics; tracked links → clicks.
-    const posts: Doc<"posts">[] = await ctx.db
-      .query("posts")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .collect();
+    // 1. Posts → publications → metrics; tracked links → clicks.
+    const posts = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", userId)).take(budget);
     for (const post of posts) {
-      const pubs: Doc<"publications">[] = await ctx.db
-        .query("publications")
-        .withIndex("by_postId", (q) => q.eq("postId", post._id))
-        .collect();
+      const pubs = await ctx.db.query("publications").withIndex("by_postId", (q) => q.eq("postId", post._id)).take(10);
       for (const pub of pubs) {
-        const metrics: Doc<"metrics">[] = await ctx.db
+        const metrics = await ctx.db
           .query("metrics")
           .withIndex("by_publicationId_and_capturedAt", (q) => q.eq("publicationId", pub._id))
-          .collect();
+          .take(budget);
         for (const m of metrics) {
           await ctx.db.delete("metrics", m._id);
-          bump("metrics");
+          if (spend()) return await again();
         }
         await ctx.db.delete("publications", pub._id);
-        bump("publications");
+        if (spend()) return await again();
       }
-      const links: Doc<"trackedLinks">[] = await ctx.db
-        .query("trackedLinks")
-        .withIndex("by_postId", (q) => q.eq("postId", post._id))
-        .collect();
+      const links = await ctx.db.query("trackedLinks").withIndex("by_postId", (q) => q.eq("postId", post._id)).take(10);
       for (const link of links) {
-        const clicks: Doc<"linkClicks">[] = await ctx.db
+        const clicks = await ctx.db
           .query("linkClicks")
           .withIndex("by_linkId_and_clickedAt", (q) => q.eq("linkId", link._id))
-          .collect();
+          .take(budget);
         for (const c of clicks) {
           await ctx.db.delete("linkClicks", c._id);
-          bump("linkClicks");
+          if (spend()) return await again();
         }
         await ctx.db.delete("trackedLinks", link._id);
-        bump("trackedLinks");
+        if (spend()) return await again();
       }
       await ctx.db.delete("posts", post._id);
-      bump("posts");
+      if (spend()) return await again();
     }
+    if (posts.length > 0) return await again();
 
-    // 3. Concepts (all statuses) → render jobs + stored media.
-    const statuses = ["draft", "preview_ready", "kept", "skipped", "render_queued", "rendered", "failed"] as const;
-    const conceptIds = new Set<Id<"concepts">>();
-    for (const status of statuses) {
-      const rows: Doc<"concepts">[] = await ctx.db
-        .query("concepts")
-        .withIndex("by_userId_and_status", (q) => q.eq("userId", userId).eq("status", status))
-        .collect();
-      for (const c of rows) {
-        conceptIds.add(c._id);
-        if (c.previewThumbId) await ctx.storage.delete(c.previewThumbId);
-        if (c.videoId) await ctx.storage.delete(c.videoId);
-        await ctx.db.delete("concepts", c._id);
-        bump("concepts");
-      }
-    }
-    // renderJobs has no user index; it is small and bounded — filter by the ids we just removed.
-    const jobs: Doc<"renderJobs">[] = await ctx.db.query("renderJobs").collect();
-    for (const j of jobs) {
-      if (conceptIds.has(j.conceptId)) {
+    // 2. Concepts (every status) → their render jobs and stored media.
+    const concepts = await ctx.db
+      .query("concepts")
+      .withIndex("by_userId_and_status", (q) => q.eq("userId", userId))
+      .take(Math.ceil(budget / 4));
+    for (const c of concepts) {
+      // Jobs first; a concept is deleted only once all its jobs are gone.
+      const jobs = await ctx.db.query("renderJobs").withIndex("by_conceptId", (q) => q.eq("conceptId", c._id)).take(budget);
+      for (const j of jobs) {
         await ctx.db.delete("renderJobs", j._id);
-        bump("renderJobs");
+        if (spend()) return await again();
       }
+      if (c.previewThumbId) await ctx.storage.delete(c.previewThumbId);
+      if (c.videoId) await ctx.storage.delete(c.videoId);
+      await ctx.db.delete("concepts", c._id);
+      budget -= 4;
+      if (budget <= 0) return await again();
     }
+    if (concepts.length > 0) return await again();
 
-    // 4. Brands (+ screenshots) and per-brand voice edits.
-    const brands: Doc<"brands">[] = await ctx.db
-      .query("brands")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .collect();
+    // 3. Brands (+ screenshots, presenter photo) and per-brand voice edits.
+    const brands = await ctx.db.query("brands").withIndex("by_userId", (q) => q.eq("userId", userId)).take(5);
     for (const b of brands) {
-      for (const sid of b.screenshotIds) await ctx.storage.delete(sid);
-      const edits: Doc<"voiceEdits">[] = await ctx.db
-        .query("voiceEdits")
-        .withIndex("by_brandId", (q) => q.eq("brandId", b._id))
-        .collect();
+      const edits = await ctx.db.query("voiceEdits").withIndex("by_brandId", (q) => q.eq("brandId", b._id)).take(budget);
       for (const e of edits) {
         await ctx.db.delete("voiceEdits", e._id);
-        bump("voiceEdits");
+        if (spend()) return await again();
       }
+      for (const sid of b.screenshotIds) await ctx.storage.delete(sid);
+      if (b.presenterImageId) await ctx.storage.delete(b.presenterImageId);
       await ctx.db.delete("brands", b._id);
-      bump("brands");
+      budget -= 1 + b.screenshotIds.length;
+      if (budget <= 0) return await again();
     }
+    if (brands.length > 0) return await again();
 
-    // 5. Pipeline requests, credit ledger, pending OAuth states, the user row.
-    const reqs: Doc<"pipelineRequests">[] = await ctx.db
-      .query("pipelineRequests")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .collect();
+    // 4. Pipeline requests, credit ledger, OAuth states.
+    const reqs = await ctx.db.query("pipelineRequests").withIndex("by_userId", (q) => q.eq("userId", userId)).take(budget);
     for (const r of reqs) {
       await ctx.db.delete("pipelineRequests", r._id);
-      bump("pipelineRequests");
+      if (spend()) return await again();
     }
-    const ledger: Doc<"creditLedger">[] = await ctx.db
-      .query("creditLedger")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .collect();
+    const ledger = await ctx.db.query("creditLedger").withIndex("by_userId", (q) => q.eq("userId", userId)).take(budget);
     for (const l of ledger) {
       await ctx.db.delete("creditLedger", l._id);
-      bump("creditLedger");
+      if (spend()) return await again();
     }
-    const states: Doc<"oauthStates">[] = await ctx.db.query("oauthStates").collect();
+    const states = await ctx.db.query("oauthStates").withIndex("by_userId", (q) => q.eq("userId", userId)).take(budget);
     for (const st of states) {
-      if (st.userId === userId) {
-        await ctx.db.delete("oauthStates", st._id);
-        bump("oauthStates");
-      }
+      await ctx.db.delete("oauthStates", st._id);
+      if (spend()) return await again();
     }
-    await ctx.db.delete("users", userId);
-    bump("users");
-    return counts;
+    if (reqs.length + ledger.length + states.length > 0) return await again();
+
+    // 5. Last: the user row, then (guests) the sign-in identity.
+    const user = await ctx.db.get("users", userId);
+    if (user) await ctx.db.delete("users", userId);
+    if (args.clerkId) await ctx.scheduler.runAfter(0, internal.guests.deleteIdentity, { clerkId: args.clerkId });
+    return { done: true };
   },
 });

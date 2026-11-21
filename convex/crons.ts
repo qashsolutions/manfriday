@@ -38,6 +38,7 @@ export const reapStaleClaims = internalMutation({
 
 const crons = cronJobs();
 crons.interval("reap stale render claims", { minutes: 2 }, internal.crons.reapStaleClaims, {});
+crons.interval("delete expired guest accounts", { minutes: 15 }, internal.guests.expireDue, {});
 crons.interval("publish due publications", { minutes: 1 }, internal.publishing.publishDue, {});
 // Declared to Google: view counts refreshed at most once per day. 06:15 UTC is a
 // quiet hour for both India and the Americas and well clear of the PT quota reset.

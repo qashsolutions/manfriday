@@ -3,6 +3,9 @@ import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { GUEST } from "../lib/site";
+
+const DAY = 24 * 60 * 60 * 1000;
 
 /** Resolve the signed-in Clerk user to our users row (null when absent). */
 export async function currentUserId(ctx: QueryCtx | MutationCtx): Promise<Id<"users"> | null> {
@@ -42,6 +45,8 @@ export const ensureCurrent = mutation({
       videosUsedThisPeriod: 0,
       timezone: args.timezone ?? "UTC",
       videoGrant: parked?.videos,
+      // A guest invite (guests.ts) starts the 21-day clock at first sign-in.
+      ...(parked?.guest && (parked.expiresAt ?? 0) > Date.now() ? { guestExpiresAt: Date.now() + GUEST.days * DAY } : {}),
     });
     if (parked) await ctx.db.delete("pendingGrants", parked._id);
     // First sign-in: say hello and tell them what to do next.

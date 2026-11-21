@@ -41,6 +41,16 @@ export function withUtm(url: string, platformHint = "social"): string {
   }
 }
 
+/** Clicks logged before clickCount existed (21 Nov 2026), excluding the one
+ *  just inserted. Those links are days old, so this is a small, one-off read. */
+async function legacyClickCount(ctx: MutationCtx, linkId: Id<"trackedLinks">): Promise<number> {
+  const rows = await ctx.db
+    .query("linkClicks")
+    .withIndex("by_linkId_and_clickedAt", (q) => q.eq("linkId", linkId))
+    .take(5000);
+  return Math.max(0, rows.length - 1);
+}
+
 /** Called by the /l/<slug> route: records the click and returns where to send
  *  the visitor. Public and unauthenticated by design (the visitor is anonymous);
  *  it only ever inserts one small row and reveals nothing but the target URL. */
@@ -62,6 +72,10 @@ export const click = mutation({
         clickedAt: Date.now(),
         referrerPlatform: args.referrerPlatform,
       });
+      // The running total Analytics reads, so a post that takes off is counted
+      // in full. Links older than the counter start from their logged rows once.
+      const base = link.clickCount ?? (await legacyClickCount(ctx, link._id));
+      await ctx.db.patch("trackedLinks", link._id, { clickCount: base + 1 });
     }
     return { targetUrl: link.targetUrl };
   },

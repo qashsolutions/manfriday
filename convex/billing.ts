@@ -84,6 +84,7 @@ export const myBilling = query({
       canPause: m.standing === "paid" && !pausedUntil && now >= cooldownEnds,
       pauseAvailableAt: m.standing === "paid" && now < cooldownEnds ? cooldownEnds : null,
       canManage: !!user.stripeCustomerId,
+      guestEndsAt: user.guestExpiresAt ?? null,
     };
   },
 });
@@ -237,7 +238,12 @@ export const resumePlan = mutation({
 });
 
 async function releaseHeld(ctx: MutationCtx, userId: Id<"users">, at: number) {
-  const posts = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", userId)).take(200);
+  // Held posts came due during the pause (≤ 3 days) or are still ahead, so a
+  // 30-day window always covers them, however many posts the user has.
+  const posts = await ctx.db
+    .query("posts")
+    .withIndex("by_userId_and_publishAt", (q) => q.eq("userId", userId).gt("publishAt", at - 30 * 24 * 60 * 60 * 1000))
+    .take(500);
   for (const post of posts) {
     const pubs = await ctx.db.query("publications").withIndex("by_postId", (q) => q.eq("postId", post._id)).take(5);
     for (const p of pubs) {

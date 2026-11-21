@@ -65,6 +65,9 @@ export const upsertBrand = mutation({
       status: "ready" as const,
     };
     if (existing) {
+      // Re-scraped: the old screenshots are replaced, so delete their files.
+      const keep = new Set(args.screenshotIds);
+      for (const sid of existing.screenshotIds) if (!keep.has(sid)) await ctx.storage.delete(sid);
       await ctx.db.patch("brands", existing._id, {
         ...fields,
         briefVersion: existing.briefVersion + 1,
@@ -78,6 +81,54 @@ export const upsertBrand = mutation({
       briefVersion: 1,
     });
     return { brandId, briefVersion: 1 };
+  },
+});
+
+/** The brief already made for this user's URL, if any (determinism-first: one
+ *  brief call per URL, then the stored — possibly user-edited — brief is reused).
+ *  A brand still "analyzing" (a run that failed mid-way) doesn't count. */
+export const cachedBrand = query({
+  args: { token: v.string(), userId: v.id("users"), url: v.string() },
+  handler: async (ctx: QueryCtx, args) => {
+    requireWorker(args.token);
+    const brands = await ctx.db
+      .query("brands")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .take(20);
+    const brand = brands.find((b) => b.url === args.url && b.status === "ready");
+    if (!brand) return null;
+    return {
+      brandId: brand._id,
+      briefVersion: brand.briefVersion,
+      brief: {
+        name: brand.name,
+        one_liner: brand.oneLiner,
+        audience: brand.audience,
+        tone: brand.tone,
+        niche: brand.niche,
+        language: brand.language,
+      },
+    };
+  },
+});
+
+/** How often each template has already been used for this brand (its newest
+ *  1,000 picks), so a new batch reaches for trends the user hasn't seen. */
+export const templateUseCounts = query({
+  args: { token: v.string(), brandId: v.id("brands") },
+  handler: async (ctx: QueryCtx, args) => {
+    requireWorker(args.token);
+    const rows = await ctx.db
+      .query("concepts")
+      .withIndex("by_brandId", (q) => q.eq("brandId", args.brandId))
+      .order("desc")
+      .take(1000);
+    const counts: Record<string, number> = {};
+    for (const c of rows) {
+      if (c.variantOf) continue; // "also in" copies reuse their source's template
+      counts[c.templateId] = (counts[c.templateId] ?? 0) + 1;
+    }
+    return counts;
   },
 });
 
@@ -117,7 +168,7 @@ export const listActiveTemplates = query({
       .query("trendTemplates")
       .withIndex("by_active_and_engagementScore", (q) => q.eq("active", true))
       .order("desc")
-      .take(100);
+      .take(500); // the whole curated library (target 300–500), not just the top 100
     return rows.map((t) => ({
       id: t._id,
       slug: t.slug,
@@ -227,9 +278,9 @@ export const batchStatus = query({
     requireWorker(args.token);
     const rows = await ctx.db
       .query("concepts")
-      .withIndex("by_userId_and_status", (q) => q.eq("userId", args.userId))
-      .take(500);
-    const batch = rows.filter((c) => c.batchId === args.batchId);
+      .withIndex("by_batchId", (q) => q.eq("batchId", args.batchId))
+      .take(50);
+    const batch = rows.filter((c) => c.userId === args.userId);
     return batch.map((c) => ({
       conceptId: c._id,
       status: c.status,

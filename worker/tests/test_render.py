@@ -76,6 +76,23 @@ def test_no_presenter_concepts_without_photo():
     assert len(without) == 10
 
 
+def test_second_batch_brings_new_trends():
+    """A brand's second batch reaches for trends it hasn't used yet (21 Nov 2026:
+    re-entering a URL used to return the same ten trends every time)."""
+    tmpl = [
+        {"id": f"{fmt}-{i}", "format": fmt, "niches": ["x"], "engagementScore": 100 - i,
+         "structure": {"slots": [{"id": "hook"}]}}
+        for fmt in ("slideshow", "hook_video", "avatar") for i in range(10)
+    ]
+    first = plan_batch(tmpl, "x", 10)
+    used: dict[str, int] = {}
+    for t, _ in first:
+        used[t["id"]] = used.get(t["id"], 0) + 1
+    second = plan_batch(tmpl, "x", 10, used=used)
+    assert not {t["id"] for t, _ in first} & {t["id"] for t, _ in second}
+    assert plan_batch(tmpl, "x", 10, used=used) == second  # still deterministic
+
+
 @pytest.mark.parametrize("code,text", [
     ("hi", "6 महीने तक ₹0 कमाया, फिर एक चीज़ बदली"),
     ("ta", "4 TikTok ஒரே weekend-ல, அப்புறம் 5 மாசம்"),

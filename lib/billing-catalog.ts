@@ -35,8 +35,8 @@ export const CATALOG: CatalogProduct[] = [
     key: t.id,
     taxCode: TAX_CODE,
     name: `Man Friday ${t.name}`,
-    description: `${t.videos} videos a month, any format. ${t.workspaces} workspaces. Every language.`,
-    metadata: { app: "manfriday", mf_key: t.id, videos_per_month: String(t.videos), workspaces: String(t.workspaces) },
+    description: `${t.videos} videos a month, any format. Every language.`,
+    metadata: { app: "manfriday", mf_key: t.id, videos_per_month: String(t.videos) },
     prices: [
       { lookupKey: `${t.id}_monthly`, amountCents: cents(t.monthly), recurring: { interval: "month" as const, intervalCount: 1 }, term: "monthly" as const },
       { lookupKey: `${t.id}_quarterly`, amountCents: cents(t.quarterly), recurring: { interval: "month" as const, intervalCount: 3 }, term: "quarterly" as const },

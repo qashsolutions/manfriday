@@ -63,6 +63,11 @@ async function createPost(ctx: MutationCtx, userId: Id<"users">, conceptId: Id<"
     if (concept.status !== "rendered" || !concept.videoId) {
       throw new ConvexError("concept isn't fully rendered yet");
     }
+    const already = await ctx.db
+      .query("posts")
+      .withIndex("by_userId_and_conceptId", (q) => q.eq("userId", userId).eq("conceptId", conceptId))
+      .first();
+    if (already) throw new ConvexError("this video is already scheduled");
     const accounts = await ctx.db
       .query("socialAccounts")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
@@ -147,11 +152,19 @@ export const autoSchedule = internalMutation({
     if (!user || user.autoSchedule === false) return null;
 
     // Already scheduled? Never double-book.
-    const posts = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", concept.userId)).take(200);
-    if (posts.some((p) => p.conceptId === args.conceptId)) return null;
+    const already = await ctx.db
+      .query("posts")
+      .withIndex("by_userId_and_conceptId", (q) => q.eq("userId", concept.userId).eq("conceptId", args.conceptId))
+      .first();
+    if (already) return null;
 
+    // Days that already have a post, from yesterday on (one a day).
+    const upcoming = await ctx.db
+      .query("posts")
+      .withIndex("by_userId_and_publishAt", (q) => q.eq("userId", concept.userId).gt("publishAt", Date.now() - 24 * 60 * 60 * 1000))
+      .take(500);
     const timezone = user.timezone || "UTC";
-    const taken = posts.filter((p) => p.publishAt > Date.now() - 24 * 60 * 60 * 1000).map((p) => localDayKey(timezone, p.publishAt));
+    const taken = upcoming.map((p) => localDayKey(timezone, p.publishAt));
     let at = nextSlot(timezone, Date.now(), taken);
 
     // Respect the shared YouTube ceiling: move to the first day with room.
@@ -249,10 +262,14 @@ export const approveAllPending = mutation({
   handler: async (ctx: MutationCtx) => {
     const userId = await currentUserId(ctx);
     if (!userId) throw new ConvexError("not signed in");
-    const posts = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", userId)).take(200);
+    // Everything still waiting, newest included: from yesterday on.
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_userId_and_publishAt", (q) => q.eq("userId", userId).gt("publishAt", Date.now() - 24 * 60 * 60 * 1000))
+      .take(500);
     let approved = 0;
     for (const post of posts) {
-      if (post.approvedAt || post.publishAt < Date.now() - 24 * 60 * 60 * 1000) continue;
+      if (post.approvedAt) continue;
       await ctx.db.patch("posts", post._id, { approvedAt: Date.now() });
       approved++;
     }

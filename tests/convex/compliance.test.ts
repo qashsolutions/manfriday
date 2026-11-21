@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../convex/_generated/api";
 import { CLERK_ID, harness, seed } from "./setup";
 
@@ -58,11 +58,13 @@ describe("YouTube compliance promises", () => {
     const s = await seed(t, { presenter: true });
     const me = t.withIdentity({ subject: CLERK_ID });
     await me.mutation(api.publishing.schedulePost, { conceptId: s.conceptId, publishAt: Date.now() + 60_000 });
-    const counts = await me.mutation(api.account.purgeMine, { confirm: "DELETE" });
-    expect(counts.users).toBe(1);
-    expect(counts.socialAccounts).toBe(1);
-    expect(counts.posts).toBe(1);
-    expect(counts.trackedLinks).toBe(1);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+    const res = await me.mutation(api.account.purgeMine, { confirm: "DELETE" });
+    expect(res.started).toBe(true);
+    // Tokens are gone at once, in the same transaction — before any batch runs.
+    expect(await t.run((ctx) => ctx.db.query("socialAccounts").collect())).toHaveLength(0);
+    await t.finishAllScheduledFunctions(() => {});
+    vi.unstubAllGlobals();
     const left = await t.run(async (ctx) => ({
       users: await ctx.db.query("users").collect(),
       brands: await ctx.db.query("brands").collect(),

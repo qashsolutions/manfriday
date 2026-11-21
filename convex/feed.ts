@@ -62,14 +62,14 @@ export const myRendered = query({
       .order("desc")
       .take(20);
     // A rendered concept that already has a post is in the queue, not "ready to schedule".
-    const posts = await ctx.db
-      .query("posts")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .take(200);
-    const scheduled = new Set(posts.map((p) => p.conceptId));
     const out = [];
     for (const c of rows) {
-      if (scheduled.has(c._id)) continue;
+      // A rendered concept that already has a post is in the queue, not "ready".
+      const post = await ctx.db
+        .query("posts")
+        .withIndex("by_userId_and_conceptId", (q) => q.eq("userId", userId).eq("conceptId", c._id))
+        .first();
+      if (post) continue;
       const template = await ctx.db.get("trendTemplates", c.templateId);
       out.push({
         id: c._id,
@@ -164,11 +164,11 @@ export const discard = mutation({
     const c = await ctx.db.get("concepts", args.conceptId);
     if (!c || c.userId !== userId) throw new Error("not your concept");
     if (c.status !== "rendered") throw new Error("only rendered videos can be discarded here");
-    const posts = await ctx.db
+    const post = await ctx.db
       .query("posts")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .take(200);
-    if (posts.some((p) => p.conceptId === c._id)) throw new Error("this video is already scheduled");
+      .withIndex("by_userId_and_conceptId", (q) => q.eq("userId", userId).eq("conceptId", c._id))
+      .first();
+    if (post) throw new Error("this video is already scheduled");
     if (c.videoId) await ctx.storage.delete(c.videoId);
     if (c.previewThumbId) await ctx.storage.delete(c.previewThumbId);
     await ctx.db.patch("concepts", args.conceptId, { status: "skipped", videoId: undefined, previewThumbId: undefined, swipedAt: Date.now() });

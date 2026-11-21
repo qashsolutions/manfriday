@@ -27,6 +27,9 @@ const app = defineApp({
     ALERT_EMAIL: v.optional(v.string()),
     ALERT_FROM: v.optional(v.string()),
     EMAIL_FROM: v.optional(v.string()), // product email sender; defaults to Friday <friday@manfriday.app>
+    // Guest accounts (guests.ts): deleting an expired guest's sign-in needs the
+    // Clerk Backend API. Same instance as the site's CLERK_SECRET_KEY.
+    CLERK_SECRET_KEY: v.optional(v.string()),
   },
 });
 

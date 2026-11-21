@@ -27,6 +27,10 @@ export function FoundingOffer() {
               once — <strong>3 full years</strong> of Friday · Studio tier ${studio.threeYear}
             </span>
           </div>
+          <p className={`mono ${styles.fine}`}>
+            {solo.name}: {solo.videos} videos every month for 36 months · {studio.name}:{" "}
+            {studio.videos} a month
+          </p>
           <ul className={styles.features}>
             {SHARED_FEATURES.map((f) => (
               <li key={f}>

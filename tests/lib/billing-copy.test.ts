@@ -17,6 +17,14 @@ describe("billing copy", () => {
     expect(meterChip({ ...base, unlimited: true, standing: "free", remaining: 9999 }).text).toBe("UNLIMITED");
   });
 
+  test("a tester's grant is the number shown, not the standard 3 (and a guest sees the end date)", () => {
+    const chip = meterChip({ ...base, standing: "free", limit: 25, remaining: 25 });
+    expect(chip.text).toBe("25 OF 25 FREE");
+    expect(atZero("free_used", { ...base, standing: "free", limit: 25, remaining: 0 }).title).toBe("You've used your 25 free videos.");
+    const guest = meterChip({ ...base, standing: "free", limit: 25, remaining: 7, guestEndsAt: Date.UTC(2026, 11, 12, 12) });
+    expect(guest.title).toMatch(/Guest account: it and its data are deleted on Dec 12/);
+  });
+
   test("the meter says free, low and out plainly", () => {
     expect(meterChip({ ...base, standing: "free", limit: 3, remaining: 2 }).text).toBe("2 OF 3 FREE");
     expect(meterChip({ ...base, remaining: 2 }).tone).toBe("low");
@@ -27,7 +35,7 @@ describe("billing copy", () => {
   });
 
   test("at zero on Free, the sheet offers the two plans and says previews stay free", () => {
-    const s = atZero("free_used", { ...base, standing: "free" });
+    const s = atZero("free_used", { ...base, standing: "free", limit: 3 });
     expect(s.title).toMatch(/3 free videos/);
     expect(s.body).toMatch(/Previews stay free/);
     expect(s.actions.map((a) => ("lookupKey" in a ? a.lookupKey : "portal"))).toEqual(["solo_monthly", "studio_monthly"]);

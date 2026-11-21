@@ -209,3 +209,61 @@
     grid-template-columns: 1fr;
   }
 }
+
+.termNote {
+  font-size: 12.5px;
+  color: var(--faint);
+  margin: 0;
+}
+
+.countsLead {
+  font-size: 15px;
+  color: var(--dim);
+  margin: 0;
+}
+
+.countsLead strong {
+  color: var(--ink);
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+
+.countsHead {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--faint);
+  margin: 0 0 8px;
+}
+
+.countsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.countsList[data-kind="uses"] li::before {
+  content: "1 ";
+  font-family: var(--font-mono, monospace);
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+.countsList[data-kind="free"] li::before {
+  content: "✓ ";
+  color: var(--mint);
+}
+
+@media (max-width: 720px) {
+  .counts {
+    grid-template-columns: 1fr;
+  }
+}

@@ -32,8 +32,8 @@ type Env = {
   readonly CONVEX_SITE_URL: string;
   readonly ALERT_EMAIL: string | undefined;
   readonly ALERT_FROM: string | undefined;
-  readonly ANTHROPIC_API_KEY: string | undefined;
   readonly APP_URL: string | undefined;
+  readonly CLERK_SECRET_KEY: string | undefined;
   readonly EMAIL_FROM: string | undefined;
   readonly GOOGLE_CLIENT_ID: string | undefined;
   readonly GOOGLE_CLIENT_SECRET: string | undefined;

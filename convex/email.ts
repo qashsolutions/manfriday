@@ -227,8 +227,10 @@ export const weeklyDigest = internalMutation({
     let sent = 0;
     for (const user of users) {
       if (user.emailOptOut || !user.email) continue;
-      const posts: Doc<"posts">[] = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", user._id)).take(200);
-      const recent = posts.filter((p) => p.publishAt > since && p.publishAt <= Date.now());
+      const recent: Doc<"posts">[] = await ctx.db
+        .query("posts")
+        .withIndex("by_userId_and_publishAt", (q) => q.eq("userId", user._id).gt("publishAt", since).lte("publishAt", Date.now()))
+        .take(200);
       if (recent.length === 0) continue;
 
       let clicks = 0;

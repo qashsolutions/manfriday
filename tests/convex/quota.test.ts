@@ -52,7 +52,11 @@ describe("schedulePost quota gate", () => {
     const when = Date.now() + 3 * 60 * 60 * 1000;
     // Six queued YouTube uploads = 9,600 units reserved; a seventh will not fit in 10,000.
     await t.run(async (ctx) => {
-      const postId = await ctx.db.insert("posts", { userId: s.userId, conceptId: s.conceptId, publishAt: when, captionByPlatform: {} });
+      // Another video's post fills the day (one video can only be scheduled once).
+      const src = (await ctx.db.get("concepts", s.conceptId))!;
+      const { _id, _creationTime, ...rest } = src;
+      const other = await ctx.db.insert("concepts", { ...rest, batchId: "b-other" });
+      const postId = await ctx.db.insert("posts", { userId: s.userId, conceptId: other, publishAt: when, captionByPlatform: {} });
       for (let i = 0; i < 6; i++) {
         await ctx.db.insert("publications", {
           postId, accountId: s.youtube, platform: "youtube", status: "queued",

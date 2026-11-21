@@ -21,6 +21,8 @@ export type BillingView = {
   canPause: boolean;
   pauseAvailableAt: number | null;
   canManage: boolean;
+  /** Guest accounts: when the account and its data are deleted. */
+  guestEndsAt?: number | null;
 };
 
 export type BillingError = { kind: "ALLOWANCE" | "PLAN" | "QUOTA_FULL"; reason: string; message: string };
@@ -44,7 +46,13 @@ export function meterChip(b: BillingView): { text: string; tone: "ok" | "low" | 
   if (b.standing === "lapsed") return { text: "PLAN ENDED", tone: "out", title: "Pick a plan to keep making videos." };
   const tone = b.remaining === 0 ? "out" : b.remaining <= 2 ? "low" : "ok";
   if (b.standing === "free") {
-    return { text: `${b.remaining} OF ${FREE.videosTotal} FREE`, tone, title: `${b.remaining} free ${b.remaining === 1 ? "video" : "videos"} left. Previews are always free.` };
+    // b.limit, not FREE.videosTotal: a tester's grant replaces the standard 3.
+    const ends = b.guestEndsAt ? ` Guest account: it and its data are deleted on ${day(b.guestEndsAt)}.` : "";
+    return {
+      text: `${b.remaining} OF ${b.limit} FREE`,
+      tone,
+      title: `${b.remaining} free ${b.remaining === 1 ? "video" : "videos"} left. Previews are always free.${ends}`,
+    };
   }
   const refill = b.resetsAt ? ` Refills ${day(b.resetsAt)}.` : "";
   const extra = b.topup > 0 ? ` Includes ${b.topup} top-up.` : "";
@@ -75,7 +83,7 @@ export function atZero(reason: string, b: BillingView | null): { title: string; 
     return { title: "Your plan has ended.", body: "Pick a plan to keep making videos. Your brand, drafts and schedule are all still here.", actions: plans };
   }
   return {
-    title: `You've used your ${FREE.videosTotal} free videos.`,
+    title: `You've used your ${b?.limit ?? FREE.videosTotal} free videos.`,
     body: "Pick a plan to keep the ones you like. Previews stay free, and a card is only asked for at checkout.",
     actions: plans,
   };

@@ -197,11 +197,13 @@ export const myAnalytics = query({
         .take(5);
       let clicks = 0;
       for (const l of links) {
-        const c = await ctx.db
-          .query("linkClicks")
-          .withIndex("by_linkId_and_clickedAt", (q) => q.eq("linkId", l._id))
-          .take(1000);
-        clicks += c.length;
+        // Links not clicked since the counter shipped still count their logged rows.
+        clicks +=
+          l.clickCount ??
+          (await ctx.db
+            .query("linkClicks")
+            .withIndex("by_linkId_and_clickedAt", (q) => q.eq("linkId", l._id))
+            .take(5000)).length;
       }
       const platforms = [];
       for (const p of pubs) {

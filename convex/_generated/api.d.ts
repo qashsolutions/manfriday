@@ -20,6 +20,7 @@ import type * as email from "../email.js";
 import type * as feed from "../feed.js";
 import type * as feedback from "../feedback.js";
 import type * as google from "../google.js";
+import type * as guests from "../guests.js";
 import type * as http from "../http.js";
 import type * as links from "../links.js";
 import type * as oauth from "../oauth.js";
@@ -51,6 +52,7 @@ declare const fullApi: ApiFromModules<{
   feed: typeof feed;
   feedback: typeof feedback;
   google: typeof google;
+  guests: typeof guests;
   http: typeof http;
   links: typeof links;
   oauth: typeof oauth;

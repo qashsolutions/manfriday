@@ -76,7 +76,7 @@ export const listAlerts = internalQuery({
 
 // ── in-app admin (public functions, but every one checks the super-user flag) ──
 
-async function requireSuperUser(ctx: QueryCtx) {
+export async function requireSuperUser(ctx: QueryCtx | MutationCtx) {
   const userId = await currentUserId(ctx);
   if (!userId) return null;
   const me = await ctx.db.get("users", userId);
@@ -97,22 +97,28 @@ export const operatorView = query({
     const users = await ctx.db.query("users").take(200);
     const feedback = await ctx.db.query("feedback").order("desc").take(20);
     const alerts = await ctx.db.query("alerts").order("desc").take(20);
-    const concepts = await ctx.db.query("concepts").take(1000);
-    const posts = await ctx.db.query("posts").take(500);
-    const byUser = (id: string) => ({
-      videos: concepts.filter((c) => c.userId === id && c.status === "rendered").length,
-      posts: posts.filter((p) => p.userId === id).length,
-    });
-    return {
-      testers: users.map((u) => ({
+    // Per-user indexed counts (capped at 500 each), not a scan of the whole table.
+    const testers = [];
+    for (const u of users) {
+      const videos = await ctx.db
+        .query("concepts")
+        .withIndex("by_userId_and_status", (q) => q.eq("userId", u._id).eq("status", "rendered"))
+        .take(500);
+      const posts = await ctx.db.query("posts").withIndex("by_userId", (q) => q.eq("userId", u._id)).take(500);
+      testers.push({
         email: u.email,
         plan: u.plan,
         grant: u.videoGrant ?? null,
         team: !!u.superUser,
+        guestEndsAt: u.guestExpiresAt ?? null,
         used: u.videosUsedThisPeriod,
         joined: u._creationTime,
-        ...byUser(u._id),
-      })),
+        videos: videos.length,
+        posts: posts.length,
+      });
+    }
+    return {
+      testers,
       feedback: feedback.map((f) => ({ at: f._creationTime, from: f.email, page: f.page, message: f.message })),
       alerts: alerts.map((a) => ({ at: a._creationTime, kind: a.kind, who: a.userEmail ?? null, emailed: !!a.notifiedAt, message: a.message })),
     };

@@ -44,12 +44,13 @@ export const myLatestRequest = query({
     let total = 0;
     let ready = 0;
     if (req.batchId) {
+      const batchId = req.batchId;
       const rows = await ctx.db
         .query("concepts")
-        .withIndex("by_userId_and_status", (q) => q.eq("userId", userId))
-        .take(300);
+        .withIndex("by_batchId", (q) => q.eq("batchId", batchId))
+        .take(50);
       for (const c of rows) {
-        if (c.batchId !== req.batchId) continue;
+        if (c.userId !== userId) continue;
         total += 1;
         if (c.status !== "draft" && c.status !== "failed") ready += 1;
       }

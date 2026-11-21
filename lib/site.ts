@@ -16,7 +16,16 @@ export const POLICY = {
 export const FREE = {
   name: "Free",
   videosTotal: 3, // any format
-  workspaces: 1,
+} as const;
+
+/** Guest accounts for friends testing the product (21 Nov 2026): invite-only,
+ *  at most `cap` at a time, deleted — data and sign-in — `days` after first
+ *  sign-in. The invite link itself lapses after `inviteDays`. */
+export const GUEST = {
+  cap: 10,
+  days: 21,
+  videos: 25,
+  inviteDays: 7,
 } as const;
 
 /** D5 v6 (15 Sep 2026): the visible unit is VIDEOS per month, any format — no sub-caps.
@@ -29,7 +38,6 @@ export type Tier = {
   annual: number;
   threeYear: number; // Founding 200 only — pay today, no cancellation
   videos: number; // rendered videos per month, any format mix
-  workspaces: number;
   highlight: boolean;
 };
 
@@ -42,7 +50,6 @@ export const TIERS: readonly Tier[] = [
     annual: 150,
     threeYear: 200,
     videos: 20,
-    workspaces: 2,
     highlight: false,
   },
   {
@@ -53,7 +60,6 @@ export const TIERS: readonly Tier[] = [
     annual: 250,
     threeYear: 300,
     videos: 100,
-    workspaces: 2,
     highlight: true,
   },
 ] as const;
@@ -63,14 +69,33 @@ export const TOPUP = { videos: 10, price: 5 } as const;
 /** The 3-year deal is scoped to the first N customers, pay-today, non-cancellable. */
 export const FOUNDING = { cap: 200, label: "Founding 200" } as const;
 
+/** Every line here must describe something that works today (21 Nov 2026 audit:
+ *  "2 workspaces", "hands-free", "direct publish to TikTok" and "more like this"
+ *  were advertised but never built, and confused testers). */
 export const SHARED_FEATURES = [
-  "Slideshows, faceless videos, presenter videos with your face",
-  "Direct publish to TikTok + YouTube Shorts",
+  "Slideshows, faceless videos, and presenter videos that open on your photo",
+  "YouTube Shorts: Friday posts at the time you approve",
+  "TikTok: Friday sends the video to your TikTok inbox — you tap post",
   "Tracked links — see which post sent people to you",
   "Trend library curated for your niche",
   "Any content language — all 14, Hinglish included",
-  "Analytics + “more like this”",
+  "Link clicks for every post, plus YouTube view counts",
 ] as const;
+
+/** What uses up a video, and what doesn't. Mirrors convex/allowance.ts + convex/feed.ts. */
+export const VIDEO_RULES = {
+  picksPerBatch: 10, // worker/pipeline/generate.py default count
+  counts: [
+    "Swiping right on a pick: Friday renders it in full quality",
+    "Each extra language of a kept video (“also in”)",
+  ],
+  free: [
+    "Previews, browsing and skipping",
+    "Posting one video to both TikTok and YouTube Shorts — it counts once",
+    "A render that fails — the video is given back automatically",
+  ],
+  note: "Deleting a video you kept doesn't give it back — skip in Picks instead.",
+} as const;
 
 /** D6 v2 (5 Sep 2026): launch content languages. */
 export const LANGUAGES = [
