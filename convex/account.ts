@@ -170,7 +170,19 @@ export const purgeStep = internalMutation({
       await ctx.db.delete("oauthStates", st._id);
       if (spend()) return await again();
     }
-    if (reqs.length + ledger.length + states.length > 0) return await again();
+    // Their reports stay (what testers told us outlives a 21-day guest), but
+    // nothing in them identifies the person any more.
+    const reports = await ctx.db.query("feedback").withIndex("by_userId", (q) => q.eq("userId", userId)).take(budget);
+    for (const f of reports) {
+      const { device: _device, ...rest } = f.context ?? {};
+      await ctx.db.patch("feedback", f._id, {
+        userId: undefined,
+        email: "",
+        context: f.context ? rest : undefined,
+      });
+      if (spend()) return await again();
+    }
+    if (reqs.length + ledger.length + states.length + reports.length > 0) return await again();
 
     // 5. Social accounts again: one connected after startPurge ran would
     //    otherwise outlive the account with live tokens.

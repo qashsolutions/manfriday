@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { currentUserId } from "./users";
+import { describe } from "./feedback";
 
 /** Make an account a team test account (unlimited videos) or back to normal. */
 export const setSuperUser = internalMutation({
@@ -119,7 +120,7 @@ export const operatorView = query({
     }
     return {
       testers,
-      feedback: feedback.map((f) => ({ at: f._creationTime, from: f.email, page: f.page, message: f.message })),
+      feedback: feedback.map((f) => ({ at: f._creationTime, from: f.email, page: f.page, message: f.message, details: f.context ? describe(f.context) : null })),
       alerts: alerts.map((a) => ({ at: a._creationTime, kind: a.kind, who: a.userEmail ?? null, emailed: !!a.notifiedAt, message: a.message })),
     };
   },

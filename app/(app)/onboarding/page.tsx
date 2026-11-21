@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { noteError } from "@/lib/report-context";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -28,6 +29,10 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const submit = useMutation(api.onboarding.submitUrl);
   const request = useQuery(api.onboarding.myLatestRequest);
+  useEffect(() => noteError(error), [error]);
+  useEffect(() => {
+    if (request?.status === "failed") noteError(`Friday couldn't read ${request.url}${request.error ? `: ${request.error}` : ""}`);
+  }, [request?.status, request?.url, request?.error]);
   const brand = useQuery(api.brands.myBrand);
   const setBrandLanguage = useMutation(api.brands.setLanguage);
 

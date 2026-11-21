@@ -73,11 +73,11 @@ export const send = internalAction({
 
 /** Feedback arrives as an alert too, so it lands in the same place as failures. */
 export const raiseFromFeedback = internalMutation({
-  args: { email: v.string(), page: v.string(), message: v.string() },
+  args: { email: v.string(), page: v.string(), message: v.string(), details: v.optional(v.string()) },
   handler: async (ctx: MutationCtx, args) => {
     const alertId = await ctx.db.insert("alerts", {
       kind: "feedback",
-      message: `${args.message}\n\n(from ${args.page})`,
+      message: `${args.message}\n\n(from ${args.page})${args.details ? `\n${args.details}` : ""}`,
       userEmail: args.email || undefined,
     });
     await ctx.scheduler.runAfter(0, internal.alerts.send, { alertId });

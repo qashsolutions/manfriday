@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { noteError } from "@/lib/report-context";
 import { useAction, useMutation } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
@@ -40,6 +41,7 @@ export function PresenterPanel({ brandId, presenterUrl, voice }: { brandId: Id<"
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => noteError(error), [error]);
 
   const upload = async () => {
     if (!file || !consent) return;

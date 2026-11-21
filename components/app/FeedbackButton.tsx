@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { parseBillingError } from "@/lib/billing-copy";
+import { deviceLabel, installErrorCapture, snapshot, type ReportContext } from "@/lib/report-context";
 import styles from "./FeedbackButton.module.css";
 
 /** Always-available "something's wrong" button. Goes straight to the operators:
@@ -16,12 +17,18 @@ export function FeedbackButton() {
   const [message, setMessage] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [context, setContext] = useState<ReportContext | null>(null);
+  useEffect(() => installErrorCapture(), []);
+  const openSheet = () => {
+    setContext(snapshot()); // as things stand the moment they asked for help
+    setOpen(true);
+  };
 
   const send = async () => {
     setState("sending");
     setError(null);
     try {
-      await submit({ message, page: pathname });
+      await submit({ message, page: pathname, ...(context ? { context } : {}) });
       setState("sent");
       setMessage("");
       setTimeout(() => { setOpen(false); setState("idle"); }, 1600);
@@ -33,7 +40,7 @@ export function FeedbackButton() {
 
   return (
     <>
-      <button type="button" className={styles.fab} onClick={() => setOpen(true)}>
+      <button type="button" className={styles.fab} onClick={openSheet}>
         Something wrong?
       </button>
       {open && (
@@ -55,6 +62,19 @@ export function FeedbackButton() {
                   placeholder="The Telugu video had no sound…"
                   onChange={(e) => setMessage(e.target.value)}
                 />
+                {context && (
+                  <div className={styles.attached}>
+                    <p className={styles.attachedTitle}>Sent with your report</p>
+                    <ul className={styles.attachedList}>
+                      <li>This screen ({pathname})</li>
+                      {context.item && <li>The pick on screen{context.item.label ? `: “${context.item.label}”` : ""}</li>}
+                      {context.lastError && <li>The last error you saw: “{context.lastError.message}”</li>}
+                      <li>
+                        Your device: {deviceLabel(context.device.userAgent)}, {context.device.viewport}
+                      </li>
+                    </ul>
+                  </div>
+                )}
                 {error && <p className={styles.err}>{error}</p>}
                 <div className={styles.row}>
                   <button type="button" className={styles.cancel} onClick={() => setOpen(false)}>Cancel</button>

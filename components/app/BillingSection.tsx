@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { noteError } from "@/lib/report-context";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { FOUNDING, POLICY, TIERS, TOPUP } from "@/lib/site";
@@ -20,6 +21,7 @@ export function BillingSection() {
   const [pauseDays, setPauseDays] = useState<number>(POLICY.pauseMaxDays);
   const [pausing, setPausing] = useState(false);
   const [pauseError, setPauseError] = useState<string | null>(null);
+  useEffect(() => noteError(pauseError), [pauseError]);
   const [returned, setReturned] = useState<"success" | "cancel" | null>(null);
   const { pause } = usePause();
 

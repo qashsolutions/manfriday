@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useReportItem } from "@/lib/report-context";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -41,6 +42,8 @@ export default function PicksPage() {
   const [outOf, setOutOf] = useState<string | null>(null);
 
   const top = feed?.concepts[0];
+  // "Something wrong?" sends which pick was on screen.
+  useReportItem(top ? { kind: "pick", id: top.id, label: hookOf(top.slots).slice(0, 80) } : null);
 
   const keep = async (c: NonNullable<typeof top>) => {
     try {

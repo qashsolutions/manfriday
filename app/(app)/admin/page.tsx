@@ -186,6 +186,11 @@ export default function AdminPage() {
               <div key={i} className="panel" style={{ padding: "12px 16px", width: "100%", maxWidth: 640 }}>
                 <p className="mono" style={{ margin: 0, fontSize: 11, color: "var(--faint)" }}>{f.from} · {f.page} · {when(f.at)}</p>
                 <p style={{ margin: "6px 0 0", fontSize: 14, whiteSpace: "pre-wrap" }}>{f.message}</p>
+                {f.details && (
+                  <p className="mono" style={{ margin: "8px 0 0", fontSize: 11, color: "var(--faint)", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                    {f.details}
+                  </p>
+                )}
               </div>
             ))
           )}

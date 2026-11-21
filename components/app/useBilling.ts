@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { noteError } from "@/lib/report-context";
 import { useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { parseBillingError, type BillingView } from "@/lib/billing-copy";
@@ -13,6 +14,7 @@ export function useBilling() {
   const openPortal = useAction(api.billing.openPortal);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => noteError(error), [error]);
 
   const run = async (key: string, fn: () => Promise<{ url: string }>) => {
     setBusy(key);

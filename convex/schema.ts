@@ -299,7 +299,27 @@ export default defineSchema({
     page: v.string(),
     message: v.string(),
     handled: v.optional(v.boolean()),
-  }).index("by_handled", ["handled"]),
+    // Attached by the button (lib/report-context.ts), checked and trimmed by
+    // feedback.submit. The pick is recorded only if it is the reporter's own.
+    context: v.optional(
+      v.object({
+        pick: v.optional(
+          v.object({
+            id: v.id("concepts"),
+            status: v.string(),
+            format: v.string(),
+            language: v.string(),
+            batchId: v.string(),
+            hasVideo: v.boolean(),
+          }),
+        ),
+        lastError: v.optional(v.object({ message: v.string(), at: v.number(), page: v.string() })),
+        device: v.optional(v.object({ userAgent: v.string(), viewport: v.string(), timezone: v.string(), language: v.string() })),
+      }),
+    ),
+  })
+    .index("by_handled", ["handled"])
+    .index("by_userId", ["userId"]),
 
   pendingGrants: defineTable({
     // A tester's allowance set BEFORE they sign up. admin:setVideoGrant writes

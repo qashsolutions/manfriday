@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { noteError } from "@/lib/report-context";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -52,6 +53,7 @@ export default function CalendarPage() {
   const [confirmDiscard, setConfirmDiscard] = useState<string | null>(null);
   const [when, setWhen] = useState(fridaySuggests());
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => noteError(error), [error]);
   // Compliance rule 7: the YouTube upload limit is shared by everyone until the
   // quota audit clears, so the Calendar checks for room BEFORE the user schedules.
   const slot = useQuery(api.publishing.youtubeSlot, { publishAt: new Date(when).getTime() });
