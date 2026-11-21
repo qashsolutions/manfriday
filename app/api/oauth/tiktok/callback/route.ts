@@ -25,7 +25,9 @@ export async function GET(req: NextRequest) {
   try {
     const client = new ConvexHttpClient(convexUrl);
     const result = await client.action(api.oauth.exchangeTikTok, { code, state });
-    base.searchParams.set("connect", result.ok ? "tiktok_ok" : "tiktok_failed");
+    // MFA_REQUIRED: the account has neither a passkey nor 2FA (auth policy v2).
+    const outcome = result.ok ? "ok" : result.error === "MFA_REQUIRED" ? "mfa" : "failed";
+    base.searchParams.set("connect", `tiktok_${outcome}`);
   } catch {
     base.searchParams.set("connect", "tiktok_failed");
   }

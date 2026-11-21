@@ -57,6 +57,13 @@ export function ConnectedAccounts() {
           </p>
         </div>
       )}
+      {(connectResult === "youtube_mfa" || connectResult === "tiktok_mfa") && (
+        <div className={styles.row}>
+          <p className={styles.rowSub} style={{ color: "var(--accent)" }}>
+            Not connected: add a passkey or two-factor authentication first (Security, above), then connect again.
+          </p>
+        </div>
+      )}
       {connectResult === "youtube_ok" && (
         <div className={styles.row}>
           <p className={styles.rowSub} style={{ color: "var(--mint)" }}>

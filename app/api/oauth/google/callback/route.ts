@@ -25,7 +25,9 @@ export async function GET(req: NextRequest) {
   try {
     const client = new ConvexHttpClient(convexUrl);
     const result = await client.action(api.oauth.exchangeGoogle, { code, state });
-    base.searchParams.set("connect", result.ok ? "youtube_ok" : "youtube_failed");
+    // MFA_REQUIRED: the account has neither a passkey nor 2FA (auth policy v2).
+    const outcome = result.ok ? "ok" : result.error === "MFA_REQUIRED" ? "mfa" : "failed";
+    base.searchParams.set("connect", `youtube_${outcome}`);
   } catch {
     base.searchParams.set("connect", "youtube_failed");
   }

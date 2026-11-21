@@ -27,8 +27,7 @@ function randomState(): string {
 }
 
 /** Signed-in user starts a connect: mints CSRF state, returns the authorize URL.
- *  NOTE (auth policy v2): the passkey-or-2FA gate is enforced in the UI at the
- *  connect button; server-side enforcement lands with a Clerk JWT claim check. */
+ *  The passkey-or-2FA gate is enforced in the exchange actions (secondFactor). */
 /** An account being deleted (account.ts) can't start a new connect. */
 async function refuseWhileDeleting(ctx: MutationCtx, userId: Id<"users">) {
   const me = await ctx.db.get("users", userId);
@@ -140,6 +139,39 @@ export const storeAccount = internalMutation({
   },
 });
 
+/** Auth policy v2 (D4): passkey OR 2FA before any social account connects.
+ *  The Settings button checks this too, but that is only a convenience: here
+ *  is where it is enforced. It runs before the authorization code is
+ *  exchanged, so a refused connect never obtains tokens at all. Fails closed:
+ *  if Clerk can't be asked, the connect is refused. */
+export const clerkIdOf = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx: QueryCtx, args) => (await ctx.db.get("users", args.userId))?.clerkId ?? null,
+});
+
+type SecondFactor = "ok" | "missing" | "unverified";
+
+async function secondFactor(ctx: ActionCtx, userId: string): Promise<SecondFactor> {
+  const key = env.CLERK_SECRET_KEY;
+  const clerkId: string | null = await ctx.runQuery(internal.oauth.clerkIdOf, { userId: userId as Id<"users"> });
+  if (!key || !clerkId) return "unverified";
+  try {
+    const res = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(clerkId)}`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    if (!res.ok) return "unverified";
+    const u = (await res.json()) as { two_factor_enabled?: boolean; passkeys?: unknown[] };
+    return u.two_factor_enabled || (u.passkeys?.length ?? 0) > 0 ? "ok" : "missing";
+  } catch {
+    return "unverified";
+  }
+}
+
+const GATE_ERROR: Record<Exclude<SecondFactor, "ok">, string> = {
+  missing: "MFA_REQUIRED",
+  unverified: "MFA_UNVERIFIED",
+};
+
 /** Called by the Next.js callback route with TikTok's code+state. Public action,
  *  but useless without a valid single-use state row. */
 export const exchangeTikTok = action({
@@ -150,6 +182,8 @@ export const exchangeTikTok = action({
       { state: args.state },
     );
     if (!stateRow) return { ok: false, error: "invalid or expired state" };
+    const gate = await secondFactor(ctx, stateRow.userId);
+    if (gate !== "ok") return { ok: false, error: GATE_ERROR[gate] };
 
     const clientKey = env.TIKTOK_CLIENT_KEY;
     const clientSecret = env.TIKTOK_CLIENT_SECRET;
@@ -217,6 +251,8 @@ export const exchangeGoogle = action({
       { state: args.state },
     );
     if (!stateRow || stateRow.provider !== "google") return { ok: false, error: "invalid or expired state" };
+    const gate = await secondFactor(ctx, stateRow.userId);
+    if (gate !== "ok") return { ok: false, error: GATE_ERROR[gate] };
 
     const clientId = env.GOOGLE_CLIENT_ID;
     const clientSecret = env.GOOGLE_CLIENT_SECRET;
