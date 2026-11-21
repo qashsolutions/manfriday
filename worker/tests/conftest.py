@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 os.environ["TTS_PROVIDER"] = "fake"
 os.environ.pop("SARVAM_API_KEY", None)
+# config.py refuses to load without these. CI has no .env.local, so give it
+# placeholders; no test talks to Convex (locally .env.local still wins).
+os.environ.setdefault("CONVEX_URL", "https://placeholder.convex.cloud")
+os.environ.setdefault("WORKER_TOKEN", "test")
 
 from PIL import Image  # noqa: E402
 
