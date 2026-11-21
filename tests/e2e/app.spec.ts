@@ -87,5 +87,70 @@ test.describe("signed in", () => {
       await field.fill("someone@example.com");
       await expect(send).toBeEnabled();
     });
+
+    test(`${name} screen shows guest slots and both ways to invite`, async ({ page }) => {
+      await page.goto(path, { waitUntil: "load" });
+      const heading = page.locator("h1");
+      await expect(heading).toBeVisible();
+      test.skip(/not for you/i.test((await heading.textContent()) ?? ""), "test account is not an operator");
+
+      // The slot counter comes from guests.summary; it must say N of 10.
+      await expect(page.getByText(/INVITE A GUEST · \d+ OF 10 SLOTS USED/)).toBeVisible();
+      // Every slot in use shows as a row: a live guest with its deletion date,
+      // or an unused invite with the day its link lapses.
+      const used = Number((await page.getByText(/SLOTS USED/).textContent())!.match(/(\d+) OF/)![1]);
+      await expect(page.getByText(/^(GUEST · \d+\/\d+ USED · DELETED|INVITED · LINK LAPSES) /)).toHaveCount(used);
+      // Emailing is the default; unticking switches to a copyable link.
+      // Neither button is pressed — that would reserve a real slot.
+      const box = page.getByRole("checkbox", { name: /email the invite now/i });
+      await expect(box).toBeChecked();
+      await page.getByRole("textbox", { name: /email address to invite/i }).fill("someone@example.com");
+      await expect(page.getByRole("button", { name: /send invite/i })).toBeEnabled();
+      await box.uncheck();
+      await expect(page.getByRole("button", { name: /create link/i })).toBeEnabled();
+    });
   }
+
+  test("Something wrong? lists what goes with the report: screen, pick, last error, device", async ({ page }) => {
+    await page.goto("/picks", { waitUntil: "load" });
+    // The seeded fixture guarantees a pick on screen.
+    await expect(page.getByText(/MADE FOR YOU/).first()).toBeVisible({ timeout: 15_000 });
+
+    // An error the app "showed" — the capture listens for these.
+    await page.evaluate(() => window.dispatchEvent(new ErrorEvent("error", { message: "e2e: render went wrong" })));
+
+    await page.getByRole("button", { name: "Something wrong?" }).click();
+    const sheet = page.getByRole("dialog", { name: /tell us what happened/i });
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByText("Sent with your report")).toBeVisible();
+    await expect(sheet.getByText("This screen (/picks)")).toBeVisible();
+    await expect(sheet.getByText(/^The pick on screen/)).toBeVisible();
+    await expect(sheet.getByText(/The last error you saw: .e2e: render went wrong./)).toBeVisible();
+    await expect(sheet.getByText(/^Your device: (Chrome|Safari|Firefox|Edge|Browser)( on \w+)?, \d+×\d+$/)).toBeVisible();
+
+    // Too short to send; three characters is enough. Not sent — every send
+    // emails the team.
+    const box = sheet.getByRole("textbox");
+    const send = sheet.getByRole("button", { name: "Send" });
+    await box.fill("ab");
+    await expect(send).toBeDisabled();
+    await box.fill("abc");
+    await expect(send).toBeEnabled();
+    await sheet.getByRole("button", { name: "Cancel" }).click();
+    await expect(sheet).toBeHidden();
+  });
+
+  test("Something wrong? on a screen without a pick does not claim one", async ({ page }) => {
+    await page.goto("/picks", { waitUntil: "load" });
+    await expect(page.getByText(/MADE FOR YOU/).first()).toBeVisible({ timeout: 15_000 });
+    // Leave Picks inside the app, so the remembered pick has to be let go.
+    await page.getByRole("link", { name: "CALENDAR", exact: true }).click();
+    await expect(page).toHaveURL(/\/calendar/);
+
+    await page.getByRole("button", { name: "Something wrong?" }).click();
+    const sheet = page.getByRole("dialog", { name: /tell us what happened/i });
+    await expect(sheet.getByText("This screen (/calendar)")).toBeVisible();
+    await expect(sheet.getByText(/^The pick on screen/)).toHaveCount(0);
+    await expect(sheet.getByText(/^The last error you saw/)).toHaveCount(0);
+  });
 });
