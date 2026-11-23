@@ -61,7 +61,8 @@ def test_hook_video_walks_down_the_site_full_bleed(tmp_path):
     # Full-bleed: the capture's own colour reaches the frame edge (no card on a gradient)…
     assert early[0] > 180 and early[1] < 90, f"first section not full-bleed: {early}"
     # …and the middle of the video moves on to later sections of the page.
-    assert late != early and late[2] > 150, f"never left the first screen: {late}"
+    # (which later section depends on the voice's length; it just can't be the first)
+    assert late[0] < 150 and (late[1] > 150 or late[2] > 150), f"never left the first screen: {late}"
 
 
 def test_slot_fill_prompt_forbids_invented_numbers_and_passes_facts():
