@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Me after coding 8 hours non-stop 😴",
-    "concept": "A programmer shows themselves stretching after an 8-hour coding session, then cuts to their computer screen rapidly closing multiple complex browser tabs to reveal a simple 'Hello World' output."
+    "concept": "A programmer shows themselves stretching after an 8-hour coding session, then cuts to their computer screen rapidly closing multiple complex browser tabs to reveal a simple 'Hello World' output.",
+    "handle": "webblaze.india",
+    "platform": "instagram",
+    "views": 750200,
+    "outlierX": 19.9,
+    "followers": 4100
   },
   "slots": [
     {

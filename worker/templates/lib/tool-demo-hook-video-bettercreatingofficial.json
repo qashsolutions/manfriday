@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I just built a self improving second brain",
-    "concept": "The creator explains how to build a self-improving personal knowledge base using Claude AI."
+    "concept": "The creator explains how to build a self-improving personal knowledge base using Claude AI.",
+    "handle": "bettercreatingofficial",
+    "platform": "tiktok",
+    "views": 279000,
+    "outlierX": 167.9,
+    "followers": 6400
   },
   "slots": [
     {

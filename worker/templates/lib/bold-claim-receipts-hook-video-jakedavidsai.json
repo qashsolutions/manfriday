@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I'm the only human in my company!",
-    "concept": "A business owner demonstrates their company's AI automation software that manages all operational tasks."
+    "concept": "A business owner demonstrates their company's AI automation software that manages all operational tasks.",
+    "handle": "jakedavidsai",
+    "platform": "tiktok",
+    "views": 144300,
+    "outlierX": 84.6,
+    "followers": 3800
   },
   "slots": [
     {

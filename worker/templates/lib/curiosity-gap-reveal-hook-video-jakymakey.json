@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Claude Code can't do that 🤯",
-    "concept": "A creator demonstrates using an AI coding tool to quickly build an app and offers to share the prompt via comments."
+    "concept": "A creator demonstrates using an AI coding tool to quickly build an app and offers to share the prompt via comments.",
+    "handle": "jakymakey",
+    "platform": "instagram",
+    "views": 205000,
+    "outlierX": 42.8,
+    "followers": 4800
   },
   "slots": [
     {

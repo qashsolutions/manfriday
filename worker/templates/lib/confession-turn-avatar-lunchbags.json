@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Engineer to Solo Founder, The Origin Story",
-    "concept": "A female entrepreneur narrates her career journey from working at Twitter to bootstrapping her own successful personal finance app."
+    "concept": "A female entrepreneur narrates her career journey from working at Twitter to bootstrapping her own successful personal finance app.",
+    "handle": "lunchbags",
+    "platform": "instagram",
+    "views": 225900,
+    "outlierX": 237.3,
+    "followers": 7900
   },
   "slots": [
     {

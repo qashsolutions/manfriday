@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Today's Productivity Stack",
-    "concept": "A creator showcases his daily productivity tools by rapidly cycling through items in sync with a rhythmic beat."
+    "concept": "A creator showcases his daily productivity tools by rapidly cycling through items in sync with a rhythmic beat.",
+    "handle": "david.khakham",
+    "platform": "tiktok",
+    "views": 368900,
+    "outlierX": 174.8,
+    "followers": 2900
   },
   "slots": [
     {

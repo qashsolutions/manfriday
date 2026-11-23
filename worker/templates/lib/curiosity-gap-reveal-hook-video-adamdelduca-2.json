@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "I let Claude run my brand new YouTube channel for 30 days. The result? I made $4,000",
-    "concept": "A creator shares a screenshot of a tweet claiming success with an AI tool and prompts viewers to learn how to replicate the result."
+    "concept": "A creator shares a screenshot of a tweet claiming success with an AI tool and prompts viewers to learn how to replicate the result.",
+    "handle": "adamdelduca",
+    "platform": "tiktok",
+    "views": 136600,
+    "outlierX": 263.7,
+    "followers": 35800
   },
   "slots": [
     {

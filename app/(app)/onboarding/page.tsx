@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import styles from "../app.module.css";
 import { LanguageChip } from "@/components/app/LanguageChip";
+import { BriefEditor } from "@/components/app/BriefEditor";
 import { previewLine, stageIndex } from "@/lib/onboarding-copy";
 
 // Each stage says what Friday is doing AND roughly how long it takes, so the
@@ -123,11 +124,19 @@ export default function OnboardingPage() {
       {request?.brand && (
         <div className={styles.briefCard}>
           <span className={styles.briefLabel}>FRIDAY&apos;S BRIEF ON YOU</span>
-          <span className={styles.briefName}>{request.brand.name}</span>
-          <span style={{ color: "var(--dim)", fontSize: 15 }}>{request.brand.oneLiner}</span>
-          <span className={`mono ${styles.briefLabel}`}>
-            {request.brand.niche} · {request.brand.tone.join(", ")}
-          </span>
+          {request.status === "done" ? (
+            // Done: the brief is final enough to correct — wrong audience or
+            // missing facts would otherwise shape every pick.
+            <BriefEditor compact />
+          ) : (
+            <>
+              <span className={styles.briefName}>{request.brand.name}</span>
+              <span style={{ color: "var(--dim)", fontSize: 15 }}>{request.brand.oneLiner}</span>
+              <span className={`mono ${styles.briefLabel}`}>
+                {request.brand.niche} · {request.brand.tone.join(", ")}
+              </span>
+            </>
+          )}
           {brand && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start", marginTop: 6 }}>
               <span className={`mono ${styles.briefLabel}`}>FRIDAY WRITES AND SPEAKS IN</span>

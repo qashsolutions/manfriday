@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Claude = coding ($20/mo) Supabase = backend(Free) Vercel = deploying(Free)...",
-    "concept": "The video displays a list of low-cost software tools on a screen while a developer works at night, concluding with a statement about how cheap it is to launch a startup today."
+    "concept": "The video displays a list of low-cost software tools on a screen while a developer works at night, concluding with a statement about how cheap it is to launch a startup today.",
+    "handle": "maxjohnscn",
+    "platform": "instagram",
+    "views": 167600,
+    "outlierX": 42.4,
+    "followers": 43200
   },
   "slots": [
     {

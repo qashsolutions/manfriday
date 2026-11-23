@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "how i built an apple watch app in 2 hours",
-    "concept": "A developer demonstrates how he built a functional Apple Watch app in two hours using an AI coding assistant."
+    "concept": "A developer demonstrates how he built a functional Apple Watch app in two hours using an AI coding assistant.",
+    "handle": "chris.raroque",
+    "platform": "tiktok",
+    "views": 911600,
+    "outlierX": 89.0,
+    "followers": 30200
   },
   "slots": [
     {

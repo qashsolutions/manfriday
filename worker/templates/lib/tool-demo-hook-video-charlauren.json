@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "How I use AI to make content FASTER",
-    "concept": "The video is a tutorial showing how to create a simple, effective AI-assisted workflow for content creation."
+    "concept": "The video is a tutorial showing how to create a simple, effective AI-assisted workflow for content creation.",
+    "handle": "charlauren",
+    "platform": "tiktok",
+    "views": 2500000,
+    "outlierX": 15.4,
+    "followers": 20500
   },
   "slots": [
     {

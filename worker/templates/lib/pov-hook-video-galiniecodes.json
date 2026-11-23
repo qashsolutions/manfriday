@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "why developers are always late: 5 pm",
-    "concept": "A developer shows the transition of their workspace from late afternoon to late night to illustrate why they are often late."
+    "concept": "A developer shows the transition of their workspace from late afternoon to late night to illustrate why they are often late.",
+    "handle": "galiniecodes",
+    "platform": "tiktok",
+    "views": 387300,
+    "outlierX": 83.6,
+    "followers": 11300
   },
   "slots": [
     {

@@ -153,4 +153,64 @@ test.describe("signed in", () => {
     await expect(sheet.getByText(/^The pick on screen/)).toHaveCount(0);
     await expect(sheet.getByText(/^The last error you saw/)).toHaveCount(0);
   });
+
+  // Review of 23 Nov 2026: every signed-in screen was 680px wide on a phone and
+  // the report button sat on top of Keep.
+  test("every app screen fits a phone, and Keep is on screen and uncovered", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const { path } of [...APP_PAGES, { path: "/onboarding" }]) {
+      await page.goto(path, { waitUntil: "load" });
+      await expect(page.getByRole("link", { name: "PICKS", exact: true })).toBeVisible();
+      await page.waitForTimeout(800); // Convex content settles after first paint
+      const w = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+      expect(w.scroll, `${path} is ${w.scroll - w.client}px wider than the phone`).toBeLessThanOrEqual(w.client + 1);
+    }
+    await page.goto("/picks", { waitUntil: "load" });
+    const keep = page.getByRole("button", { name: /^Keep/ });
+    await expect(keep).toBeVisible({ timeout: 15_000 });
+    const box = (await keep.boundingBox())!;
+    expect(box.y + box.height, "Keep is below the fold").toBeLessThanOrEqual(844);
+    const report = (await page.getByRole("button", { name: "Something wrong?" }).boundingBox())!;
+    const overlaps = !(report.y >= box.y + box.height || report.y + report.height <= box.y || report.x >= box.x + box.width || report.x + report.width <= box.x);
+    expect(overlaps, "the report button covers Keep").toBe(false);
+  });
+
+  test("a pick explains why it could work", async ({ page }) => {
+    await page.goto("/picks", { waitUntil: "load" });
+    const chip = page.getByRole("button", { name: /WHY\?/ });
+    await expect(chip).toBeVisible({ timeout: 15_000 });
+    await chip.click();
+    const sheet = page.getByRole("dialog", { name: "Why this pick" });
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByText(/^THE SHAPE · /)).toBeVisible();
+    // Either a linked original with its numbers, or an honest "starter shape" line.
+    await expect(sheet.getByText(/Watch the original on|starter shapes/)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+  });
+
+  test("a pick's words can be edited before keeping, within their limits", async ({ page }) => {
+    await page.goto("/picks", { waitUntil: "load" });
+    await page.getByRole("button", { name: "Edit the words before keeping" }).click({ timeout: 15_000 });
+    const sheet = page.getByRole("dialog", { name: "Edit the words" });
+    const first = sheet.getByRole("textbox").first();
+    await expect(first).toBeVisible();
+    const save = sheet.getByRole("button", { name: "Save words" });
+    await first.fill("");
+    await expect(save).toBeDisabled(); // empty is refused
+    await first.fill("x".repeat(400));
+    await expect(save).toBeDisabled(); // over the limit is refused
+    await sheet.getByRole("button", { name: "Cancel" }).click(); // nothing saved
+    await expect(sheet).toHaveCount(0);
+  });
+
+  test("the brief is readable and editable in Settings", async ({ page }) => {
+    await page.goto("/settings", { waitUntil: "load" });
+    await expect(page.getByRole("heading", { name: "YOUR PRODUCT" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("FACTS FRIDAY MAY USE")).toBeVisible();
+    await page.getByRole("button", { name: "Edit the brief" }).click();
+    await expect(page.getByRole("radiogroup", { name: "Trends from" })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("button", { name: "Edit the brief" })).toBeVisible();
+  });
 });

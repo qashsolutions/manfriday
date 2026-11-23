@@ -14,13 +14,13 @@ from .formats import render_avatar, render_hook, render_slideshow
 FINAL_COST_CENTS = {"slideshow": 2, "hook_video": 6, "avatar": 6}  # all voice-only now (no talking head)
 
 
-def _download_screenshots(ids: list[str], outdir: Path) -> list[Path]:
+def _download_screenshots(ids: list[str], outdir: Path, prefix: str = "shot", limit: int = 3) -> list[Path]:
     paths = []
-    for i, sid in enumerate(ids[:3]):
+    for i, sid in enumerate(ids[:limit]):
         url = cvx.query("pipeline:storageUrl", {"storageId": sid})
         if not url:
             continue
-        p = outdir / f"shot_{i}.png"
+        p = outdir / f"{prefix}_{i}.png"
         p.write_bytes(requests.get(url, timeout=60).content)
         paths.append(p)
     return paths
@@ -46,6 +46,8 @@ def render_job(job: dict, outdir: Path) -> dict:
         screenshots=_download_screenshots(brand_info.get("screenshotIds", []), outdir),
         presenter=presenter,
         voice=brand_info.get("voice") or "female",
+        # Previews show only the first screen (a still); finals use every section.
+        page_shots=_download_screenshots(brand_info.get("pageShotIds", []), outdir, "page", 1 if preview else 4),
     )
     values = concept.get("slots") or {}
     language = concept.get("language", "en")

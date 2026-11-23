@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "POV: life after Claude Code",
-    "concept": "A humorous POV video showing a software developer enjoying leisure activities because an AI coding tool has automated their workload."
+    "concept": "A humorous POV video showing a software developer enjoying leisure activities because an AI coding tool has automated their workload.",
+    "handle": "tokenmaxit",
+    "platform": "instagram",
+    "views": 119200,
+    "outlierX": 51.7,
+    "followers": 4400
   },
   "slots": [
     {

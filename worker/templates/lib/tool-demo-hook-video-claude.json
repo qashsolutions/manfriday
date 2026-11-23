@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Here's how to pick a model in Claude Code.",
-    "concept": "The creator demonstrates how to select appropriate AI models and adjust effort settings within the Claude Code interface."
+    "concept": "The creator demonstrates how to select appropriate AI models and adjust effort settings within the Claude Code interface.",
+    "handle": "claude",
+    "platform": "tiktok",
+    "views": 6400000,
+    "outlierX": 292.2,
+    "followers": 280700
   },
   "slots": [
     {

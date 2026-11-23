@@ -8,6 +8,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Bolt, Wordmark } from "@/components/ui/Logo";
 import { PlanMeter } from "./PlanMeter";
+import styles from "./AppNav.module.css";
 
 const TABS = [
   { href: "/picks", label: "PICKS" },
@@ -32,32 +33,31 @@ export function AppNav() {
   }, [isSignedIn, ensure]);
 
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "14px 32px",
-        borderBottom: "1px solid var(--edge)",
-      }}
-    >
-      <Link href="/" aria-label="Man Friday home" style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--ink)" }}>
+    <header className={styles.bar}>
+      <Link href="/" aria-label="Man Friday home" className={styles.brand}>
         <Bolt size={18} />
-        <Wordmark size={15} />
+        <span className={styles.wordmark}>
+          <Wordmark size={15} />
+        </span>
       </Link>
-      <nav className="mono" style={{ display: "flex", gap: 24, fontSize: 12, letterSpacing: "0.08em", alignItems: "center" }} aria-label="App">
+      <nav className={`mono ${styles.tabs}`} aria-label="App">
         {tabs.map((t) => (
           <Link
             key={t.href}
             href={t.href}
-            style={{ color: pathname.startsWith(t.href) ? "var(--ink)" : "var(--faint)" }}
+            className={styles.tab}
+            aria-current={pathname.startsWith(t.href) ? "page" : undefined}
           >
             {t.label}
           </Link>
         ))}
-        <PlanMeter />
-        <UserButton />
       </nav>
+      <div className={styles.account}>
+        <span className={styles.meter}>
+          <PlanMeter />
+        </span>
+        <UserButton />
+      </div>
     </header>
   );
 }

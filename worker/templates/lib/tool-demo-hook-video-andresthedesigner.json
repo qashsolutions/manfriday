@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Framer can use Claude now?",
-    "concept": "The creator demonstrates how to integrate AI into the Framer web design platform to build websites faster."
+    "concept": "The creator demonstrates how to integrate AI into the Framer web design platform to build websites faster.",
+    "handle": "andresthedesigner",
+    "platform": "instagram",
+    "views": 904700,
+    "outlierX": 90.2,
+    "followers": 49400
   },
   "slots": [
     {

@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Daniel was rejected",
-    "concept": "The video tells a story about a developer named Daniel who was rejected by Google, built his own successful ad-tech company, and later turned the tables on the interviewers who previously rejected him."
+    "concept": "The video tells a story about a developer named Daniel who was rejected by Google, built his own successful ad-tech company, and later turned the tables on the interviewers who previously rejected him.",
+    "handle": "mtdks333",
+    "platform": "tiktok",
+    "views": 2000000,
+    "outlierX": 1303.6,
+    "followers": 10800
   },
   "slots": [
     {

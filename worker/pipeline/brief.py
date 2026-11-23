@@ -6,7 +6,7 @@ deterministic.
 """
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 import anthropic
 from pydantic import BaseModel, Field
@@ -25,9 +25,21 @@ class Brief(BaseModel):
     tone: List[str] = Field(description="2-3 tone words for the brand voice")
     niche: str = Field(description="one short-form content niche slug, kebab-case, e.g. build-in-public, productivity-tools, fitness, ecommerce")
     language: str = Field(description=f"primary content language code, one of {LANGUAGE_CODES}")
+    facts: List[str] = Field(
+        default_factory=list,
+        description=(
+            "up to 8 facts the site itself states — numbers (customers, schools, cities, prices, "
+            "time saved), named features, concrete claims — each a short line close to the site's "
+            "own wording. Only what the text says; never estimate or infer. Empty if there are none."
+        ),
+    )
+    trend_niche: Optional[str] = Field(
+        default=None,
+        description="the trend-library space whose buyers and creators are closest to this product's, from the list given, or 'none' if no listed space is close",
+    )
 
 
-def synthesize_brief(scraped: ScrapeResult) -> tuple[Brief, int]:
+def synthesize_brief(scraped: ScrapeResult, library_niches: list[str] | None = None) -> tuple[Brief, int]:
     """Returns (brief, cost_cents_estimate)."""
     client = anthropic.Anthropic()
     response = client.messages.parse(
@@ -37,14 +49,17 @@ def synthesize_brief(scraped: ScrapeResult) -> tuple[Brief, int]:
             "You write brand briefs for a short-form video engine. Read the site "
             "content and produce a precise, unhyped brief. The niche must be a "
             "short-form content niche where this product's buyers actually scroll. "
-            "Choose the language the product's PRIMARY audience consumes content in."
+            "Choose the language the product's PRIMARY audience consumes content in. "
+            "Facts must be stated on the site; never invent numbers."
         ),
         messages=[
             {
                 "role": "user",
                 "content": (
                     f"URL: {scraped.url}\nTitle: {scraped.title}\n"
-                    f"Description: {scraped.description}\n\nSite text:\n{scraped.text}"
+                    f"Description: {scraped.description}\n\n"
+                    f"Trend-library spaces for trend_niche: {', '.join(library_niches or []) or '(none)'}\n\n"
+                    f"Site text:\n{scraped.text}"
                 ),
             }
         ],
@@ -55,4 +70,7 @@ def synthesize_brief(scraped: ScrapeResult) -> tuple[Brief, int]:
     cost_cents = int(round((usage.input_tokens * 5 + usage.output_tokens * 25) / 1_000_000 * 100))
     if brief.language not in LANGUAGE_CODES:
         brief.language = "en"
+    if brief.trend_niche not in (library_niches or []):
+        brief.trend_niche = "none"
+    brief.facts = [f.strip()[:160] for f in brief.facts if f.strip()][:12]
     return brief, max(cost_cents, 1)

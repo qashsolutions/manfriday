@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "147 AI Agency Skills",
-    "concept": "The creator reviews a GitHub repository containing 147 pre-built AI agents designed to perform various business and development tasks."
+    "concept": "The creator reviews a GitHub repository containing 147 pre-built AI agents designed to perform various business and development tasks.",
+    "handle": "ai.honeycove",
+    "platform": "tiktok",
+    "views": 168400,
+    "outlierX": 10.4,
+    "followers": 76000
   },
   "slots": [
     {

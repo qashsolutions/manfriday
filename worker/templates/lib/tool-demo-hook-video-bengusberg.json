@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "CLAUDE CAN NOW",
-    "concept": "The creator demonstrates a new AI tool feature called Record a Skill in Claude Cowork that automates repetitive tasks."
+    "concept": "The creator demonstrates a new AI tool feature called Record a Skill in Claude Cowork that automates repetitive tasks.",
+    "handle": "bengusberg",
+    "platform": "tiktok",
+    "views": 248700,
+    "outlierX": 45.6,
+    "followers": 29000
   },
   "slots": [
     {

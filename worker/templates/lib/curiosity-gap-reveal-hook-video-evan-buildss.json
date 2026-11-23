@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Deleting this is in 24 hours 😳",
-    "concept": "A creator demonstrates a 3-step process to build and monetize a functional app using AI software tools."
+    "concept": "A creator demonstrates a 3-step process to build and monetize a functional app using AI software tools.",
+    "handle": "evan_buildss_",
+    "platform": "instagram",
+    "views": 290400,
+    "outlierX": 16.3,
+    "followers": 2800
   },
   "slots": [
     {

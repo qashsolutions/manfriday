@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "This 24-year-old guy learned coding himself, built a simple iOS alarm clock app in just 19 days now makes $50K every month",
-    "concept": "A creator provides a quick case study on an indie developer who built a profitable app."
+    "concept": "A creator provides a quick case study on an indie developer who built a profitable app.",
+    "handle": "marketing.aiii",
+    "platform": "instagram",
+    "views": 187000,
+    "outlierX": 22.7,
+    "followers": 76000
   },
   "slots": [
     {

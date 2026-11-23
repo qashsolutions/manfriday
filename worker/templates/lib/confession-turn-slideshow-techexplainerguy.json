@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "In 2015, Apple tried to sell the world a $17,000 watch",
-    "concept": "The video explains the Apple Watch's pivot from a luxury fashion accessory to a life-saving health and safety device."
+    "concept": "The video explains the Apple Watch's pivot from a luxury fashion accessory to a life-saving health and safety device.",
+    "handle": "techexplainerguy",
+    "platform": "tiktok",
+    "views": 204900,
+    "outlierX": 19.6,
+    "followers": 15500
   },
   "slots": [
     {

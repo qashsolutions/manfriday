@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I built my own app to run my entire content side of my business",
-    "concept": "A business owner demonstrates how she uses Replit to build a custom content management dashboard for her activewear brand to save time."
+    "concept": "A business owner demonstrates how she uses Replit to build a custom content management dashboard for her activewear brand to save time.",
+    "handle": "lydiabielfeldt",
+    "platform": "tiktok",
+    "views": 1100000,
+    "outlierX": 177.5,
+    "followers": 58400
   },
   "slots": [
     {

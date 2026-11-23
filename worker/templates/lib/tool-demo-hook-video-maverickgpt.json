@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "ChatGPT just dropped a major update 🤯",
-    "concept": "The creator explains and demonstrates new features of the ChatGPT Work update."
+    "concept": "The creator explains and demonstrates new features of the ChatGPT Work update.",
+    "handle": "maverickgpt",
+    "platform": "tiktok",
+    "views": 3400000,
+    "outlierX": 24.1,
+    "followers": 588000
   },
   "slots": [
     {

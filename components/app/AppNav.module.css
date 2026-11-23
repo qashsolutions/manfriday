@@ -1,0 +1,49 @@
+/* App chrome. Desktop: one row. Phone (Picks is mobile-first): the brand, plan
+   meter and account sit on top, the tabs get a row of their own, and nothing
+   is ever wider than the screen. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--edge);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); flex-shrink: 0; }
+.tabs {
+  display: flex;
+  gap: 24px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  align-items: center;
+  margin-left: auto;
+}
+.tab { color: var(--faint); white-space: nowrap; }
+.tab[aria-current="page"] { color: var(--ink); }
+.account { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.meter { min-width: 0; display: flex; }
+.meter > a { overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 720px) {
+  .bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "brand account" "tabs tabs";
+    row-gap: 12px;
+    padding: 12px 16px 0;
+  }
+  .brand { grid-area: brand; }
+  .wordmark { display: none; }
+  .account { grid-area: account; justify-content: flex-end; gap: 10px; }
+  .tabs {
+    grid-area: tabs;
+    margin-left: 0;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 11px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab { padding: 6px 0 12px; border-bottom: 2px solid transparent; }
+  .tab[aria-current="page"] { border-bottom-color: var(--accent); }
+}

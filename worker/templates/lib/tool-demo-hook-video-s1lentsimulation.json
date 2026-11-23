@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Many kids are millionaires",
-    "concept": "A creator demonstrates a business side hustle by building a website for a local restaurant using AI, validating a previous Gary Vaynerchuk clip."
+    "concept": "A creator demonstrates a business side hustle by building a website for a local restaurant using AI, validating a previous Gary Vaynerchuk clip.",
+    "handle": "s1lentsimulation",
+    "platform": "tiktok",
+    "views": 573400,
+    "outlierX": 1117.7,
+    "followers": 10700
   },
   "slots": [
     {

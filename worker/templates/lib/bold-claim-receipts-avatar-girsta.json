@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "BREAKING: A US startup cut a $600K Salesforce bill to zero with a vibe-coded CRM",
-    "concept": "A clip from a podcast interview featuring a founder explaining how their startup replaced Salesforce with an internal, AI-driven CRM."
+    "concept": "A clip from a podcast interview featuring a founder explaining how their startup replaced Salesforce with an internal, AI-driven CRM.",
+    "handle": "girsta",
+    "platform": "instagram",
+    "views": 824300,
+    "outlierX": 372.9,
+    "followers": 49800
   },
   "slots": [
     {

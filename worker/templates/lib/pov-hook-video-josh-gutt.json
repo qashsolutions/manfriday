@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "What is bro thinking about 😭",
-    "concept": "A screen recording shows a terminal window running code while overlay text jokes about the programmer's mental state."
+    "concept": "A screen recording shows a terminal window running code while overlay text jokes about the programmer's mental state.",
+    "handle": "josh_gutt",
+    "platform": "tiktok",
+    "views": 1100000,
+    "outlierX": 113.8,
+    "followers": 1200
   },
   "slots": [
     {

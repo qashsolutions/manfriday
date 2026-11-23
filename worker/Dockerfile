@@ -13,6 +13,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Headless Chromium for phone-width captures of the user's site (the b-roll after
+# the hook). Optional by design: if it can't install, the build still ships and
+# renders fall back to the site's share image (pipeline/scrape.py capture_page_shots).
+RUN python -m playwright install --with-deps chromium-headless-shell \
+    || echo "WARNING: Chromium not installed; page captures disabled"
+
 COPY . .
 
 # Fail the build, not the first render, if shaping support is missing.

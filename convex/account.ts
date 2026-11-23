@@ -146,10 +146,11 @@ export const purgeStep = internalMutation({
         await ctx.db.delete("voiceEdits", e._id);
         if (spend()) return await again();
       }
-      for (const sid of b.screenshotIds) await ctx.storage.delete(sid);
+      const files = [...b.screenshotIds, ...(b.pageShotIds ?? [])];
+      for (const sid of files) await ctx.storage.delete(sid);
       if (b.presenterImageId) await ctx.storage.delete(b.presenterImageId);
       await ctx.db.delete("brands", b._id);
-      budget -= 1 + b.screenshotIds.length;
+      budget -= 1 + files.length;
       if (budget <= 0) return await again();
     }
     if (brands.length > 0) return await again();

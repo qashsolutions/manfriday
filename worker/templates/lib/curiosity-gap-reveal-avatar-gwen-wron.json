@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Deleting in 24 Hours",
-    "concept": "The creator demonstrates how to build and launch a mobile app using AI tools in under a minute."
+    "concept": "The creator demonstrates how to build and launch a mobile app using AI tools in under a minute.",
+    "handle": "gwen.wron",
+    "platform": "instagram",
+    "views": 178200,
+    "outlierX": 184.4,
+    "followers": 2800
   },
   "slots": [
     {

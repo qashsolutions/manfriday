@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Germany is... I moved to...",
-    "concept": "A founder tells the rapid-fire story of his startup getting into a major supermarket chain and asks for audience support to survive."
+    "concept": "A founder tells the rapid-fire story of his startup getting into a major supermarket chain and asks for audience support to survive.",
+    "handle": "pickemstore",
+    "platform": "tiktok",
+    "views": 1900000,
+    "outlierX": 3.2,
+    "followers": 775500
   },
   "slots": [
     {

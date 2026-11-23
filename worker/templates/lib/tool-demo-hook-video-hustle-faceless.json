@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "FREE app builder inside ChatGPT",
-    "concept": "The video demonstrates how to use a specific tool called AppDeploy within ChatGPT to build and launch web applications quickly."
+    "concept": "The video demonstrates how to use a specific tool called AppDeploy within ChatGPT to build and launch web applications quickly.",
+    "handle": "hustle.faceless",
+    "platform": "tiktok",
+    "views": 2100000,
+    "outlierX": 34.1,
+    "followers": 363700
   },
   "slots": [
     {

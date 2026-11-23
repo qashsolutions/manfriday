@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "$10k/mo claude code method",
-    "concept": "The video demonstrates how to use an AI tool called Claude Code to automate image generation for YouTube video scripts."
+    "concept": "The video demonstrates how to use an AI tool called Claude Code to automate image generation for YouTube video scripts.",
+    "handle": "leogrundstrom",
+    "platform": "instagram",
+    "views": 230800,
+    "outlierX": 134.5,
+    "followers": 29800
   },
   "slots": [
     {

@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "DAY 1 STEALING START UP IDEAS",
-    "concept": "The creator finds a business idea on Reddit and uses AI to rapidly build a prototype, showing the progress on-screen."
+    "concept": "The creator finds a business idea on Reddit and uses AI to rapidly build a prototype, showing the progress on-screen.",
+    "handle": "buildwkel",
+    "platform": "tiktok",
+    "views": 411400,
+    "outlierX": 303.2,
+    "followers": 7900
   },
   "slots": [
     {

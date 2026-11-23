@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "STOP PAYING FOR A SECOND TOOL",
-    "concept": "The creator demonstrates how to build a free habit tracker app using a ChatGPT plugin."
+    "concept": "The creator demonstrates how to build a free habit tracker app using a ChatGPT plugin.",
+    "handle": "shigcodes",
+    "platform": "tiktok",
+    "views": 1900000,
+    "outlierX": 46.6,
+    "followers": 73400
   },
   "slots": [
     {

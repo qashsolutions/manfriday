@@ -95,14 +95,16 @@ We signed the YouTube API Services Terms, Developer Policies, and a truthfulness
 
 ## Automated tests (mandatory before merging pipeline/backend changes)
 
-- `npm run test:worker` — 18 pytest checks in `worker/tests` with a fake voice (`TTS_PROVIDER=fake`): every format renders with audio at 1080×1920@30, narration/caption continuity, presenter hook → product cut, Indic shaping via libraqm, planner gating. CI: `.github/workflows/worker-tests.yml` on `worker/**`.
-- `npm run test:convex` — 30 checks in `tests/` (convex-test + plain unit tests; `tests/convex` must stay OUT of `convex/`, or `import.meta` in the harness breaks every Convex push): scheduling + tracked links, D1 slideshow rule, discard rules, tokens never exposed, disconnect/expiry wipe + scheduled revoke, stats pruning/purge, delete-account cascade, click logging, presenter/voice. CI: `.github/workflows/convex-tests.yml` on `convex/**`.
+- `npm run test:worker` — 25 pytest checks in `worker/tests` with a fake voice (`TTS_PROVIDER=fake`): every format renders with audio at 1080×1920@30, narration/caption continuity, presenter hook → product cut, Indic shaping via libraqm, planner gating. CI: `.github/workflows/worker-tests.yml` on `worker/**`.
+- `npm run test:convex` — 140 checks in `tests/` (convex-test + plain unit tests; `tests/convex` must stay OUT of `convex/`, or `import.meta` in the harness breaks every Convex push): scheduling + tracked links, D1 slideshow rule, discard rules, tokens never exposed, disconnect/expiry wipe + scheduled revoke, stats pruning/purge, delete-account cascade, click logging, presenter/voice. CI: `.github/workflows/convex-tests.yml` on `convex/**`.
 - `npm run compliance` — YouTube API guard (see below). Weekly + on push.
 - Not covered on purpose: browser flows behind Clerk sign-in. Nightly live smoke render waits for an alerting channel (Resend).
 
 **Product rule (user, 15 Sep 2026): every feature must answer "what is in it for the user and what value do they derive" — remove fluff.** This is why the AI talking head was removed the day it shipped and why pricing has no sub-caps.
 
 ## Rendering notes (worker/render)
+
+- **Review of 23 Nov 2026 (what the user sees and posts):** b-roll is the user's real site captured at phone width (`scrape.capture_page_shots`, Playwright Chromium in the worker image; optional — falls back to the og:image card), full-bleed, walking down the page over the long shot, lower frame faded so captions read. Slot-fill obeys `HONESTY_RULES` (slots.py): numbers only from the brief's `facts` (site-stated, user-editable), no invented customers/events, the maker speaks — never the customer. The brief (Settings › Your product) is user-editable: audience, facts, trend space (`trendNiche`, a library niche or "none"). Picks shows "Why?" (the real reference post: hook, views, outlier ratio, link — curated data only; starter templates with placeholder refs claim no numbers) and "Edit the words" before keeping. Trend library: 207 curated (+7 starters) across 10 niches incl. edtech, b2b-smb, d2c-ecommerce, local-services (vidIQ, 23 Nov; paid-promotion outliers excluded).
 
 - Text legibility (15 Sep): `draw_text_block` measures the region behind a block and adds a dark scrim on bright/busy/transparent backgrounds plus a drop shadow on non-stroked text. Don't hand-draw bands behind text.
 - Slideshows are narrated (per-slide voice, slide timing follows speech); the licensed music bed is still not wired.

@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "How to get 100,000 users",
-    "concept": "A tech entrepreneur explains his strategy for scaling a mobile app from zero to 100,000 users."
+    "concept": "A tech entrepreneur explains his strategy for scaling a mobile app from zero to 100,000 users.",
+    "handle": "jake.coppen",
+    "platform": "instagram",
+    "views": 100000,
+    "outlierX": 52.2,
+    "followers": 7800
   },
   "slots": [
     {

@@ -12,15 +12,20 @@
     "youtube"
   ],
   "reference": {
-    "hook": null,
-    "concept": "The creator demonstrates and compares the efficiency of two AI coding assistants (Opus 4.8 vs. Grok 4.5) to build a web app."
+    "hook": "Immediate conversational speaking: 'Let's build a web app that finds leads for a freelance data analyst.'",
+    "concept": "The creator demonstrates and compares the efficiency of two AI coding assistants (Opus 4.8 vs. Grok 4.5) to build a web app.",
+    "handle": "softwarewithnick",
+    "platform": "tiktok",
+    "views": 47000000,
+    "outlierX": 2756.6,
+    "followers": 48800
   },
   "slots": [
     {
       "id": "hook_text",
       "type": "text",
       "maxChars": 80,
-      "guidance": "on-screen opener — a before/after contrast — the old way vs the way it works now. Reference hook shape: \"\""
+      "guidance": "on-screen opener — a before/after contrast — the old way vs the way it works now. Reference hook shape: \"Immediate conversational speaking: 'Let's build a web app that finds leads for a\""
     },
     {
       "id": "vo_script",

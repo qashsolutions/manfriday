@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "So Grok 4.5 on Cursor and apparently it's",
-    "concept": "A developer compares the performance and cost of two AI models, Grok 4.5 and Opus 4.8, by using them to fix a bug in his own app."
+    "concept": "A developer compares the performance and cost of two AI models, Grok 4.5 and Opus 4.8, by using them to fix a bug in his own app.",
+    "handle": "omarontape",
+    "platform": "tiktok",
+    "views": 58200000,
+    "outlierX": 5416.9,
+    "followers": 95400
   },
   "slots": [
     {

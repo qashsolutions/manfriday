@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Let me talk to my team",
-    "concept": "A person showcases their 'team' working by a pool, humorously listing AI coding tools and caffeinated drinks as their collaborators."
+    "concept": "A person showcases their 'team' working by a pool, humorously listing AI coding tools and caffeinated drinks as their collaborators.",
+    "handle": "thecristianmercado",
+    "platform": "instagram",
+    "views": 177400,
+    "outlierX": 130.0,
+    "followers": 630
   },
   "slots": [
     {

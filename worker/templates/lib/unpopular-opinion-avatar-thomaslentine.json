@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Ur using Claude at 5%",
-    "concept": "A creator explains a complex, multi-step productivity workflow using AI tools Fable and Opus."
+    "concept": "A creator explains a complex, multi-step productivity workflow using AI tools Fable and Opus.",
+    "handle": "thomaslentine",
+    "platform": "tiktok",
+    "views": 111700,
+    "outlierX": 160.5,
+    "followers": 6400
   },
   "slots": [
     {

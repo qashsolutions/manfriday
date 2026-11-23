@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "LAST SPRING, MY WIFE AND I ACCIDENTALLY LAUNCHED AN IPHONE APP",
-    "concept": "A creator explains the backstory and recent relaunch of his local marketplace app, 'Coop', to encourage downloads."
+    "concept": "A creator explains the backstory and recent relaunch of his local marketplace app, 'Coop', to encourage downloads.",
+    "handle": "coleandlauryn",
+    "platform": "tiktok",
+    "views": 1800000,
+    "outlierX": 9.8,
+    "followers": 80400
   },
   "slots": [
     {

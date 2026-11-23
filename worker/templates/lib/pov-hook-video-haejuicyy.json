@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "POV: Jarvis is building you a $30k MRR app",
-    "concept": "The creator demonstrates a workflow using AI agents to automate business tasks like revenue tracking, ad management, and email responses."
+    "concept": "The creator demonstrates a workflow using AI agents to automate business tasks like revenue tracking, ad management, and email responses.",
+    "handle": "haejuicyy",
+    "platform": "tiktok",
+    "views": 483500,
+    "outlierX": 98.5,
+    "followers": 5000
   },
   "slots": [
     {

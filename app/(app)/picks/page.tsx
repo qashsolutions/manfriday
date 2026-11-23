@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useReportItem } from "@/lib/report-context";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
@@ -10,15 +10,11 @@ import { AlsoInSheet } from "@/components/app/AlsoInSheet";
 import { OutOfVideosSheet } from "@/components/app/OutOfVideosSheet";
 import { parseBillingError, type BillingView } from "@/lib/billing-copy";
 import { languageMeta, styleLabel } from "@/lib/languages";
+import { WhySheet, WordsSheet } from "@/components/app/PickSheets";
+import { compact, outlierLine, spaceName } from "@/lib/pick-why";
 
 function hookOf(slots: Record<string, string>): string {
   return slots.hook ?? slots.hook_text ?? slots.hook_overlay ?? Object.values(slots)[0] ?? "";
-}
-
-function fmtViews(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
-  return String(n);
 }
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -33,6 +29,11 @@ export default function PicksPage() {
   const brand = useQuery(api.brands.myBrand);
   const swipe = useMutation(api.feed.swipe);
   const requestVariant = useMutation(api.feed.requestVariant);
+  const editWords = useMutation(api.feed.editWords);
+  const [sheet, setSheet] = useState<"why" | "words" | null>(null);
+  // Phone: drag the card right to keep, left to skip.
+  const drag = useRef<{ x: number; id: string } | null>(null);
+  const [dx, setDx] = useState(0);
   // Language UX §2: after a keep, offer the same pick in another market.
   const [alsoIn, setAlsoIn] = useState<{ id: (typeof feed extends undefined ? never : NonNullable<typeof feed>)["concepts"][number]["id"]; language: string; languageStyle: "code-mixed" | "native" | "roman" | null; hook: string } | null>(null);
 
@@ -59,14 +60,32 @@ export default function PicksPage() {
   useEffect(() => {
     if (!top) return;
     const onKey = (e: KeyboardEvent) => {
-      if (alsoIn || outOf) return; // an open sheet owns the keyboard
+      if (alsoIn || outOf || sheet) return; // an open sheet owns the keyboard
       if (e.key === "ArrowRight") void keep(top);
       if (e.key === "ArrowLeft") swipe({ conceptId: top.id, keep: false });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [top, swipe, alsoIn, outOf]);
+  }, [top, swipe, alsoIn, outOf, sheet]);
+
+  const SWIPE_AT = 90;
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!top || e.pointerType === "mouse") return; // desktop has buttons and keys
+    drag.current = { x: e.clientX, id: top.id };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (drag.current) setDx(e.clientX - drag.current.x);
+  };
+  const onPointerEnd = () => {
+    const d = drag.current;
+    drag.current = null;
+    const moved = dx;
+    setDx(0);
+    if (!d || !top || d.id !== top.id) return;
+    if (moved > SWIPE_AT) void keep(top);
+    else if (moved < -SWIPE_AT) void swipe({ conceptId: top.id, keep: false });
+  };
 
   if (feed === undefined) {
     return (
@@ -82,11 +101,23 @@ export default function PicksPage() {
     <div className={styles.wrap}>
       {top ? (
         <div className={styles.deck}>
-          <span className={styles.trendChip}>
+          <button type="button" className={styles.trendChip} onClick={() => setSheet("why")} data-elsewhere={top.why ? !top.why.fromYourSpace : undefined}>
             <span className={styles.liveDot} />
-            TREND REF · {fmtViews(top.refViews)} VIEWS · {FORMAT_LABEL[top.format] ?? top.format}
-          </span>
-          <div className={styles.card}>
+            {top.why?.refViews
+              ? `TREND · ${compact(top.why.refViews)} VIEWS${outlierLine(top.why.outlierX) ? ` · ${Math.round(top.why.outlierX!)}× USUAL` : ""}`
+              : "PROVEN SHAPE"}
+            {top.why && !top.why.fromYourSpace ? ` · FROM ${spaceName(top.why.trendSpace).toUpperCase()}` : ""}
+            <span className={styles.whyLink}>WHY?</span>
+          </button>
+          <div
+            className={styles.card}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerEnd}
+            onPointerCancel={onPointerEnd}
+            style={dx ? { transform: `translateX(${dx}px) rotate(${dx / 25}deg)`, transition: "none" } : undefined}
+            data-intent={dx > SWIPE_AT ? "keep" : dx < -SWIPE_AT ? "skip" : undefined}
+          >
             {top.thumbUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={top.thumbUrl} alt="" className={styles.cardImg} />
@@ -97,6 +128,7 @@ export default function PicksPage() {
                   ghosting over the baked-in text. Show it only when there is no
                   thumbnail to read it from. */}
               {!top.thumbUrl && <span className={styles.cardHook}>{hookOf(top.slots)}</span>}
+              {!top.thumbUrl && <span className={styles.cardSub}>REDRAWING THE PREVIEW…</span>}
               <span className={styles.cardSub}>
                 {FORMAT_LABEL[top.format]} · MADE FOR YOU ·{" "}
                 <span lang={top.language}>{languageMeta(top.language).native}</span>
@@ -117,10 +149,17 @@ export default function PicksPage() {
                   : "Keep → Friday schedules it"}
             </button>
           </div>
+          {top.words.length > 0 && (
+            <button type="button" className={styles.editLink} onClick={() => setSheet("words")}>
+              Edit the words before keeping
+            </button>
+          )}
           <span className={styles.counter}>
             {me?.autoSchedule === false ? "Renders land in Calendar" : "Kept videos post at 17:30, one a day"} ·{" "}
             {feed.concepts.length} in the feed · {feed.kept} kept
-            {billing ? ` · ${billing.remaining} ${billing.remaining === 1 ? "video" : "videos"} left` : ""} · ← → keys work too
+            {billing ? ` · ${billing.remaining} ${billing.remaining === 1 ? "video" : "videos"} left` : ""}
+            <span className={styles.keysHint}> · ← → keys work too</span>
+            <span className={styles.swipeHint}> · swipe the card: right keeps, left skips</span>
           </span>
         </div>
       ) : (
@@ -176,6 +215,18 @@ export default function PicksPage() {
             }
           }}
           onClose={() => setAlsoIn(null)}
+        />
+      )}
+
+      {top && sheet === "why" && top.why && <WhySheet why={top.why} onClose={() => setSheet(null)} />}
+      {top && sheet === "words" && (
+        <WordsSheet
+          key={top.id}
+          words={top.words}
+          onSave={async (slots) => {
+            await editWords({ conceptId: top.id, slots });
+          }}
+          onClose={() => setSheet(null)}
         />
       )}
 

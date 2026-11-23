@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Stop writing long, complicated prompts.",
-    "concept": "The video demonstrates ten specific prompt engineering 'codes' that users can type into ChatGPT to alter how the AI generates responses."
+    "concept": "The video demonstrates ten specific prompt engineering 'codes' that users can type into ChatGPT to alter how the AI generates responses.",
+    "handle": "aniksingal",
+    "platform": "tiktok",
+    "views": 236000,
+    "outlierX": 18.9,
+    "followers": 240800
   },
   "slots": [
     {

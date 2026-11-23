@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I built an app to laugh at my jokes",
-    "concept": "A programmer builds an AI-powered app that triggers canned laughter to react to her bad coding jokes during office interactions."
+    "concept": "A programmer builds an AI-powered app that triggers canned laughter to react to her bad coding jokes during office interactions.",
+    "handle": "alberta.nyc",
+    "platform": "tiktok",
+    "views": 7300000,
+    "outlierX": 33.5,
+    "followers": 174100
   },
   "slots": [
     {

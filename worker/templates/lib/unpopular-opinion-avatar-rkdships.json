@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I made an app in one night!",
-    "concept": "A software engineer uses a technical checklist to debunk the common myth that building a viable, professional app in a single night is realistic."
+    "concept": "A software engineer uses a technical checklist to debunk the common myth that building a viable, professional app in a single night is realistic.",
+    "handle": "rkdships",
+    "platform": "instagram",
+    "views": 109100,
+    "outlierX": 58.4,
+    "followers": 38
   },
   "slots": [
     {

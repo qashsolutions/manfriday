@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "codex is so goated man",
-    "concept": "A creator showcases a new AI app called Codex on their computer monitor, highlighting its features and impressive UI design before endorsing it."
+    "concept": "A creator showcases a new AI app called Codex on their computer monitor, highlighting its features and impressive UI design before endorsing it.",
+    "handle": "midirbot",
+    "platform": "tiktok",
+    "views": 375800,
+    "outlierX": 98.9,
+    "followers": 11300
   },
   "slots": [
     {

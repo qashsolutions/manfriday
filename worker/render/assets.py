@@ -78,6 +78,11 @@ class BrandAssets:
     palette: dict = field(default_factory=lambda: dict(DEFAULT_PALETTE))
     presenter: Path | None = None  # the user's own photo (D2 amended 14 Sep 2026)
     voice: str = "female"  # brand presenter voice: "female" | "male" (Settings)
+    # Phone-width captures of the site, 1080×1920 each, top of the page first.
+    page_shots: list[Path] = field(default_factory=list)
+
+    def page(self, index: int) -> Path | None:
+        return self.page_shots[index % len(self.page_shots)] if self.page_shots else None
 
     def screenshot(self, pick: str) -> Path | None:
         order = {"hero": 0, "product": 1}
@@ -258,7 +263,28 @@ def gradient_bg(token: str, pal: dict):
     return ImageChops.screen(img, glow_img)
 
 
-def screenshot_bg(brand: BrandAssets, pick: str, with_text_below: bool):
+def page_bg(path: Path):
+    """A phone-width capture of the product's site, full-bleed (cover-fit to 9:16)."""
+    shot = Image.open(path).convert("RGB")
+    scale = max(W / shot.width, H / shot.height)
+    shot = shot.resize((max(W, round(shot.width * scale)), max(H, round(shot.height * scale))))
+    shot = shot.crop((0, 0, W, H))
+    # Captions sit in the lower part of the frame: fade it to near-black so they
+    # never compete with the site's own text and buttons.
+    shade = Image.new("L", (1, H))
+    for y in range(H):
+        t = (y - H * 0.48) / (H * 0.17)
+        shade.putpixel((0, y), int(225 * max(0.0, min(1.0, t))))
+    black = Image.new("RGB", (W, H), (8, 7, 11))
+    return Image.composite(black, shot, shade.resize((W, H)))
+
+
+def screenshot_bg(brand: BrandAssets, pick: str, with_text_below: bool, page: int | None = None):
+    # Review of 23 Nov 2026: a landscape share image shrunk into a card filled a
+    # quarter of a phone screen. The real site at phone width fills the frame.
+    if brand.page_shots:
+        index = page if page is not None else {"hero": 0, "product": 1}.get(pick, 0)
+        return page_bg(brand.page(index))
     img = gradient_bg("brand-dark-1", brand.palette)
     shot_path = brand.screenshot(pick)
     if shot_path is None:
@@ -291,20 +317,22 @@ def stock_bg(query: str, pal: dict):
     return gradient_bg("brand-dark-2", pal)
 
 
-def render_bg(bg: dict, brand: BrandAssets, with_text: bool = False):
+def render_bg(bg: dict, brand: BrandAssets, with_text: bool = False, page: int | None = None):
     kind = bg["kind"]
     if kind == "gradient":
         return gradient_bg(bg["styleToken"], brand.palette)
     if kind == "brand_screenshot":
-        return screenshot_bg(brand, bg.get("pick", "hero"), with_text)
+        return screenshot_bg(brand, bg.get("pick", "hero"), with_text, page)
     if kind == "stock":
         return stock_bg(bg.get("query", ""), brand.palette)
     raise ValueError(f"illegal bg kind {kind}")
 
 
-def compose_slide(bg: dict, text_spec: dict | None, values: dict, brand: BrandAssets):
+def compose_slide(bg: dict, text_spec: dict | None, values: dict, brand: BrandAssets, page: int | None = None):
+    """page: which phone capture to show for a brand_screenshot background
+    (cycles through the site top to bottom); None = the bg's own pick."""
     with_text = text_spec is not None
-    img = render_bg(bg, brand, with_text)
+    img = render_bg(bg, brand, with_text, page)
     if text_spec is not None:
         pos = text_spec["position"]
         if bg["kind"] == "brand_screenshot" and pos == "center":

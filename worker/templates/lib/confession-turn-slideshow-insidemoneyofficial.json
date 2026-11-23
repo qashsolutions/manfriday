@@ -11,7 +11,12 @@
   ],
   "reference": {
     "hook": "A Hollywood legend started a salad dressing company as a joke between friends. Then he did something no food founder does.",
-    "concept": "The video tells the origin story of Newman's Own, explaining how it started as a joke and evolved into a massive charitable endeavor."
+    "concept": "The video tells the origin story of Newman's Own, explaining how it started as a joke and evolved into a massive charitable endeavor.",
+    "handle": "insidemoneyofficial",
+    "platform": "instagram",
+    "views": 916600,
+    "outlierX": 31.6,
+    "followers": 14000
   },
   "slots": [
     {

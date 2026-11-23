@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "After hundreds of DMs and comments, here’s the open source of Holo.",
-    "concept": "A developer updates their followers on open-sourcing a project they previously created."
+    "concept": "A developer updates their followers on open-sourcing a project they previously created.",
+    "handle": "justinbuilds.mov",
+    "platform": "instagram",
+    "views": 109600,
+    "outlierX": 12.4,
+    "followers": 34000
   },
   "slots": [
     {

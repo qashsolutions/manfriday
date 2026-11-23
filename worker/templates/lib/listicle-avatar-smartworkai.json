@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "5 Crazy New Productivity Hacks with ChatGPT",
-    "concept": "A creator demonstrates five productivity-enhancing features within the ChatGPT app."
+    "concept": "A creator demonstrates five productivity-enhancing features within the ChatGPT app.",
+    "handle": "smartworkai",
+    "platform": "tiktok",
+    "views": 135400,
+    "outlierX": 42.6,
+    "followers": 160100
   },
   "slots": [
     {

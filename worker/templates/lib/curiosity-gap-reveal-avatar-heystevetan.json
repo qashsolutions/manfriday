@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "ANTHROPIC just SHOWED YOU the most VALUABLE JOB in AI",
-    "concept": "A creator explains why focusing on AI-driven automation for local businesses is a more lucrative opportunity than building general-purpose AI models."
+    "concept": "A creator explains why focusing on AI-driven automation for local businesses is a more lucrative opportunity than building general-purpose AI models.",
+    "handle": "heystevetan",
+    "platform": "instagram",
+    "views": 301600,
+    "outlierX": 40.3,
+    "followers": 373900
   },
   "slots": [
     {

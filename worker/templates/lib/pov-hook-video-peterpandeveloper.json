@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "WFH Routine w/ Devin Desktop",
-    "concept": "A programmer uses an AI agent to handle his work tasks while he relaxes, humorously showcasing the tool's capabilities."
+    "concept": "A programmer uses an AI agent to handle his work tasks while he relaxes, humorously showcasing the tool's capabilities.",
+    "handle": "peterpandeveloper",
+    "platform": "tiktok",
+    "views": 729800,
+    "outlierX": 17.8,
+    "followers": 158900
   },
   "slots": [
     {

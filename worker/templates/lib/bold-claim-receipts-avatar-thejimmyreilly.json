@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Claude Built a $7 Digital Product That Paid My Rent...",
-    "concept": "The creator explains a 3-step AI prompt strategy for identifying market pain points to sell digital products."
+    "concept": "The creator explains a 3-step AI prompt strategy for identifying market pain points to sell digital products.",
+    "handle": "thejimmyreilly",
+    "platform": "tiktok",
+    "views": 248700,
+    "outlierX": 229.2,
+    "followers": 12000
   },
   "slots": [
     {

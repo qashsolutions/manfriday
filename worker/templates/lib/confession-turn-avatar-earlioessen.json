@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Okay, whoever wrote this needs to be stopped.",
-    "concept": "A software engineer has a humorous conversation with his past self about the terrible code he wrote years ago."
+    "concept": "A software engineer has a humorous conversation with his past self about the terrible code he wrote years ago.",
+    "handle": "earlioessen",
+    "platform": "tiktok",
+    "views": 604900,
+    "outlierX": 166.6,
+    "followers": 27600
   },
   "slots": [
     {

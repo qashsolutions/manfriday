@@ -1,0 +1,84 @@
+{
+  "specVersion": 1,
+  "slug": "listicle-avatar-priyasingh-fierceandfearless",
+  "format": "avatar",
+  "hookPattern": "listicle",
+  "niches": [
+    "d2c-ecommerce"
+  ],
+  "platforms": [
+    "tiktok",
+    "youtube"
+  ],
+  "reference": {
+    "hook": "ChatGPT + Shopify = Your Product business",
+    "concept": "A creator explains how ChatGPT, Shopify, and ShipRocket can simplify launching a product business and invites viewers to join her community.",
+    "handle": "priyasingh.fierceandfearless",
+    "platform": "instagram",
+    "views": 145600,
+    "outlierX": 87.1,
+    "followers": 5600
+  },
+  "slots": [
+    {
+      "id": "hook_overlay",
+      "type": "text",
+      "maxChars": 70,
+      "guidance": "overlay for the first 3 seconds — a numbered list (3–5 items) of tools/habits/mistakes; item three carries the product. Reference hook shape: \"ChatGPT + Shopify = Your Product business\""
+    },
+    {
+      "id": "vo_script",
+      "type": "script",
+      "targetSeconds": 24,
+      "guidance": "spoken to camera, first person, conversational; make the point, give one example with a number, land the product once"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 40,
+      "guidance": "end card naming the product"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "the hook restated, exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "avatar",
+    "durationCapSeconds": 35,
+    "character": {
+      "pick": "brand_default"
+    },
+    "speech": {
+      "slotRef": "vo_script",
+      "tts": "brand_default",
+      "lipsync": "lazy_on_right_swipe"
+    },
+    "captions": {
+      "from": "vo_script",
+      "styleToken": "caption-md",
+      "position": "center-low"
+    },
+    "overlay": {
+      "slotRef": "hook_overlay",
+      "styleToken": "label-sm",
+      "position": "upper-third",
+      "showSeconds": 3.5
+    },
+    "endCard": {
+      "holdSeconds": 2.5,
+      "bg": {
+        "kind": "gradient",
+        "styleToken": "brand-dark-2"
+      },
+      "text": {
+        "slotRef": "cta",
+        "styleToken": "cta-md",
+        "position": "center"
+      }
+    }
+  }
+}

@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Male version of OF 👁️👁️",
-    "concept": "The creator demonstrates an AI tool called Polsia that automates business creation and management workflows."
+    "concept": "The creator demonstrates an AI tool called Polsia that automates business creation and management workflows.",
+    "handle": "brian_polsia",
+    "platform": "instagram",
+    "views": 156300,
+    "outlierX": 12.2,
+    "followers": 1500
   },
   "slots": [
     {

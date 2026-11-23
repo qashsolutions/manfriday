@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "broo name of the app plss",
-    "concept": "The creator demonstrates how to find and open a specific mobile app called 'Dashcode' in the Google Play Store to answer a user's question."
+    "concept": "The creator demonstrates how to find and open a specific mobile app called 'Dashcode' in the Google Play Store to answer a user's question.",
+    "handle": "mobileprogrammerz",
+    "platform": "tiktok",
+    "views": 314800,
+    "outlierX": 23.8,
+    "followers": 47400
   },
   "slots": [
     {

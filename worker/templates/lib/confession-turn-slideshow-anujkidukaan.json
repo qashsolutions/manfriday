@@ -1,0 +1,141 @@
+{
+  "specVersion": 1,
+  "slug": "confession-turn-slideshow-anujkidukaan",
+  "format": "slideshow",
+  "hookPattern": "confession-turn",
+  "niches": [
+    "local-services"
+  ],
+  "platforms": [
+    "tiktok"
+  ],
+  "reference": {
+    "hook": "Anuj ne employee isliye rakha tha taki use thoda free time mil sake",
+    "concept": "A shop owner narrates a story about his struggle with micromanaging his employee and the ultimate realization that trusting staff with responsibilities is essential for business growth.",
+    "handle": "anujkidukaan",
+    "platform": "instagram",
+    "views": 385200,
+    "outlierX": 10.2,
+    "followers": null
+  },
+  "slots": [
+    {
+      "id": "hook",
+      "type": "text",
+      "maxChars": 90,
+      "guidance": "slide 1 — an honest admission of a slow start or a mistake, then the one change that turned it — specific numbers, no hype. Reference hook shape: \"Anuj ne employee isliye rakha tha taki use thoda free time mil sake\""
+    },
+    {
+      "id": "slide_2",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the setup: the situation before, one concrete detail"
+    },
+    {
+      "id": "slide_3",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the turn or the first item: what changed / the first point"
+    },
+    {
+      "id": "slide_4",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the proof: a number, a moment, a screenshot-worthy fact"
+    },
+    {
+      "id": "slide_5",
+      "type": "text",
+      "maxChars": 110,
+      "guidance": "the lesson in one line — quotable"
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "maxChars": 60,
+      "guidance": "closing slide naming the product, soft ask"
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "maxChars": 150,
+      "use": "publish",
+      "guidance": "restate the hook, add exactly 2 niche hashtags"
+    }
+  ],
+  "renderPlan": {
+    "kind": "slideshow",
+    "slides": [
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "hook",
+          "styleToken": "hook-xl",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "product"
+        },
+        "text": {
+          "slotRef": "slide_2",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "slide_3",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "brand_screenshot",
+          "pick": "hero"
+        },
+        "text": {
+          "slotRef": "slide_4",
+          "styleToken": "body-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-1"
+        },
+        "text": {
+          "slotRef": "slide_5",
+          "styleToken": "hook-lg",
+          "position": "center"
+        }
+      },
+      {
+        "bg": {
+          "kind": "gradient",
+          "styleToken": "brand-dark-2"
+        },
+        "text": {
+          "slotRef": "cta",
+          "styleToken": "cta-md",
+          "position": "center"
+        }
+      }
+    ],
+    "music": {
+      "mood": "lofi-calm",
+      "source": "licensed_library"
+    }
+  }
+}

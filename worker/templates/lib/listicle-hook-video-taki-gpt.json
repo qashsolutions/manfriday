@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "5 things to build in Claude in a weekend",
-    "concept": "A creator showcases 5 practical AI projects built using Claude."
+    "concept": "A creator showcases 5 practical AI projects built using Claude.",
+    "handle": "taki.gpt",
+    "platform": "tiktok",
+    "views": 925700,
+    "outlierX": 143.7,
+    "followers": 242400
   },
   "slots": [
     {

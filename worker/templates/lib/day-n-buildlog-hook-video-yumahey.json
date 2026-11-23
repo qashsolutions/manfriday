@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "That's what we want to do.",
-    "concept": "A creator showcases a new web application they built to aggregate boat rentals in Amsterdam."
+    "concept": "A creator showcases a new web application they built to aggregate boat rentals in Amsterdam.",
+    "handle": "yumahey_",
+    "platform": "instagram",
+    "views": 109900,
+    "outlierX": 63.3,
+    "followers": 3400
   },
   "slots": [
     {

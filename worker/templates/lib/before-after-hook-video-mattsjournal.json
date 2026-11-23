@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Phone Addiction",
-    "concept": "A creator compares their lack of discipline using default phone settings versus their high productivity using a specialized screen-time blocker app."
+    "concept": "A creator compares their lack of discipline using default phone settings versus their high productivity using a specialized screen-time blocker app.",
+    "handle": "mattsjournal_",
+    "platform": "tiktok",
+    "views": 119700,
+    "outlierX": 120.7,
+    "followers": 10300
   },
   "slots": [
     {

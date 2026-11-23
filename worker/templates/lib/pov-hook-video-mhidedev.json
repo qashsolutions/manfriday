@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "POV: Me trying to debug a company's codebase written by a Chinese dev 😭",
-    "concept": "A screen recording showing someone scrolling through a confusing, heavily commented, and lengthy codebase to joke about the difficulty of debugging it."
+    "concept": "A screen recording showing someone scrolling through a confusing, heavily commented, and lengthy codebase to joke about the difficulty of debugging it.",
+    "handle": "mhidedev",
+    "platform": "tiktok",
+    "views": 1100000,
+    "outlierX": 331.6,
+    "followers": 2000
   },
   "slots": [
     {

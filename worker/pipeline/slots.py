@@ -55,14 +55,26 @@ STYLE_LINES = {
 }
 
 
+# The user posts these words as their own. Template guidance written from
+# winning posts asks for "receipts" and "one concrete number"; with no real
+# number to hand, a model invents one ("14 times", "87 percent"). These rules
+# win over any slot guidance (review of 23 Nov 2026).
+HONESTY_RULES = """Honesty rules — these override every slot's guidance:
+1. Numbers, metrics, percentages, prices, counts, durations and results may appear ONLY if they are in the brief's "facts" list, used as stated. If a slot asks for a number or receipts and no fact fits, make it concrete with a specific feature, step, screen or everyday situation instead — never a made-up figure.
+2. Never invent customers, users, quotes, testimonials, or events ("a parent called us", "she canceled", "I lost 14 months"). Hypothetical framing is fine when it is plainly hypothetical ("POV:", "imagine", "if you…").
+3. The speaker is the team that makes the product, talking to the people in the brief's audience. Never speak as one of the product's customers (a product for schools must not say "our school").
+4. Only describe features the brief says the product has."""
+
+
 def _prompt(brief: dict, language: str, batch: list[tuple[dict, int]]) -> str:
     lang = LANGUAGE_NAMES.get(language, "English")
     style = brief.get("languageStyle")
     style_line = STYLE_LINES[style].format(lang=lang) if style in STYLE_LINES and language != "en" else ""
     parts = [
-        f"Brand brief:\n{json.dumps({k: v for k, v in brief.items() if k != 'languageStyle'}, indent=2)}\n",
+        f"Brand brief:\n{json.dumps({k: v for k, v in brief.items() if k not in ('languageStyle', 'trend_niche')} | {'facts': brief.get('facts') or []}, indent=2)}\n",
         f"Write ALL slot text in {lang}. Hashtags may stay in English where that is the platform norm. {style_line}".strip(),
         "Fill the creative slots for each concept below. Every concept must feel like a distinct post — different angle, different specifics — never a rephrase of another. Follow each slot's guidance and character limits exactly. Concrete beats generic; write like a real creator in this niche, not like an ad.",
+        HONESTY_RULES,
         "",
     ]
     for i, (template, variant) in enumerate(batch):
@@ -96,7 +108,8 @@ def fill_batch(brief: dict, language: str, batch: list[tuple[dict, int]]) -> tup
         "You are Friday, a short-form content engine's creative writer. You fill "
         "text slots inside fixed video templates. You write scroll-stopping, "
         "specific, honest copy grounded in the brand brief. You respect every "
-        "character limit exactly."
+        "character limit exactly. You never invent numbers, customers or events: "
+        "figures come only from the brief's facts."
     )
 
     def call(prompt: str) -> tuple[BatchFill, int]:

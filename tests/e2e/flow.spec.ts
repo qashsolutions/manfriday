@@ -34,8 +34,8 @@ test.describe("keep, schedule, approve", () => {
     // overlay on top of a thumbnail that already had it burned in.
     await expect(page.getByText(/E2E fixture concept/)).toHaveCount(1);
 
-    // Every pick carries the proof that it is modelled on something real.
-    await expect(page.getByText(/TREND REF/)).toBeVisible();
+    // Every pick carries the proof that it is modelled on something real, and a way to see why.
+    await expect(page.getByRole("button", { name: /(TREND · .* VIEWS|PROVEN SHAPE).*WHY\?/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /skip/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /^Keep/ })).toBeVisible();
   });

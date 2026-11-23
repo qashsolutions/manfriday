@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "R + ChatGPT + A = $26,276/month",
-    "concept": "A tutorial showing a specific workflow using AI tools to build and launch a functional app quickly."
+    "concept": "A tutorial showing a specific workflow using AI tools to build and launch a functional app quickly.",
+    "handle": "nmnflow",
+    "platform": "instagram",
+    "views": 147700,
+    "outlierX": 32.8,
+    "followers": 11300
   },
   "slots": [
     {

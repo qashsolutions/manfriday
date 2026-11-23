@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I don't have a marketing team...",
-    "concept": "A creator demonstrates using an AI tool to simplify the process of creating marketing assets for an online product."
+    "concept": "A creator demonstrates using an AI tool to simplify the process of creating marketing assets for an online product.",
+    "handle": "dashachepizhko",
+    "platform": "tiktok",
+    "views": 2100000,
+    "outlierX": 5.7,
+    "followers": 7100000
   },
   "slots": [
     {

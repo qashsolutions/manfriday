@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "DELETING IN 24 HOURS",
-    "concept": "A creator demonstrates an AI tool that builds a full business structure from a single prompt."
+    "concept": "A creator demonstrates an AI tool that builds a full business structure from a single prompt.",
+    "handle": "hustle.audrey33",
+    "platform": "tiktok",
+    "views": 856100,
+    "outlierX": 2217.9,
+    "followers": 1700
   },
   "slots": [
     {

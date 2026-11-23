@@ -108,7 +108,16 @@
 
 /* picks deck */
 .deck {
-  width: min(390px, 92vw);
+  /* The whole deck — chip, card, buttons — fits one phone screen under the
+     two-row header, so Keep is always reachable without scrolling. */
+  width: min(390px, 92vw, calc((100svh - 330px) * 0.5625));
+  min-width: min(240px, 92vw);
+}
+@media (min-width: 721px) {
+  /* One-row header on desktop: more room for the card. */
+  .deck { width: min(390px, 92vw, calc((100svh - 250px) * 0.5625)); }
+}
+.deck {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -129,6 +138,30 @@
   letter-spacing: 0.06em;
 }
 
+button.trendChip { cursor: pointer; font-family: var(--font-mono); max-width: 100%; flex-wrap: wrap; justify-content: center; }
+button.trendChip:hover { border-color: var(--accent); }
+.trendChip[data-elsewhere="true"] .liveDot { background: var(--amber); }
+.whyLink { color: var(--accent); }
+
+.editLink {
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  color: var(--dim);
+  font: 500 13.5px var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.editLink:hover { color: var(--ink); }
+
+/* Keys are for keyboards, swiping is for fingers: each hint shows where it applies. */
+.swipeHint { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .keysHint { display: none; }
+  .swipeHint { display: inline; }
+}
+
 .liveDot {
   width: 7px;
   height: 7px;
@@ -145,7 +178,12 @@
   border: 1.5px solid var(--accent);
   box-shadow: 0 0 60px rgba(255, 77, 109, 0.22);
   background: var(--panel);
+  touch-action: pan-y; /* vertical scroll stays native; horizontal drags swipe */
+  user-select: none;
+  transition: transform 0.2s ease;
 }
+.card[data-intent="keep"] { border-color: var(--mint); box-shadow: 0 0 60px rgba(69, 224, 176, 0.3); }
+.card[data-intent="skip"] { border-color: var(--edge-2); opacity: 0.75; }
 
 .cardImg {
   position: absolute;

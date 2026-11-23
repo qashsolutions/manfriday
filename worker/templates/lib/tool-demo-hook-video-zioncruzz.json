@@ -11,15 +11,20 @@
     "youtube"
   ],
   "reference": {
-    "hook": null,
-    "concept": "The creator demonstrates how they built a custom creator dashboard to manage their business operations using an AI app-building platform."
+    "hook": "Creator speaking directly: 'Wait, I built my own app to run my entire creative business...'",
+    "concept": "The creator demonstrates how they built a custom creator dashboard to manage their business operations using an AI app-building platform.",
+    "handle": "zioncruzz",
+    "platform": "tiktok",
+    "views": 320000,
+    "outlierX": 77.3,
+    "followers": 26600
   },
   "slots": [
     {
       "id": "hook_text",
       "type": "text",
       "maxChars": 80,
-      "guidance": "on-screen opener — show, don't tell — the product doing the thing, narrated in plain steps. Reference hook shape: \"\""
+      "guidance": "on-screen opener — show, don't tell — the product doing the thing, narrated in plain steps. Reference hook shape: \"Creator speaking directly: 'Wait, I built my own app to run my entire creative b\""
     },
     {
       "id": "vo_script",

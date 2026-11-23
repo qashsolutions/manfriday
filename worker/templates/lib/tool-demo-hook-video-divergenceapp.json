@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "THIS IS MY IPAD RUNNING WINDOWS",
-    "concept": "The creator demonstrates a new remote desktop application that allows an iPad to run the Windows operating system."
+    "concept": "The creator demonstrates a new remote desktop application that allows an iPad to run the Windows operating system.",
+    "handle": "divergenceapp",
+    "platform": "instagram",
+    "views": 106300,
+    "outlierX": 27.9,
+    "followers": 735
   },
   "slots": [
     {

@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "claude code ❌",
-    "concept": "A creator compares two options for software development tasks, dismissing 'Claude Code' in favor of hiring a remote developer at a low hourly rate."
+    "concept": "A creator compares two options for software development tasks, dismissing 'Claude Code' in favor of hiring a remote developer at a low hourly rate.",
+    "handle": "haroonkhaans",
+    "platform": "instagram",
+    "views": 123800,
+    "outlierX": 52.7,
+    "followers": 51600
   },
   "slots": [
     {

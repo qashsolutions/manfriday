@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "hot take: being part-time doesn't make you less of a founder",
-    "concept": "A creator reacts to a podcast clip to validate the concept of building a business while working a side job."
+    "concept": "A creator reacts to a podcast clip to validate the concept of building a business while working a side job.",
+    "handle": "secondbest_2",
+    "platform": "tiktok",
+    "views": 109600,
+    "outlierX": 147.2,
+    "followers": 3900
   },
   "slots": [
     {

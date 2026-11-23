@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "how much $$ my lazy business made last month (no gatekeeping)",
-    "concept": "A solopreneur reveals the specific income streams and earnings from her business for the previous month."
+    "concept": "A solopreneur reveals the specific income streams and earnings from her business for the previous month.",
+    "handle": "lazymillionaire",
+    "platform": "instagram",
+    "views": 137400,
+    "outlierX": 50.3,
+    "followers": 479300
   },
   "slots": [
     {

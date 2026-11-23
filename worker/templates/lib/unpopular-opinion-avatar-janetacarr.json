@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "When people say, 'Oh, we can't even make software without AI anymore,'",
-    "concept": "A creator rants about people claiming they cannot build software without AI tools anymore."
+    "concept": "A creator rants about people claiming they cannot build software without AI tools anymore.",
+    "handle": "janetacarr",
+    "platform": "tiktok",
+    "views": 379700,
+    "outlierX": 19.5,
+    "followers": 8600
   },
   "slots": [
     {

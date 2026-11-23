@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "OKAY, MY HOBBY PROJECT KINDA BLEW UP IN THE PAST FEW WEEKS.",
-    "concept": "A developer presents the features and growth of his niche messaging app, 'Roost', which facilitates communication through virtual carrier pigeons."
+    "concept": "A developer presents the features and growth of his niche messaging app, 'Roost', which facilitates communication through virtual carrier pigeons.",
+    "handle": "roost.app",
+    "platform": "instagram",
+    "views": 1500000,
+    "outlierX": 324.5,
+    "followers": 13200
   },
   "slots": [
     {

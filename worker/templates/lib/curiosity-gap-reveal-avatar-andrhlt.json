@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Do you know how many developers would be screwed if this actually happened?",
-    "concept": "A creator reacts to a viral tweet about a hypothetical MrBeast challenge where developers have to center a div without AI, jokingly highlighting the reliance on AI tools in modern coding."
+    "concept": "A creator reacts to a viral tweet about a hypothetical MrBeast challenge where developers have to center a div without AI, jokingly highlighting the reliance on AI tools in modern coding.",
+    "handle": "andrhlt",
+    "platform": "tiktok",
+    "views": 522000,
+    "outlierX": 91.6,
+    "followers": 10400
   },
   "slots": [
     {

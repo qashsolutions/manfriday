@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "claude: build a profitable 100k/mon business no investment. no stress. make no mistakes.",
-    "concept": "A creator asks an AI to build him a profitable business with no effort, only to realize the AI provides a generic or unhelpful response."
+    "concept": "A creator asks an AI to build him a profitable business with no effort, only to realize the AI provides a generic or unhelpful response.",
+    "handle": "nick.sender",
+    "platform": "tiktok",
+    "views": 274000,
+    "outlierX": 392.0,
+    "followers": 1100
   },
   "slots": [
     {

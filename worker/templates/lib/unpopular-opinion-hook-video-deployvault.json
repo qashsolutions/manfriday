@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "F*ck Notion. F*ck 400 screenshots you'll never open. Connect Claude to Obsidian once and let it run your life.",
-    "concept": "The video demonstrates a personal knowledge management workflow using Obsidian and AI, criticizing the clutter of traditional tools like Notion."
+    "concept": "The video demonstrates a personal knowledge management workflow using Obsidian and AI, criticizing the clutter of traditional tools like Notion.",
+    "handle": "deployvault",
+    "platform": "instagram",
+    "views": 561600,
+    "outlierX": 54.2,
+    "followers": 8400
   },
   "slots": [
     {

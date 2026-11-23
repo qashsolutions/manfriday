@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Backend vs. Mobile developer 🧑‍💻",
-    "concept": "Two developers compare the visual output of their respective roles, showing backend code versus a mobile app UI."
+    "concept": "Two developers compare the visual output of their respective roles, showing backend code versus a mobile app UI.",
+    "handle": "dan.ilies",
+    "platform": "tiktok",
+    "views": 276500,
+    "outlierX": 69.6,
+    "followers": 17500
   },
   "slots": [
     {

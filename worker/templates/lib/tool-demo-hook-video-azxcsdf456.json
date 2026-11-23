@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "NEW: Claude's AI 'SuperPrompts' will save you days of work – here is exactly how to use them effectively Jun, 22, 2026",
-    "concept": "The creator explains the new 'Skills' feature in Claude AI, comparing them to 'SuperPrompts' that act as permanent context to save time."
+    "concept": "The creator explains the new 'Skills' feature in Claude AI, comparing them to 'SuperPrompts' that act as permanent context to save time.",
+    "handle": "azxcsdf456",
+    "platform": "tiktok",
+    "views": 132900,
+    "outlierX": 9.6,
+    "followers": 27500
   },
   "slots": [
     {

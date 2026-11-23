@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Spring Boot feels like magic until debugging starts",
-    "concept": "A tutorial and promotion for a specific Spring Boot debugging plugin, interspersed with relevant internet memes for humor."
+    "concept": "A tutorial and promotion for a specific Spring Boot debugging plugin, interspersed with relevant internet memes for humor.",
+    "handle": "thom.code",
+    "platform": "tiktok",
+    "views": 333100,
+    "outlierX": 28.6,
+    "followers": 221400
   },
   "slots": [
     {

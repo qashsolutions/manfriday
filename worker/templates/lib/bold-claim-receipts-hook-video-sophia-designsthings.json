@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "AI's that can make you $10K in a weekend",
-    "concept": "A creator tests a side hustle claim about using AI tools to quickly build and monetize an app, then shares the results."
+    "concept": "A creator tests a side hustle claim about using AI tools to quickly build and monetize an app, then shares the results.",
+    "handle": "sophia.designsthings",
+    "platform": "tiktok",
+    "views": 612800,
+    "outlierX": 459.0,
+    "followers": 19800
   },
   "slots": [
     {

@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I wasted 3 years so you don't have to",
-    "concept": "A solopreneur explains his system for creating digital products using ChatGPT and offers a free script to viewers via DM."
+    "concept": "A solopreneur explains his system for creating digital products using ChatGPT and offers a free script to viewers via DM.",
+    "handle": "steveofallstreets",
+    "platform": "instagram",
+    "views": 237200,
+    "outlierX": 31.2,
+    "followers": 158000
   },
   "slots": [
     {

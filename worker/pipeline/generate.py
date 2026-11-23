@@ -13,7 +13,7 @@ import requests
 import cvx
 from pipeline.brief import Brief, synthesize_brief
 from pipeline.match import plan_batch
-from pipeline.scrape import scrape
+from pipeline.scrape import capture_page_shots, scrape
 from pipeline.slots import fill_batch
 
 
@@ -33,6 +33,8 @@ def generate_for_user(user_id: str, url: str, count: int = 10, request_id: str |
             cvx.mutation("worker:updatePipelineRequest", args)
 
     progress("analyzing")
+    templates = cvx.query("pipeline:listActiveTemplates")
+    library_niches = sorted({n for t in templates for n in t.get("niches", [])})
     # Determinism-first: one brief per URL. A URL this user already gave Friday
     # reuses the stored brief (and any edits they made to it) — no scrape, no
     # Claude call, no new screenshots.
@@ -40,33 +42,45 @@ def generate_for_user(user_id: str, url: str, count: int = 10, request_id: str |
     if cached:
         brief, brief_cost = Brief(**cached["brief"]), 0
         brand_id, brief_version = cached["brandId"], cached["briefVersion"]
+        if not cached.get("hasPageShots"):
+            # Briefed before phone captures existed: take them now (no Claude call).
+            with tempfile.TemporaryDirectory() as tmp:
+                shots = [_upload_image(p) for p in capture_page_shots(url, Path(tmp))]
+            if shots:
+                cvx.mutation("pipeline:setPageShots", {"brandId": brand_id, "pageShotIds": shots})
     else:
         with tempfile.TemporaryDirectory() as tmp:
             scraped = scrape(url, Path(tmp))
-            brief, brief_cost = synthesize_brief(scraped)
+            brief, brief_cost = synthesize_brief(scraped, library_niches)
             screenshot_ids = [_upload_image(p) for p in scraped.image_paths]
-        res = cvx.mutation(
-            "pipeline:upsertBrand",
-            {
-                "userId": user_id,
-                "url": url,
-                "name": brief.name,
-                "oneLiner": brief.one_liner,
-                "audience": brief.audience,
-                "tone": brief.tone,
-                "niche": brief.niche,
-                "language": brief.language,
-                "screenshotIds": screenshot_ids,
-            },
-        )
+            page_shot_ids = [_upload_image(p) for p in capture_page_shots(url, Path(tmp))]
+        args = {
+            "userId": user_id,
+            "url": url,
+            "name": brief.name,
+            "oneLiner": brief.one_liner,
+            "audience": brief.audience,
+            "tone": brief.tone,
+            "niche": brief.niche,
+            "language": brief.language,
+            "screenshotIds": screenshot_ids,
+            "pageShotIds": page_shot_ids,
+            "facts": brief.facts,
+        }
+        if brief.trend_niche:
+            args["trendNiche"] = brief.trend_niche
+        res = cvx.mutation("pipeline:upsertBrand", args)
         brand_id, brief_version = res["brandId"], res["briefVersion"]
     progress("drafting", brand_id=brand_id)
 
-    templates = cvx.query("pipeline:listActiveTemplates")
     has_presenter = bool(cvx.query("pipeline:brandHasPresenter", {"brandId": brand_id}))
     # Fresh picks: trends this brand has used least come first.
     used = cvx.query("pipeline:templateUseCounts", {"brandId": brand_id}) or {}
-    batch = plan_batch(templates, brief.niche, count, allow_avatar=has_presenter, used=used)
+    # Trends come from the brand's trend-library space when it has one; "none"
+    # (nothing from their space yet) still gets the best trends overall, and the
+    # Picks card says they come from another space.
+    space = brief.trend_niche if brief.trend_niche and brief.trend_niche != "none" else brief.niche
+    batch = plan_batch(templates, space, count, allow_avatar=has_presenter, used=used)
     if not batch:
         raise RuntimeError("no usable templates in the library")
 

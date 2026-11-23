@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "UNLIMITED AI FOR $0",
-    "concept": "A tech creator demonstrates how to run AI models locally for free to avoid subscription costs."
+    "concept": "A tech creator demonstrates how to run AI models locally for free to avoid subscription costs.",
+    "handle": "kyle.s.painter",
+    "platform": "tiktok",
+    "views": 254400,
+    "outlierX": 275.0,
+    "followers": 5300
   },
   "slots": [
     {

@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I paid $34 to get 13,891 views from word/puzzle game players",
-    "concept": "A creator reveals he paid for targeted ads to reach puzzle game players and directs them to his own website."
+    "concept": "A creator reveals he paid for targeted ads to reach puzzle game players and directs them to his own website.",
+    "handle": "keepbufoalive",
+    "platform": "tiktok",
+    "views": 162400,
+    "outlierX": 106.7,
+    "followers": 5300
   },
   "slots": [
     {

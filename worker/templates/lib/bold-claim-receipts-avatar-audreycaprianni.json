@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "This is how much my business made in May",
-    "concept": "A solopreneur provides a transparent financial breakdown of her business income and expenses for the month of May."
+    "concept": "A solopreneur provides a transparent financial breakdown of her business income and expenses for the month of May.",
+    "handle": "audreycaprianni",
+    "platform": "tiktok",
+    "views": 113000,
+    "outlierX": 23.7,
+    "followers": 23600
   },
   "slots": [
     {

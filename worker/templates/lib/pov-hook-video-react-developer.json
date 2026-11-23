@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "POV: You are a developer / 6:00 PM",
-    "concept": "A developer returns home and immediately sits down to work for hours, highlighting the long, intense coding sessions."
+    "concept": "A developer returns home and immediately sits down to work for hours, highlighting the long, intense coding sessions.",
+    "handle": "react__developer",
+    "platform": "tiktok",
+    "views": 221500,
+    "outlierX": 61.4,
+    "followers": 34600
   },
   "slots": [
     {

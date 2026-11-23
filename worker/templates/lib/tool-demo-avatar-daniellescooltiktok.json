@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "i made a website called",
-    "concept": "A creator introduces an app called 'Outernet' that turns screenshots of planned activities into real-world maps and plans."
+    "concept": "A creator introduces an app called 'Outernet' that turns screenshots of planned activities into real-world maps and plans.",
+    "handle": "daniellescooltiktok",
+    "platform": "tiktok",
+    "views": 408200,
+    "outlierX": 73.9,
+    "followers": 3100
   },
   "slots": [
     {

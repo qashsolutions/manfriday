@@ -46,6 +46,9 @@ export const upsertBrand = mutation({
     niche: v.string(),
     language: v.string(),
     screenshotIds: v.array(v.id("_storage")),
+    pageShotIds: v.optional(v.array(v.id("_storage"))),
+    facts: v.optional(v.array(v.string())),
+    trendNiche: v.optional(v.string()),
   },
   handler: async (ctx: MutationCtx, args) => {
     requireWorker(args.token);
@@ -62,12 +65,15 @@ export const upsertBrand = mutation({
       niche: args.niche,
       language: args.language,
       screenshotIds: args.screenshotIds,
+      pageShotIds: args.pageShotIds ?? [],
+      facts: clipFacts(args.facts ?? []),
+      trendNiche: args.trendNiche,
       status: "ready" as const,
     };
     if (existing) {
       // Re-scraped: the old screenshots are replaced, so delete their files.
-      const keep = new Set(args.screenshotIds);
-      for (const sid of existing.screenshotIds) if (!keep.has(sid)) await ctx.storage.delete(sid);
+      const keep = new Set([...args.screenshotIds, ...(args.pageShotIds ?? [])]);
+      for (const sid of [...existing.screenshotIds, ...(existing.pageShotIds ?? [])]) if (!keep.has(sid)) await ctx.storage.delete(sid);
       await ctx.db.patch("brands", existing._id, {
         ...fields,
         briefVersion: existing.briefVersion + 1,
@@ -107,8 +113,34 @@ export const cachedBrand = query({
         tone: brand.tone,
         niche: brand.niche,
         language: brand.language,
+        facts: brand.facts ?? [],
+        trend_niche: brand.trendNiche ?? null,
       },
+      // Brands briefed before phone captures existed get them on their next batch.
+      hasPageShots: (brand.pageShotIds ?? []).length > 0,
     };
+  },
+});
+
+/** Facts are short, plain lines; cap count and length wherever they enter. */
+export function clipFacts(facts: string[]): string[] {
+  return facts.map((f) => f.trim().slice(0, 160)).filter(Boolean).slice(0, 12);
+}
+
+/** Attach phone-width captures to a brand that was briefed without them. */
+export const setPageShots = mutation({
+  args: { token: v.string(), brandId: v.id("brands"), pageShotIds: v.array(v.id("_storage")) },
+  handler: async (ctx: MutationCtx, args) => {
+    requireWorker(args.token);
+    const brand = await ctx.db.get("brands", args.brandId);
+    if (!brand) {
+      for (const sid of args.pageShotIds) await ctx.storage.delete(sid);
+      return null;
+    }
+    const keep = new Set(args.pageShotIds);
+    for (const sid of brand.pageShotIds ?? []) if (!keep.has(sid)) await ctx.storage.delete(sid);
+    await ctx.db.patch("brands", args.brandId, { pageShotIds: args.pageShotIds });
+    return null;
   },
 });
 
@@ -313,6 +345,7 @@ export const variantContext = query({
         tone: brand.tone,
         niche: brand.niche,
         language: brand.language,
+        facts: brand.facts ?? [],
       },
       template: {
         id: template._id,

@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "POV: waking up to a $2677 payment from my noise side hustle account realizing that I wasted 3 years at a 9-5 when I could have been financially free already",
-    "concept": "A creator waking up in bed and showing a notification of a large deposit from a side hustle to express feelings of regret about their previous 9-5 employment."
+    "concept": "A creator waking up in bed and showing a notification of a large deposit from a side hustle to express feelings of regret about their previous 9-5 employment.",
+    "handle": "katie.side.hustle0",
+    "platform": "tiktok",
+    "views": 460800,
+    "outlierX": 50.8,
+    "followers": 32299
   },
   "slots": [
     {

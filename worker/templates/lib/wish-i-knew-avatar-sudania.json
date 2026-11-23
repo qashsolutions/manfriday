@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Dear, Younger me",
-    "concept": "An entrepreneur shares her personal business journey and demonstrates how an AI tool helped her refine her pitch for a competition."
+    "concept": "An entrepreneur shares her personal business journey and demonstrates how an AI tool helped her refine her pitch for a competition.",
+    "handle": "sudania_",
+    "platform": "tiktok",
+    "views": 1600000,
+    "outlierX": 92.8,
+    "followers": 257300
   },
   "slots": [
     {

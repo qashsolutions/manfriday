@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "$100k in 90 days with AI challenge. Built in public so I’m not a fake internet liar like the rest",
-    "concept": "A creator explains her 'build in public' experiment to make $100k using AI tools, promising to debunk fake 'get rich quick' claims."
+    "concept": "A creator explains her 'build in public' experiment to make $100k using AI tools, promising to debunk fake 'get rich quick' claims.",
+    "handle": "jiannacapri",
+    "platform": "instagram",
+    "views": 276800,
+    "outlierX": 45.3,
+    "followers": 114400
   },
   "slots": [
     {

@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "my friend just vibecoded an app saying he's 'about to make millions' then sent me the url - http://localhost:3000",
-    "concept": "A software developer satirically reacts to a friend claiming to have built a revolutionary app that is actually just a locally running development server."
+    "concept": "A software developer satirically reacts to a friend claiming to have built a revolutionary app that is actually just a locally running development server.",
+    "handle": "only.onam",
+    "platform": "tiktok",
+    "views": 306500,
+    "outlierX": 61.3,
+    "followers": 2200
   },
   "slots": [
     {

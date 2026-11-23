@@ -86,6 +86,15 @@ export default defineSchema({
     languageStyle: v.optional(v.union(v.literal("code-mixed"), v.literal("native"), v.literal("roman"))),
     markets: v.optional(v.array(v.string())),
     screenshotIds: v.array(v.id("_storage")), // scraped product shots for slides
+    // Phone-width captures of the site, top to bottom (1080 wide, one screen each):
+    // the b-roll after the hook, full-bleed instead of a shrunken share image.
+    pageShotIds: v.optional(v.array(v.id("_storage"))),
+    // Facts the site itself states (numbers, customers, features). Slot-fill may
+    // only use figures from here — never invented ones. User-editable.
+    facts: v.optional(v.array(v.string())),
+    // The trend-library niche this brand draws references from (a library slug),
+    // or "none" when the library has nothing from its space yet. User-editable.
+    trendNiche: v.optional(v.string()),
     // D2 (amended 14 Sep 2026): the presenter is the user's own uploaded photo —
     // animated for the hook of avatar videos. Consent timestamp = the user
     // attested it is them (or someone who gave written permission).

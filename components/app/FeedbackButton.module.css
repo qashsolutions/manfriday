@@ -15,6 +15,15 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 .fab:hover { border-color: var(--accent); color: var(--accent); }
+/* Phone: a floating button sat on top of Keep. Put it at the end of the page instead. */
+@media (max-width: 720px) {
+  .fab {
+    position: static;
+    display: block;
+    margin: 28px auto 24px;
+    box-shadow: none;
+  }
+}
 .scrim {
   position: fixed;
   inset: 0;

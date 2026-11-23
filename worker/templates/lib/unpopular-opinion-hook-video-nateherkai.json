@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Claude just killed web designers",
-    "concept": "The creator explains how to use Claude AI and specific web design tools to automate the creation of high-quality websites."
+    "concept": "The creator explains how to use Claude AI and specific web design tools to automate the creation of high-quality websites.",
+    "handle": "nateherkai",
+    "platform": "tiktok",
+    "views": 247800,
+    "outlierX": 87.0,
+    "followers": 30900
   },
   "slots": [
     {

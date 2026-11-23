@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "There are only three certainties in life.",
-    "concept": "A software developer explains how he built a digital pet app designed to discourage overworking by rewarding intentional productivity."
+    "concept": "A software developer explains how he built a digital pet app designed to discourage overworking by rewarding intentional productivity.",
+    "handle": "tulio_sasaya",
+    "platform": "tiktok",
+    "views": 93800000,
+    "outlierX": 1102.9,
+    "followers": 688100
   },
   "slots": [
     {

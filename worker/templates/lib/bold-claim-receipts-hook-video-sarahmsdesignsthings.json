@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "AI's that can make you $10K in a weekend",
-    "concept": "A creator demonstrates a step-by-step 'no-code' side hustle using various AI tools to build a mobile app in under five minutes."
+    "concept": "A creator demonstrates a step-by-step 'no-code' side hustle using various AI tools to build a mobile app in under five minutes.",
+    "handle": "sarahmsdesignsthings",
+    "platform": "instagram",
+    "views": 401500,
+    "outlierX": 88.1,
+    "followers": 5000
   },
   "slots": [
     {

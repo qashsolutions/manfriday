@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Claude is outdated 😔",
-    "concept": "The creator demonstrates using an AI coding platform to quickly generate an app after expressing frustration with a competitor."
+    "concept": "The creator demonstrates using an AI coding platform to quickly generate an app after expressing frustration with a competitor.",
+    "handle": "levillllli",
+    "platform": "instagram",
+    "views": 537000,
+    "outlierX": 343.8,
+    "followers": 2400
   },
   "slots": [
     {

@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "me building out a feature... with just enough UI to fake progress",
-    "concept": "A humorous meme video drawing a parallel between painting a fake speed bump to trick drivers and developers creating a front-end interface that lacks back-end functionality."
+    "concept": "A humorous meme video drawing a parallel between painting a fake speed bump to trick drivers and developers creating a front-end interface that lacks back-end functionality.",
+    "handle": "fun.vibes724",
+    "platform": "tiktok",
+    "views": 511200,
+    "outlierX": 45.4,
+    "followers": 41200
   },
   "slots": [
     {

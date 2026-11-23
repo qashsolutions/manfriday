@@ -23,6 +23,8 @@ TDIR = Path(__file__).resolve().parent.parent / "templates"
 CAND = TDIR / "curation" / "candidates.jsonl"
 OUT = TDIR / "lib"
 LIB = TDIR / "library.json"
+# When each curation pass captured its references (the reviewer tag says which pass).
+CAPTURED = {"claude-session-23nov": "2026-11-23"}
 
 # ---- base structures -------------------------------------------------------
 # Hook-pattern guidance is the creative constraint; format decides the render plan.
@@ -40,6 +42,21 @@ PATTERN_GUIDE = {
     "tool-demo": "show, don't tell — the product doing the thing, narrated in plain steps",
 }
 
+def reference_of(ref: dict) -> dict:
+    """What the Picks card shows as "why this could work" — curated facts about
+    the real post, never generated: its hook, what it was about, who posted it,
+    and how far it beat that creator's usual views."""
+    return {
+        "hook": ref.get("hookText"),
+        "concept": ref.get("concept"),
+        "handle": ref.get("handle"),
+        "platform": ref.get("platform"),
+        "views": ref.get("views"),
+        "outlierX": ref.get("outlierX"),
+        "followers": ref.get("followers"),
+    }
+
+
 # The ten launch hook patterns map onto three render plans (Friday Internals, templateSpec v1.1).
 
 def slideshow_structure(slug: str, pattern: str, niches: list[str], ref: dict) -> dict:
@@ -51,7 +68,7 @@ def slideshow_structure(slug: str, pattern: str, niches: list[str], ref: dict) -
         "hookPattern": pattern,
         "niches": niches,
         "platforms": ["tiktok"],
-        "reference": {"hook": ref.get("hookText"), "concept": ref.get("concept")},
+        "reference": reference_of(ref),
         "slots": [
             {"id": "hook", "type": "text", "maxChars": 90, "guidance": f"slide 1 — {guide}. Reference hook shape: \"{(ref.get('hookText') or '').strip()[:80]}\""},
             {"id": "slide_2", "type": "text", "maxChars": 110, "guidance": "the setup: the situation before, one concrete detail"},
@@ -85,7 +102,7 @@ def hook_video_structure(slug: str, pattern: str, niches: list[str], ref: dict) 
         "hookPattern": pattern,
         "niches": niches,
         "platforms": ["tiktok", "youtube"],
-        "reference": {"hook": ref.get("hookText"), "concept": ref.get("concept")},
+        "reference": reference_of(ref),
         "slots": [
             {"id": "hook_text", "type": "text", "maxChars": 80, "guidance": f"on-screen opener — {guide}. Reference hook shape: \"{(ref.get('hookText') or '').strip()[:80]}\""},
             {"id": "vo_script", "type": "script", "targetSeconds": 20, "guidance": "voiceover in the creator's own words: the story or the steps, one concrete number, product mentioned once near the end; present tense, no ad-speak"},
@@ -116,7 +133,7 @@ def avatar_structure(slug: str, pattern: str, niches: list[str], ref: dict) -> d
         "hookPattern": pattern,
         "niches": niches,
         "platforms": ["tiktok", "youtube"],
-        "reference": {"hook": ref.get("hookText"), "concept": ref.get("concept")},
+        "reference": reference_of(ref),
         "slots": [
             {"id": "hook_overlay", "type": "text", "maxChars": 70, "guidance": f"overlay for the first 3 seconds — {guide}. Reference hook shape: \"{(ref.get('hookText') or '').strip()[:80]}\""},
             {"id": "vo_script", "type": "script", "targetSeconds": 24, "guidance": "spoken to camera, first person, conversational; make the point, give one example with a number, land the product once"},
@@ -170,15 +187,17 @@ def main() -> None:
         while slug in used:
             slug, n = f"{base}-{n}", n + 1
         used.add(slug)
+        # vidIQ gives no on-screen text for some posts; the spoken opener is the hook then.
+        c = {**c, "hookText": c.get("hookText") or c.get("hookAudio")}
         niches = c.get("niches") or [c.get("niche", "build-in-public")]
         structure = BUILDERS[fmt](slug, pattern, niches, c)
         lib[slug] = {
             "refUrl": c["refUrl"],
-            "platform": c["platform"] if c["platform"] in ("tiktok", "youtube") else "tiktok",
+            "platform": c["platform"] if c["platform"] in ("tiktok", "youtube", "instagram") else "tiktok",
             "views": c.get("views") or 0,
             "engagementScore": engagement_score(c),
             "refHandle": c["handle"],
-            "refCapturedAt": "2026-09-11",
+            "refCapturedAt": CAPTURED.get(c.get("reviewedBy", ""), "2026-09-11"),
         }
         if not args.dry_run:
             (OUT / f"{slug}.json").write_text(json.dumps(structure, ensure_ascii=False, indent=2) + "\n")

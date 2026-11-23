@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "A 20-YEAR-OLD CHINESE STUDENT SPENT $20 ON CLAUDE, BUILT AN AI SPEED RADAR IN 9 DAYS, THEN SOLD IT FOR $317K",
-    "concept": "A screen recording of AI traffic monitoring software is shown alongside a caption highlighting the massive financial success of a student who developed it."
+    "concept": "A screen recording of AI traffic monitoring software is shown alongside a caption highlighting the massive financial success of a student who developed it.",
+    "handle": "ai_prompt_and_technology",
+    "platform": "tiktok",
+    "views": 623400,
+    "outlierX": 150.6,
+    "followers": 12700
   },
   "slots": [
     {

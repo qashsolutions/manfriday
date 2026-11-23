@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Junior Developer: *too scared to step away from their desk*",
-    "concept": "A contrast video showing the difference between a stressed-out junior developer stuck at a desk and a relaxed senior developer working outdoors in nature."
+    "concept": "A contrast video showing the difference between a stressed-out junior developer stuck at a desk and a relaxed senior developer working outdoors in nature.",
+    "handle": "tiny_kiri",
+    "platform": "tiktok",
+    "views": 120900,
+    "outlierX": 41.3,
+    "followers": 19000
   },
   "slots": [
     {

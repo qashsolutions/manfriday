@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "when the intern asks why we don't just 'use a for loop' to search through 4 billion records in the database",
-    "concept": "A creator shows a relatable tech-work scenario by contrasting their reaction to a junior developer's naive question with a clip of Iron Man looking unimpressed."
+    "concept": "A creator shows a relatable tech-work scenario by contrasting their reaction to a junior developer's naive question with a clip of Iron Man looking unimpressed.",
+    "handle": "only.onam",
+    "platform": "tiktok",
+    "views": 1400000,
+    "outlierX": 148.3,
+    "followers": 2200
   },
   "slots": [
     {

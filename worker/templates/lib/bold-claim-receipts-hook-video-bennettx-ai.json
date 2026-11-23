@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "37 AI Agent Company",
-    "concept": "The creator demonstrates his complex 'AI Agent' company management system, showing how 37 autonomous AI agents handle his daily operations via a custom visual dashboard."
+    "concept": "The creator demonstrates his complex 'AI Agent' company management system, showing how 37 autonomous AI agents handle his daily operations via a custom visual dashboard.",
+    "handle": "bennettx.ai",
+    "platform": "instagram",
+    "views": 1000000,
+    "outlierX": 17.6,
+    "followers": 86600
   },
   "slots": [
     {

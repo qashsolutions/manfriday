@@ -62,6 +62,7 @@ export const claimJob = mutation({
             niche: brand.niche,
             language: brand.language,
             screenshotIds: brand.screenshotIds,
+            pageShotIds: brand.pageShotIds ?? [],
             presenterImageId: brand.presenterImageId ?? null,
             voice: brand.voice ?? "female",
           }
@@ -123,8 +124,11 @@ export const completeJob = mutation({
           if (req) await ctx.scheduler.runAfter(0, internal.email.previewsReady, { requestId: req._id, ready });
         }
       }
+      // A preview re-rendered after an edit can finish after the user already
+      // kept the pick: it refreshes the thumbnail but never moves the status back.
+      const previewOnly = job.kind === "preview" && !["draft", "preview_ready"].includes(concept.status);
       await ctx.db.patch("concepts", job.conceptId, {
-        status: job.kind === "final" ? "rendered" : "preview_ready",
+        ...(previewOnly ? {} : { status: job.kind === "final" ? ("rendered" as const) : ("preview_ready" as const) }),
         ...(args.videoId ? { videoId: args.videoId } : {}),
         ...(args.previewThumbId ? { previewThumbId: args.previewThumbId } : {}),
         costCents: concept.costCents + args.costCents,

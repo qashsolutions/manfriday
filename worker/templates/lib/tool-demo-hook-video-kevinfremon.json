@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "HOW TO BUILD AN AI 'JARVIS' IN UNDER 3 MINS.",
-    "concept": "A creator demonstrates a quick, actionable tutorial on how to build a personalized AI assistant using specific developer tools."
+    "concept": "A creator demonstrates a quick, actionable tutorial on how to build a personalized AI assistant using specific developer tools.",
+    "handle": "kevinfremon",
+    "platform": "tiktok",
+    "views": 777900,
+    "outlierX": 67.4,
+    "followers": 25600
   },
   "slots": [
     {

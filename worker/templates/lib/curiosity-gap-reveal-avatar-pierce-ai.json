@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Things you didn't know you Could do with ChatGPT",
-    "concept": "The creator demonstrates a specific ChatGPT plugin workflow to automate email management."
+    "concept": "The creator demonstrates a specific ChatGPT plugin workflow to automate email management.",
+    "handle": "pierce.ai",
+    "platform": "tiktok",
+    "views": 179300,
+    "outlierX": 82.0,
+    "followers": 49600
   },
   "slots": [
     {

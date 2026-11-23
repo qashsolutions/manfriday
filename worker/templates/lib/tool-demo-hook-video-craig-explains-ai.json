@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "How to use Copilot throughout your day",
-    "concept": "The creator demonstrates how to use Microsoft Copilot to organize daily priorities and manage emails."
+    "concept": "The creator demonstrates how to use Microsoft Copilot to organize daily priorities and manage emails.",
+    "handle": "craig_explains_ai",
+    "platform": "instagram",
+    "views": 162300,
+    "outlierX": 25.6,
+    "followers": 20500
   },
   "slots": [
     {

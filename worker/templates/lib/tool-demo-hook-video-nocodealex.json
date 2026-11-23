@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "THE CLAUDE COUNCIL THAT ROASTS YOUR IDEA",
-    "concept": "The video demonstrates an AI-powered system designed to provide critical, multifaceted feedback on startup ideas."
+    "concept": "The video demonstrates an AI-powered system designed to provide critical, multifaceted feedback on startup ideas.",
+    "handle": "nocodealex",
+    "platform": "instagram",
+    "views": 235800,
+    "outlierX": 69.4,
+    "followers": 30100
   },
   "slots": [
     {

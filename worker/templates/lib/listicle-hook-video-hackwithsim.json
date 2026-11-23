@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "THE LAZY WORK STACK. AI tools to save your brain in 2026",
-    "concept": "A creator shares a curated list of AI productivity tools while working on her laptop."
+    "concept": "A creator shares a curated list of AI productivity tools while working on her laptop.",
+    "handle": "hackwithsim",
+    "platform": "tiktok",
+    "views": 1200000,
+    "outlierX": 340.8,
+    "followers": 18000
   },
   "slots": [
     {

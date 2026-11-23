@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "CODEX BUILDS NATIVE IOS APPS",
-    "concept": "A creator explains the new capabilities of the Codex desktop app for building native iOS apps locally compared to existing web-based alternatives."
+    "concept": "A creator explains the new capabilities of the Codex desktop app for building native iOS apps locally compared to existing web-based alternatives.",
+    "handle": "agentic.james",
+    "platform": "tiktok",
+    "views": 128699,
+    "outlierX": 121.1,
+    "followers": 20500
   },
   "slots": [
     {

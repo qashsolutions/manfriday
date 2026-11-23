@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "I gave AI my weirdest business idea",
-    "concept": "A creator demonstrates how they used an AI tool to turn a hand-drawn invention idea into a professional pitch deck for a startup competition."
+    "concept": "A creator demonstrates how they used an AI tool to turn a hand-drawn invention idea into a professional pitch deck for a startup competition.",
+    "handle": "jatznaran",
+    "platform": "tiktok",
+    "views": 146400,
+    "outlierX": 59.2,
+    "followers": 1300000
   },
   "slots": [
     {

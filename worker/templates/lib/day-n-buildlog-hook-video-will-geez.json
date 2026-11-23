@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Day 8 Building from my laptop",
-    "concept": "A software developer documents their journey of building and updating an app while sharing analytics and earnings."
+    "concept": "A software developer documents their journey of building and updating an app while sharing analytics and earnings.",
+    "handle": "will.geez",
+    "platform": "instagram",
+    "views": 133400,
+    "outlierX": 60.1,
+    "followers": 10500
   },
   "slots": [
     {

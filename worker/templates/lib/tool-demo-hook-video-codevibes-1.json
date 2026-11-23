@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "In this video, you will learn how you can build website of just like these...",
-    "concept": "A screen-recorded coding tutorial demonstrating how to use an AI agent to build a high-fidelity, animated interactive website."
+    "concept": "A screen-recorded coding tutorial demonstrating how to use an AI agent to build a high-fidelity, animated interactive website.",
+    "handle": "codevibes_1",
+    "platform": "tiktok",
+    "views": 205000,
+    "outlierX": 79.2,
+    "followers": 61000
   },
   "slots": [
     {

@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I’m gonna build a vintage photo booth with me",
-    "concept": "A creator demonstrates the process of building a vintage-style photobooth web application using AI coding tools."
+    "concept": "A creator demonstrates the process of building a vintage-style photobooth web application using AI coding tools.",
+    "handle": "design4me_",
+    "platform": "tiktok",
+    "views": 38300000,
+    "outlierX": 46764.3,
+    "followers": 3100
   },
   "slots": [
     {

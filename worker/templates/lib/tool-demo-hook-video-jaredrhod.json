@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "How to use Claude Code + Obsidian to make an autonomous agent",
-    "concept": "A creator explains how to set up an autonomous AI agent using Claude Code and Obsidian."
+    "concept": "A creator explains how to set up an autonomous AI agent using Claude Code and Obsidian.",
+    "handle": "jaredrhod",
+    "platform": "tiktok",
+    "views": 838200,
+    "outlierX": 47.1,
+    "followers": 230400
   },
   "slots": [
     {

@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "How I use AI to bring in money every month",
-    "concept": "A creator explains how he uses AI agents in his businesses by training them on a personal knowledge base."
+    "concept": "A creator explains how he uses AI agents in his businesses by training them on a personal knowledge base.",
+    "handle": "jaredrhod",
+    "platform": "tiktok",
+    "views": 1400000,
+    "outlierX": 88.9,
+    "followers": 230400
   },
   "slots": [
     {

@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "GODFATHER OF VIBECODING'S CLAUDE.MD",
-    "concept": "A creator explains technical pain points in an AI coding tool and provides a specific solution found on GitHub."
+    "concept": "A creator explains technical pain points in an AI coding tool and provides a specific solution found on GitHub.",
+    "handle": "max_kelleyy",
+    "platform": "instagram",
+    "views": 250500,
+    "outlierX": 7.5,
+    "followers": 12000
   },
   "slots": [
     {

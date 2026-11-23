@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "I post 60 videos per month. Here's how I do it without going insane.",
-    "concept": "A content creator explains her productivity workflow, specifically how she uses ChatGPT to manage and plan 60 videos per month."
+    "concept": "A content creator explains her productivity workflow, specifically how she uses ChatGPT to manage and plan 60 videos per month.",
+    "handle": "saladpictures_",
+    "platform": "tiktok",
+    "views": 11200000,
+    "outlierX": 207.4,
+    "followers": 241300
   },
   "slots": [
     {

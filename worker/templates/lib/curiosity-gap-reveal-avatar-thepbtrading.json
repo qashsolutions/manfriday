@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "GOAL, MONTH",
-    "concept": "A creator explains why the first 10k per month is the most difficult milestone in business and how growth becomes exponential after that."
+    "concept": "A creator explains why the first 10k per month is the most difficult milestone in business and how growth becomes exponential after that.",
+    "handle": "thepbtrading",
+    "platform": "instagram",
+    "views": 192200,
+    "outlierX": 37.1,
+    "followers": 385900
   },
   "slots": [
     {

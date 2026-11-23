@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Just noticed my coworker coding",
-    "concept": "A developer records their workspace while roasting a coworker for not using AI coding tools."
+    "concept": "A developer records their workspace while roasting a coworker for not using AI coding tools.",
+    "handle": "createwroman",
+    "platform": "instagram",
+    "views": 229200,
+    "outlierX": 40.9,
+    "followers": 1500
   },
   "slots": [
     {

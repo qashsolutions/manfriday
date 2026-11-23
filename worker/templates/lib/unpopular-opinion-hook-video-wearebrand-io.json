@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Sorry Claude Code, this kind of website still needs humans.",
-    "concept": "A person browses through several visually impressive websites to demonstrate that AI coding agents cannot replicate human-led design."
+    "concept": "A person browses through several visually impressive websites to demonstrate that AI coding agents cannot replicate human-led design.",
+    "handle": "wearebrand.io",
+    "platform": "tiktok",
+    "views": 244700,
+    "outlierX": 53.5,
+    "followers": 95300
   },
   "slots": [
     {

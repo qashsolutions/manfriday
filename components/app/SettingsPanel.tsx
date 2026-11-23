@@ -10,6 +10,7 @@ import { LanguageChip } from "./LanguageChip";
 import { ConnectedAccounts } from "./ConnectedAccounts";
 import { PresenterPanel } from "./PresenterPanel";
 import { BillingSection } from "./BillingSection";
+import { BriefEditor } from "./BriefEditor";
 import styles from "./SettingsPanel.module.css";
 
 /* Static shell today: theme + language persist locally; every row marked M2/M4
@@ -66,6 +67,16 @@ export function SettingsPanel() {
           <p className="eyebrow">Settings</p>
           <h1 className={`display ${styles.title}`}>Friday&apos;s back office</h1>
         </header>
+
+        {/* The brief every pick is written from — first, because it shapes everything. */}
+        {brand && (
+          <section className={styles.section} aria-labelledby="s-brief">
+            <h2 id="s-brief" className={`mono ${styles.sectionTitle}`}>YOUR PRODUCT</h2>
+            <div className={styles.panel} style={{ padding: "18px 22px" }}>
+              <BriefEditor />
+            </div>
+          </section>
+        )}
 
         {/* Account */}
         <section className={styles.section} aria-labelledby="s-account">

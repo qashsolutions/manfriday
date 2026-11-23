@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "I trained Claude to run my faceless YouTube channel. The result? $6,287 in just 28 days. Here's exactly how I did it:",
-    "concept": "The creator reveals how much revenue he generated using an AI tool for his faceless YouTube channel."
+    "concept": "The creator reveals how much revenue he generated using an AI tool for his faceless YouTube channel.",
+    "handle": "adamdelduca",
+    "platform": "tiktok",
+    "views": 123200,
+    "outlierX": 153.3,
+    "followers": 36300
   },
   "slots": [
     {

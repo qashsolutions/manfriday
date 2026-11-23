@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Built an app for me and my long distance girlfriend",
-    "concept": "A developer demonstrates an app he built to help maintain his long-distance relationship."
+    "concept": "A developer demonstrates an app he built to help maintain his long-distance relationship.",
+    "handle": "lvletterz.99",
+    "platform": "tiktok",
+    "views": 897100,
+    "outlierX": 275.4,
+    "followers": 1200
   },
   "slots": [
     {

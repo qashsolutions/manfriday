@@ -13,7 +13,12 @@
   ],
   "reference": {
     "hook": "Got a business idea?? Do this FIRST",
-    "concept": "The creator reviews and demonstrates the features of an AI business planning app."
+    "concept": "The creator reviews and demonstrates the features of an AI business planning app.",
+    "handle": "lissalumutenga",
+    "platform": "tiktok",
+    "views": 2800000,
+    "outlierX": 9739.1,
+    "followers": 29800
   },
   "slots": [
     {

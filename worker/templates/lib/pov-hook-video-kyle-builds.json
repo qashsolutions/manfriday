@@ -12,7 +12,12 @@
   ],
   "reference": {
     "hook": "Just noticed my coworker coding...",
-    "concept": "A person films their coworker manually typing code without using AI coding assistants."
+    "concept": "A person films their coworker manually typing code without using AI coding assistants.",
+    "handle": "kyle_builds",
+    "platform": "tiktok",
+    "views": 220600,
+    "outlierX": 210.8,
+    "followers": 969
   },
   "slots": [
     {

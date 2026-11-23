@@ -39,6 +39,17 @@ def assemble(frames: list[tuple[Path, float]], audio_wav: Path | None, total: fl
     lst.unlink()
 
 
+def page_index(brand: BrandAssets, at: float, start: float, end: float) -> int | None:
+    """Which phone capture to show at time `at` of a span: the span is split
+    evenly across the captures, top of the site first. None without captures."""
+    n = len(brand.page_shots)
+    if n == 0:
+        return None
+    if end <= start:
+        return 0
+    return min(n - 1, max(0, int((at - start) / ((end - start) / n))))
+
+
 def segment_timeline(shot_spans, caption_spans, total: float):
     cuts = {0.0, total}
     for s, e, _ in shot_spans:
@@ -74,8 +85,12 @@ def render_slideshow(structure: dict, values: dict, brand: BrandAssets, outdir: 
     frames: list[tuple[Path, float]] = []
     parts: list[tuple[Path | None, float]] = []  # (wav or None for silence, seconds)
     beat = 0.45
+    shot_no = 0
     for i, slide in enumerate(slides, 1):
-        img = compose_slide(slide["bg"], slide.get("text"), values, brand)
+        page = None
+        if slide["bg"]["kind"] == "brand_screenshot":
+            page, shot_no = shot_no, shot_no + 1  # each screenshot slide shows the next section
+        img = compose_slide(slide["bg"], slide.get("text"), values, brand, page=page)
         f = outdir / f"slide_{i}.png"
         img.save(f)
         text = values.get((slide.get("text") or {}).get("slotRef", ""), "") if slide.get("text") else ""
@@ -140,7 +155,10 @@ def render_hook(structure: dict, values: dict, brand: BrandAssets, language: str
 
     frames = []
     for i, (a, b, shot, cap_text) in enumerate(segment_timeline(shot_spans, tts.chunks, total)):
-        img = compose_slide(shot["bg"], shot.get("text"), values, brand)
+        # The long middle shot walks down the product's site, one section per
+        # equal slice of the shot, instead of holding one image for 20 seconds.
+        span = next(sp for sp in shot_spans if sp[2] is shot)
+        img = compose_slide(shot["bg"], shot.get("text"), values, brand, page=page_index(brand, a, span[0], span[1]))
         if cap_text and not shot.get("text"):
             img = draw_text_block(img, cap_text, plan["captions"]["styleToken"], plan["captions"]["position"], brand.palette)
         f = outdir / f"seg_{i:02d}.png"
@@ -218,8 +236,11 @@ def render_avatar(structure: dict, values: dict, brand: BrandAssets, language: s
         if b <= hook_end:
             continue
         a = max(a, hook_end)
-        bg = brand.screenshot("product") or brand.screenshot("hero")
-        img = compose_slide({"kind": "brand_screenshot", "pick": "product"} if bg else {"kind": "gradient", "styleToken": "brand-dark-2"}, None, values, brand)
+        bg = brand.page_shots or brand.screenshot("product") or brand.screenshot("hero")
+        img = compose_slide(
+            {"kind": "brand_screenshot", "pick": "product"} if bg else {"kind": "gradient", "styleToken": "brand-dark-2"},
+            None, values, brand, page=page_index(brand, a, hook_end, tts.duration),
+        )
         if a < overlay_until and not brand.presenter:
             img = draw_text_block(img, values[plan["overlay"]["slotRef"]], plan["overlay"]["styleToken"], plan["overlay"]["position"], brand.palette)
         img = draw_text_block(img, text, plan["captions"]["styleToken"], plan["captions"]["position"], brand.palette)
